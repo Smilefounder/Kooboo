@@ -15,7 +15,7 @@ namespace Kooboo.Lib.Helper
 {
     public class HttpHelper
     {
-        private static HttpClient httpClient;
+        public static HttpClient HttpClient { get; private set; }
         static HttpHelper()
         {
             //ServicePointManager.ServerCertificateValidationCallback += CheckValidationResult;
@@ -23,7 +23,7 @@ namespace Kooboo.Lib.Helper
             ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11;
             SetCustomSslChecker();
 
-            httpClient = CreateHttpClient();
+            HttpClient = CreateHttpClient();
         }
 
         private static HttpClient CreateHttpClient()
@@ -116,7 +116,7 @@ namespace Kooboo.Lib.Helper
                     request.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(bytes));
                 }
 
-                var response = httpClient.SendAsync(request).Result;
+                var response = HttpClient.SendAsync(request).Result;
                 var strResult = Encoding.UTF8.GetString(response.Content.ReadAsByteArrayAsync().Result);
                 return ProcessApiResponse<T>(strResult);
             }
@@ -155,7 +155,7 @@ namespace Kooboo.Lib.Helper
             }
             try
             {
-                var response = httpClient.SendAsync(request).Result;
+                var response = HttpClient.SendAsync(request).Result;
                 var responseData = response.Content.ReadAsByteArrayAsync().Result;
                 return ProcessApiResponse<T>(Encoding.UTF8.GetString(responseData));
             }
@@ -188,7 +188,7 @@ namespace Kooboo.Lib.Helper
                     request.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(bytes));
                 }
 
-                var response = httpClient.SendAsync(request).Result;
+                var response = HttpClient.SendAsync(request).Result;
                 return response.Content.ReadAsByteArrayAsync().Result;
             }
             catch (Exception ex)
@@ -213,7 +213,7 @@ namespace Kooboo.Lib.Helper
                 };
                 request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
 
-                var response = httpClient.SendAsync(request).Result;
+                var response = HttpClient.SendAsync(request).Result;
                 var responseData = response.Content.ReadAsByteArrayAsync().Result;
                 return ProcessApiResponse<T>(Encoding.UTF8.GetString(responseData));
             }
@@ -242,7 +242,7 @@ namespace Kooboo.Lib.Helper
                 request.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(bytes));
             }
 
-            var response = httpClient.SendAsync(request).Result;
+            var response = HttpClient.SendAsync(request).Result;
             var backstring = response.Content.ReadAsStringAsync().Result;
             return ProcessApiResponse<T>(backstring);
         }
@@ -256,7 +256,7 @@ namespace Kooboo.Lib.Helper
                     RequestUri = new Uri(url),
                     Method = HttpMethod.Get
                 };
-                var response = httpClient.SendAsync(request).Result;
+                var response = HttpClient.SendAsync(request).Result;
                 return response.Content.ReadAsStringAsync().Result;
             }
             catch (Exception ex)
@@ -282,7 +282,7 @@ namespace Kooboo.Lib.Helper
                     RequestUri = new Uri(url),
                     Method = HttpMethod.Get
                 };
-                var response = await httpClient.SendAsync(request);
+                var response = await HttpClient.SendAsync(request);
                 return await response.Content.ReadAsStringAsync();
             }
             catch (Exception ex)
@@ -308,7 +308,7 @@ namespace Kooboo.Lib.Helper
                     RequestUri = new Uri(url),
                     Method = HttpMethod.Get
                 };
-                var response = httpClient.SendAsync(request).Result;
+                var response = HttpClient.SendAsync(request).Result;
                 var backstring = response.Content.ReadAsStringAsync().Result;
                 return ProcessApiResponse<T>(backstring);
             }
@@ -342,7 +342,7 @@ namespace Kooboo.Lib.Helper
                     request.Headers.Add(item.Key, item.Value);
                 }
             }
-            var response = await httpClient.SendAsync(request);
+            var response = await HttpClient.SendAsync(request);
             var backstring = await response.Content.ReadAsStringAsync();
             return ProcessApiResponse<T>(backstring);
         }
@@ -394,7 +394,7 @@ namespace Kooboo.Lib.Helper
             bool success = false;
             try
             {
-                var response = httpClient.SendAsync(request).Result;
+                var response = HttpClient.SendAsync(request).Result;
                 var responseData = response.Content.ReadAsByteArrayAsync().Result;
                 var ok = ProcessApiResponse<bool>(Encoding.UTF8.GetString(responseData));
 
