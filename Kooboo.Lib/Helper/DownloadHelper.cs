@@ -63,19 +63,6 @@ namespace Kooboo.Lib.Helper
                         downloadok = false;
                     }
                 }
-                //using (MyWebClient client = new MyWebClient())
-                //{
-                //    client.Proxy = null;
-                //    bytes = client.DownloadData(absoluteUrl);
-                //    if (containsContentType != null)
-                //    {
-                //        string contenttype = client.ResponseHeaders["content-type"];
-                //        if (string.IsNullOrEmpty(contenttype) || !contenttype.ToLower().Contains(containsContentType.ToLower()))
-                //        {
-                //            downloadok = false;
-                //        }
-                //    }
-                //}
             }
             catch (Exception ex)
             {
