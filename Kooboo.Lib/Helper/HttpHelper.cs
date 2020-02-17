@@ -328,9 +328,9 @@ namespace Kooboo.Lib.Helper
             //    client.Proxy = null;
             //    client.Encoding = Encoding.UTF8;
 
-            //    var backstring = client.DownloadString(url);
+            //    var backstring1 = client.DownloadString(url);
 
-            //    return ProcessApiResponse<T>(backstring);
+            //    return ProcessApiResponse<T>(backstring1);
             //}
         }
 
@@ -380,7 +380,8 @@ namespace Kooboo.Lib.Helper
                     Method = HttpMethod.Get
                 };
                 var response = await httpClient.SendAsync(request);
-                return await response.Content.ReadAsStringAsync();
+                var data= await response.Content.ReadAsStringAsync();
+                return data;
 
                 //using (var client = new WebClient())
                 //{
