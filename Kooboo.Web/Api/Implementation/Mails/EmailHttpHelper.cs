@@ -7,6 +7,8 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Kooboo.Lib.Helper;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace Kooboo.Web.Api.Implementation.Mails
 {
@@ -23,20 +25,18 @@ namespace Kooboo.Web.Api.Implementation.Mails
 
             Kooboo.Data.Log.Instance.Email.Write("--get--" + url);
 
-            using (var client = new WebClient())
+            var request = new HttpRequestMessage
             {
-                client.Headers.Add("user-agent", DefaultUserAgent);
-                AddHeader(client.Headers, headers);
+                RequestUri = new Uri(url)
+            };
+            AddHeader(request.Headers, headers);
+            var response = HttpHelper.HttpClient.SendAsync(request).Result;
+            var backstring = response.Content.ReadAsStringAsync().Result;
 
-                client.Proxy = null;
-                client.Encoding = Encoding.UTF8;
+            Kooboo.Data.Log.Instance.Email.Write(backstring);
 
-                var backstring = client.DownloadString(url);
+            return ProcessApiResponse<T>(backstring);
 
-                Kooboo.Data.Log.Instance.Email.Write(backstring);
-
-                return ProcessApiResponse<T>(backstring);
-            }
         }
 
         public static T Post<T>(string url, Dictionary<string, string> parameters, Dictionary<string, string> headers)
@@ -46,22 +46,26 @@ namespace Kooboo.Web.Api.Implementation.Mails
                 var postString = String.Join("&", parameters.Select(it => String.Concat(it.Key, "=", Uri.EscapeDataString(it.Value))));
                 var postData = Encoding.UTF8.GetBytes(postString);
 
-                using (var client = new WebClient())
+                var request = new HttpRequestMessage
                 {
-                    client.Headers.Add("user-agent", DefaultUserAgent);
-                    client.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-                    AddHeader(client.Headers, headers);
+                    RequestUri = new Uri(url),
+                    Method = HttpMethod.Post,
+                    Content = new ByteArrayContent(postData)
+                };
+                
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+                AddHeader(request.Headers, headers);
 
-                    var responseData = client.UploadData(url, "POST", postData);
+                var response = HttpHelper.HttpClient.SendAsync(request).Result;
+                var responseData = response.Content.ReadAsByteArrayAsync().Result;
 
-                    Kooboo.Data.Log.Instance.Email.Write("--post-- " + url + " -- " + postString);
+                Kooboo.Data.Log.Instance.Email.Write("--post-- " + url + " -- " + postString);
 
-                    var strResult = Encoding.UTF8.GetString(responseData);
+                var strResult = Encoding.UTF8.GetString(responseData);
 
-                    Kooboo.Data.Log.Instance.Email.Write(strResult);
+                Kooboo.Data.Log.Instance.Email.Write(strResult);
 
-                    return ProcessApiResponse<T>(strResult);
-                }
+                return ProcessApiResponse<T>(strResult);
             }
             catch (Exception ex)
             {
@@ -72,30 +76,30 @@ namespace Kooboo.Web.Api.Implementation.Mails
 
         public static T Post<T>(string url, Dictionary<string, string> Headers, byte[] postBytes)
         {
-            using (var client = new WebClient())
+            var request = new HttpRequestMessage
             {
-                client.Headers.Add("user-agent", DefaultUserAgent);
-                client.Headers.Add("Content-Type", "multipart/form-data");
+                RequestUri = new Uri(url),
+                Method = HttpMethod.Post,
+                Content = new ByteArrayContent(postBytes)
+            };
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue("multipart/form-data");
+            AddHeader(request.Headers, Headers);
 
-                AddHeader(client.Headers, Headers);
+            try
+            {
+                var response = HttpHelper.HttpClient.SendAsync(request).Result;
+                var responseData = response.Content.ReadAsByteArrayAsync().Result;
+                string result = Encoding.UTF8.GetString(responseData);
+                Kooboo.Data.Log.Instance.Email.Write("--post--" + url);
+                Kooboo.Data.Log.Instance.Email.Write(result);
 
-                try
-                {
-                    var responseData = client.UploadData(url, "POST", postBytes);
-
-                    string result = Encoding.UTF8.GetString(responseData);
-
-                    Kooboo.Data.Log.Instance.Email.Write("--post--" + url);
-                    Kooboo.Data.Log.Instance.Email.Write(result);
-
-                    return ProcessApiResponse<T>(result);
-                }
-                catch (Exception ex)
-                {
-                    Kooboo.Data.Log.Instance.Exception.WriteException(ex);
-                }
-                return default(T);
+                return ProcessApiResponse<T>(result);
             }
+            catch (Exception ex)
+            {
+                Kooboo.Data.Log.Instance.Exception.WriteException(ex);
+            }
+            return default(T);
         }
 
 
@@ -103,13 +107,17 @@ namespace Kooboo.Web.Api.Implementation.Mails
         {
             try
             {
-                using (var client = new WebClient())
+                var request = new HttpRequestMessage
                 {
-                    client.Headers.Add("user-agent", DefaultUserAgent);
-                    client.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-                    AddHeader(client.Headers, headers);
-                    return client.UploadData(url, "POST", data);
-                }
+                    RequestUri = new Uri(url),
+                    Method = HttpMethod.Post,
+                    Content = new ByteArrayContent(data)
+                };
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+                AddHeader(request.Headers, headers);
+                var response = HttpHelper.HttpClient.SendAsync(request).Result;
+
+                return response.Content.ReadAsByteArrayAsync().Result;
             }
             catch (Exception ex)
             {
@@ -118,7 +126,7 @@ namespace Kooboo.Web.Api.Implementation.Mails
             return null;
         }
 
-        private static void AddHeader(WebHeaderCollection webHeaderCollection, Dictionary<string, string> headers)
+        private static void AddHeader(HttpRequestHeaders webHeaderCollection, Dictionary<string, string> headers)
         {
             if (headers != null)
             {

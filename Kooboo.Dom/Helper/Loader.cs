@@ -180,7 +180,7 @@ namespace Kooboo.Dom
             return e;
         }
 
-
+        [Obsolete]
         public static byte[] downloadFile(string absoluteUrl)
         {
             byte[] imagebytes = null;

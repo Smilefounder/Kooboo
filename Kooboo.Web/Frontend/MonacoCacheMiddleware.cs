@@ -51,9 +51,12 @@ namespace Kooboo.Web.Frontend
                 try
                 {
                     _isLoadding = true;
-                    var client = new System.Net.WebClient();
-                    var uri = new Uri($"https://cdn.jsdelivr.net/gh/kooboo/monaco@master/vs{_monacoVersion}.zip");
-                    var bytes = await client.DownloadDataTaskAsync(uri);
+                    var request = new HttpRequestMessage
+                    {
+                        RequestUri = new Uri($"https://cdn.jsdelivr.net/gh/kooboo/monaco@master/vs{_monacoVersion}.zip")
+                    };
+                    var response = HttpHelper.HttpClient.SendAsync(request).Result;
+                    var bytes = response.Content.ReadAsByteArrayAsync().Result;
 
                     if (bytes != null)
                     {
