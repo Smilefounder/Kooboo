@@ -8,17 +8,35 @@ using System.Text;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace Kooboo.Lib.Helper
 {
     public class HttpHelper
     {
+        private static HttpClient httpClient;
         static HttpHelper()
         {
             //ServicePointManager.ServerCertificateValidationCallback += CheckValidationResult;
             ////turn on tls12 and tls11,default is ssl3 and tls
             ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11;
             SetCustomSslChecker();
+
+            httpClient = CreateHttpClient();
+        }
+
+        private static HttpClient CreateHttpClient()
+        {
+            HttpClientHandler handler = new HttpClientHandler();
+#if NETSTANDARD2_0
+            //ServicePointManager does not affect httpclient in dotnet core
+            handler.ServerCertificateCustomValidationCallback = delegate { return true; };
+#endif
+            handler.Proxy = null;
+            HttpClient client = new HttpClient(handler);
+            client.DefaultRequestHeaders.Add("User-Agent", DefaultUserAgent);
+            return client;
         }
 
         public static bool HasSetCustomSSL { get; set; }
@@ -31,6 +49,7 @@ namespace Kooboo.Lib.Helper
                 HasSetCustomSSL = true;
             }
         }
+
 
         private static bool CheckValidationResult(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors)
         {
@@ -83,21 +102,40 @@ namespace Kooboo.Lib.Helper
             {
                 var postString = String.Join("&", parameters.Select(it => String.Concat(it.Key, "=", Uri.EscapeDataString(it.Value))));
                 var postData = Encoding.UTF8.GetBytes(postString);
-                using (var client = new WebClient())
+
+                var request = new HttpRequestMessage
                 {
-                    client.Headers.Add("user-agent", DefaultUserAgent);
-                    client.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-
-                    if (!string.IsNullOrEmpty(UserName) && !string.IsNullOrEmpty(Password))
-                    {
-                        var bytes = Encoding.UTF8.GetBytes(String.Format("{0}:{1}", UserName, Password));
-                        client.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(bytes));
-                    }
-
-                    var responseData = client.UploadData(url, "POST", postData);
-                    var strResult = Encoding.UTF8.GetString(responseData);
-                    return ProcessApiResponse<T>(strResult);
+                    RequestUri = new Uri(url),
+                    Method = HttpMethod.Post,
+                    Content = new ByteArrayContent(postData)
+                };
+                request.Content.Headers.ContentType =new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+                if (!string.IsNullOrEmpty(UserName) && !string.IsNullOrEmpty(Password))
+                {
+                    var bytes = Encoding.UTF8.GetBytes(String.Format("{0}:{1}", UserName, Password));
+                    request.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(bytes));
                 }
+
+                var response = httpClient.SendAsync(request).Result;
+                var strResult = Encoding.UTF8.GetString(response.Content.ReadAsByteArrayAsync().Result);
+                return ProcessApiResponse<T>(strResult);
+
+
+                //using (var client = new WebClient())
+                //{
+                //    client.Headers.Add("user-agent", DefaultUserAgent);
+                //    client.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+                //    if (!string.IsNullOrEmpty(UserName) && !string.IsNullOrEmpty(Password))
+                //    {
+                //        var bytes = Encoding.UTF8.GetBytes(String.Format("{0}:{1}", UserName, Password));
+                //        client.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(bytes));
+                //    }
+
+                //    var responseData = client.UploadData(url, "POST", postData);
+                //    var strResult = Encoding.UTF8.GetString(responseData);
+                //    return ProcessApiResponse<T>(strResult);
+                //}
             }
             catch (Exception ex)
             {
@@ -108,6 +146,13 @@ namespace Kooboo.Lib.Helper
 
         public static T Post<T>(string url, Dictionary<string, string> Headers, byte[] postBytes, string UserName = null, string Password = null)
         {
+
+            var request = new HttpRequestMessage
+            {
+                RequestUri = new Uri(url),
+                Method = HttpMethod.Post,
+                Content = new ByteArrayContent(postBytes)
+            };
             if (!string.IsNullOrEmpty(UserName))
             {
                 if (Headers == null)
@@ -117,52 +162,93 @@ namespace Kooboo.Lib.Helper
                 var bytes = Encoding.UTF8.GetBytes(String.Format("{0}:{1}", UserName, Password));
                 Headers.Add("Authorization", "Basic " + Convert.ToBase64String(bytes));
             }
-            using (var client = new WebClient())
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue("multipart/form-data");
+            if (Headers != null)
             {
-                client.Headers.Add("user-agent", DefaultUserAgent);
-                client.Headers.Add("Content-Type", "multipart/form-data");
-                if (Headers != null)
+                foreach (var item in Headers)
                 {
-                    foreach (var item in Headers)
-                    {
-                        client.Headers.Add(item.Key, item.Value);
-                    }
+                    request.Headers.Add(item.Key, item.Value);
                 }
-
-                try
-                {
-                    var responseData = client.UploadData(url, "POST", postBytes);
-
-                    return ProcessApiResponse<T>(Encoding.UTF8.GetString(responseData));
-                }
-                catch (Exception ex)
-                {
-
-                }
-                return default(T);
             }
+            try
+            {
+                var response = httpClient.SendAsync(request).Result;
+                var responseData = response.Content.ReadAsByteArrayAsync().Result;
+                return ProcessApiResponse<T>(Encoding.UTF8.GetString(responseData));
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return default(T);
+
+            //using (var client = new WebClient())
+            //{
+            //    client.Headers.Add("user-agent", DefaultUserAgent);
+            //    client.Headers.Add("Content-Type", "multipart/form-data");
+            //    if (Headers != null)
+            //    {
+            //        foreach (var item in Headers)
+            //        {
+            //            client.Headers.Add(item.Key, item.Value);
+            //        }
+            //    }
+
+            //    try
+            //    {
+            //        var responseData = client.UploadData(url, "POST", postBytes);
+
+            //        return ProcessApiResponse<T>(Encoding.UTF8.GetString(responseData));
+            //    }
+            //    catch (Exception ex)
+            //    {
+
+            //    }
+            //    return default(T);
+            //}
         }
 
         public static byte[] ConvertKooboo(string url, byte[] data, Dictionary<string, string> headers, string UserName = null, string Password = null)
         {
             try
             {
-                using (var client = new WebClient())
+                var request = new HttpRequestMessage
                 {
-                    client.Headers.Add("user-agent", DefaultUserAgent);
-                    client.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-                    foreach (var item in headers)
-                    {
-                        client.Headers.Add(item.Key, item.Value);
-                    }
-                    if (!string.IsNullOrEmpty(UserName))
-                    {
-                        var bytes = Encoding.UTF8.GetBytes(String.Format("{0}:{1}", UserName, Password));
-                        client.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(bytes));
-                    }
+                    RequestUri = new Uri(url),
+                    Method = HttpMethod.Post,
+                    Content=new ByteArrayContent(data)
+                };
 
-                    return client.UploadData(url, "POST", data);
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+                foreach (var item in headers)
+                {
+                    request.Headers.Add(item.Key, item.Value);
                 }
+                if (!string.IsNullOrEmpty(UserName))
+                {
+                    var bytes = Encoding.UTF8.GetBytes(String.Format("{0}:{1}", UserName, Password));
+                    request.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(bytes));
+                }
+
+                var response = httpClient.SendAsync(request).Result;
+                return response.Content.ReadAsByteArrayAsync().Result;
+
+                //using (var client = new WebClient())
+                //{
+                //    client.Headers.Add("user-agent", DefaultUserAgent);
+                //    client.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                //    foreach (var item in headers)
+                //    {
+                //        client.Headers.Add(item.Key, item.Value);
+                //    }
+                //    if (!string.IsNullOrEmpty(UserName))
+                //    {
+                //        var bytes = Encoding.UTF8.GetBytes(String.Format("{0}:{1}", UserName, Password));
+                //        client.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(bytes));
+                //    }
+
+                //    return client.UploadData(url, "POST", data);
+                //}
             }
             catch (Exception ex)
             {
@@ -177,16 +263,29 @@ namespace Kooboo.Lib.Helper
             {
                 json = System.Net.WebUtility.UrlEncode(json);  ///????? What is this????
                 var postData = Encoding.UTF8.GetBytes(json);
-                using (var client = new WebClient())
+                
+                var request = new HttpRequestMessage
                 {
-                    client.Proxy = null;
-                    client.Headers.Add("user-agent", DefaultUserAgent);
-                    client.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                    RequestUri = new Uri(url),
+                    Method = HttpMethod.Post,
+                    Content = new ByteArrayContent(postData)
+                };
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
 
-                    var responseData = client.UploadData(url, "POST", postData);
+                var response = httpClient.SendAsync(request).Result;
+                var responseData = response.Content.ReadAsByteArrayAsync().Result;
+                return ProcessApiResponse<T>(Encoding.UTF8.GetString(responseData));
 
-                    return ProcessApiResponse<T>(Encoding.UTF8.GetString(responseData));
-                }
+                //using (var client = new WebClient())
+                //{
+                //    client.Proxy = null;
+                //    client.Headers.Add("user-agent", DefaultUserAgent);
+                //    client.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+                //    var responseData = client.UploadData(url, "POST", postData);
+
+                //    return ProcessApiResponse<T>(Encoding.UTF8.GetString(responseData));
+                //}
             }
             catch (Exception)
             {
@@ -201,37 +300,61 @@ namespace Kooboo.Lib.Helper
             {
                 url = UrlHelper.AppendQueryString(url, query);
             }
-            using (var client = new WebClient())
+            var request = new HttpRequestMessage
             {
-                client.Headers.Add("user-agent", DefaultUserAgent);
+                RequestUri = new Uri(url),
+                Method = HttpMethod.Get
+            };
 
-                if (!string.IsNullOrEmpty(UserName) && !string.IsNullOrEmpty(Password))
-                {
-                    var bytes = Encoding.UTF8.GetBytes(String.Format("{0}:{1}", UserName, Password));
-                    client.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(bytes));
-                }
-                client.Proxy = null;
-                client.Encoding = Encoding.UTF8;
-
-                var backstring = client.DownloadString(url);
-
-                return ProcessApiResponse<T>(backstring);
+            if (!string.IsNullOrEmpty(UserName) && !string.IsNullOrEmpty(Password))
+            {
+                var bytes = Encoding.UTF8.GetBytes(String.Format("{0}:{1}", UserName, Password));
+                request.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(bytes));
             }
+
+            var response = httpClient.SendAsync(request).Result;
+            var backstring = response.Content.ReadAsStringAsync().Result;
+            return ProcessApiResponse<T>(backstring);
+
+            //using (var client = new WebClient())
+            //{
+            //    client.Headers.Add("user-agent", DefaultUserAgent);
+
+            //    if (!string.IsNullOrEmpty(UserName) && !string.IsNullOrEmpty(Password))
+            //    {
+            //        var bytes = Encoding.UTF8.GetBytes(String.Format("{0}:{1}", UserName, Password));
+            //        client.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(bytes));
+            //    }
+            //    client.Proxy = null;
+            //    client.Encoding = Encoding.UTF8;
+
+            //    var backstring = client.DownloadString(url);
+
+            //    return ProcessApiResponse<T>(backstring);
+            //}
         }
-         
+
         public static string GetString(string url)
         {
             try
             {
-                using (var client = new WebClient())
+                var request = new HttpRequestMessage
                 {
-                    client.Headers.Add("user-agent", DefaultUserAgent);
+                    RequestUri = new Uri(url),
+                    Method = HttpMethod.Get
+                };
+                var response = httpClient.SendAsync(request).Result;
+                return response.Content.ReadAsStringAsync().Result;
 
-                    client.Proxy = null;
-                    client.Encoding = Encoding.UTF8;
+                //using (var client = new WebClient())
+                //{
+                //    client.Headers.Add("user-agent", DefaultUserAgent);
 
-                    return client.DownloadString(url);
-                }
+                //    client.Proxy = null;
+                //    client.Encoding = Encoding.UTF8;
+
+                //    return client.DownloadString(url);
+                //}
             }
             catch (Exception ex)
             {
@@ -251,21 +374,28 @@ namespace Kooboo.Lib.Helper
                 {
                     url = UrlHelper.AppendQueryString(url, query);
                 }
-
-                using (var client = new WebClient())
+                var request = new HttpRequestMessage
                 {
-                    client.Headers.Add("user-agent", DefaultUserAgent);
+                    RequestUri = new Uri(url),
+                    Method = HttpMethod.Get
+                };
+                var response = await httpClient.SendAsync(request);
+                return await response.Content.ReadAsStringAsync();
 
-                    client.Proxy = null;
-                    client.Encoding = Encoding.UTF8;
+                //using (var client = new WebClient())
+                //{
+                //    client.Headers.Add("user-agent", DefaultUserAgent);
 
-                  return  await client.DownloadStringTaskAsync(new Uri(url));
-                }
+                //    client.Proxy = null;
+                //    client.Encoding = Encoding.UTF8;
+
+                //    return await client.DownloadStringTaskAsync(new Uri(url));
+                //}
             }
             catch (Exception ex)
-            { 
+            {
 
-            } 
+            }
 
             return null;
         }
@@ -280,17 +410,26 @@ namespace Kooboo.Lib.Helper
 
             try
             {
-                using (var client = new WebClient())
+                var request = new HttpRequestMessage
                 {
-                    client.Headers.Add("user-agent", DefaultUserAgent);
+                    RequestUri = new Uri(url),
+                    Method = HttpMethod.Get
+                };
+                var response = httpClient.SendAsync(request).Result;
+                var backstring = response.Content.ReadAsStringAsync().Result;
+                return ProcessApiResponse<T>(backstring);
 
-                    client.Proxy = null;
-                    client.Encoding = Encoding.UTF8;
+                //using (var client = new WebClient())
+                //{
+                //    client.Headers.Add("user-agent", DefaultUserAgent);
 
-                    var backstring = client.DownloadString(url);
+                //    client.Proxy = null;
+                //    client.Encoding = Encoding.UTF8;
 
-                    return ProcessApiResponse<T>(backstring);
-                }
+                //    var backstring = client.DownloadString(url);
+
+                //    return ProcessApiResponse<T>(backstring);
+                //}
             }
             catch (Exception ex)
             {
@@ -305,30 +444,51 @@ namespace Kooboo.Lib.Helper
             {
                 return default(T);
             }
-            using (var client = new WebClient())
+            if (query != null)
             {
-                client.Headers.Add("user-agent", DefaultUserAgent);
-
-                if (headers != null)
-                {
-                    foreach (var item in headers)
-                    {
-                        client.Headers.Add(item.Key, item.Value);
-                    }
-                }
-
-                if (query != null)
-                {
-                    url = UrlHelper.AppendQueryString(url, query);
-                }
-
-                client.Proxy = null;
-                client.Encoding = Encoding.UTF8;
-
-                var backstring = await client.DownloadStringTaskAsync(new Uri(url));
-                var result = ProcessApiResponse<T>(backstring);
-                return result;
+                url = UrlHelper.AppendQueryString(url, query);
             }
+
+            var request = new HttpRequestMessage
+            {
+                RequestUri = new Uri(url),
+                Method = HttpMethod.Get
+            };
+            if (headers != null)
+            {
+                foreach (var item in headers)
+                {
+                    request.Headers.Add(item.Key, item.Value);
+                }
+            }
+            var response = await httpClient.SendAsync(request);
+            var backstring = await response.Content.ReadAsStringAsync();
+            return ProcessApiResponse<T>(backstring);
+
+            //using (var client = new WebClient())
+            //{
+            //    client.Headers.Add("user-agent", DefaultUserAgent);
+
+            //    if (headers != null)
+            //    {
+            //        foreach (var item in headers)
+            //        {
+            //            client.Headers.Add(item.Key, item.Value);
+            //        }
+            //    }
+
+            //    if (query != null)
+            //    {
+            //        url = UrlHelper.AppendQueryString(url, query);
+            //    }
+
+            //    client.Proxy = null;
+            //    client.Encoding = Encoding.UTF8;
+
+            //    var backstring = await client.DownloadStringTaskAsync(new Uri(url));
+            //    var result = ProcessApiResponse<T>(backstring);
+            //    return result;
+            //}
         }
 
 
@@ -350,6 +510,13 @@ namespace Kooboo.Lib.Helper
 
         public static bool PostData(string url, Dictionary<string, string> Headers, byte[] PostBytes, string UserName = null, string Password = null)
         {
+            var request = new HttpRequestMessage
+            {
+                RequestUri = new Uri(url),
+                Method = HttpMethod.Post,
+                Content=new ByteArrayContent(PostBytes)
+            };
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue("multipart/form-data");
             if (!string.IsNullOrEmpty(UserName))
             {
                 if (Headers == null)
@@ -359,33 +526,57 @@ namespace Kooboo.Lib.Helper
                 var bytes = Encoding.UTF8.GetBytes(String.Format("{0}:{1}", UserName, Password));
                 Headers.Add("Authorization", "Basic " + Convert.ToBase64String(bytes));
             }
-            using (var client = new WebClient())
+           
+            if (Headers != null)
             {
-                client.Headers.Add("user-agent", DefaultUserAgent);
-                client.Headers.Add("Content-Type", "multipart/form-data");
-                if (Headers != null)
+                foreach (var item in Headers)
                 {
-                    foreach (var item in Headers)
-                    {
-                        client.Headers.Add(item.Key, item.Value);
-                    }
+                    request.Headers.Add(item.Key, item.Value);
                 }
-
-                bool success = false;
-                try
-                {
-                    var responseData = client.UploadData(url, "POST", PostBytes);
-
-                    var ok = ProcessApiResponse<bool>(Encoding.UTF8.GetString(responseData));
-
-                    success = ok;
-                }
-                catch (Exception ex)
-                {
-                    success = false;
-                }
-                return success;
             }
+
+            bool success = false;
+            try
+            {
+                var response = httpClient.SendAsync(request).Result;
+                var responseData = response.Content.ReadAsByteArrayAsync().Result;
+                var ok = ProcessApiResponse<bool>(Encoding.UTF8.GetString(responseData));
+
+                success = ok;
+            }
+            catch (Exception ex)
+            {
+                success = false;
+            }
+            return success;
+
+            //using (var client = new WebClient())
+            //{
+            //    client.Headers.Add("user-agent", DefaultUserAgent);
+            //    client.Headers.Add("Content-Type", "multipart/form-data");
+            //    if (Headers != null)
+            //    {
+            //        foreach (var item in Headers)
+            //        {
+            //            client.Headers.Add(item.Key, item.Value);
+            //        }
+            //    }
+
+            //    bool success = false;
+            //    try
+            //    {
+            //        var responseData = client.UploadData(url, "POST", PostBytes);
+
+            //        var ok = ProcessApiResponse<bool>(Encoding.UTF8.GetString(responseData));
+
+            //        success = ok;
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        success = false;
+            //    }
+            //    return success;
+            //}
         }
 
     }
