@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 namespace Kooboo.Web.Api.Implementation
 {
     public class KScriptApi : IApi
-    { 
+    {
 
         private readonly Lazy<string> _defineContent;
 
@@ -33,7 +33,7 @@ namespace Kooboo.Web.Api.Implementation
 
         public bool RequireSite
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool RequireUser
@@ -44,6 +44,15 @@ namespace Kooboo.Web.Api.Implementation
         public string GetDefine()
         {
             return _defineContent.Value;
+        }
+
+        [Kooboo.Attributes.RequireParameters("name")]
+        public string GetLib(string name, ApiCall call)
+        {
+            var script = call.WebSite.SiteDb().Scripts.GetByNameOrId($"{name}.js");
+            if (script != null) return script.Body;
+            var client = new System.Net.WebClient();
+            return client.DownloadString($"https://cdn.jsdelivr.net/npm/{name}");
         }
     }
 }
