@@ -228,7 +228,7 @@ namespace Kooboo.Lib.Helper
         {
             if (query != null)
             {
-                url = UrlHelper.AppendQueryString(url, query);
+                url = UrlHelper.AppendQueryString(url, query); 
             }
             var request = new HttpRequestMessage
             {
