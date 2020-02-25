@@ -52,6 +52,10 @@ namespace Kooboo.Lib.Reflection
                 watchers.Add(watcher);
             }
             Assemblies = LoadDlls();
+
+            var extensionDlls = AppSettingsUtility.Get("extensiondlls");
+            if (!string.IsNullOrEmpty(extensionDlls))
+                LoadSpecificDlls(extensionDlls);
         }
 
         public Type LoadTypeByName(string name)
@@ -136,6 +140,7 @@ namespace Kooboo.Lib.Reflection
                     }
                 }
             }
+
             return dlls;
         }
 
