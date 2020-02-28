@@ -140,6 +140,7 @@ namespace Kooboo.IndexedDB.Helper
         {
             ParameterExpression arg = Expression.Parameter(typeof(TValue));
             Expression expr = Expression.PropertyOrField(arg, FieldName);
+
             return Expression.Lambda<Func<TValue, object>>(expr, arg).Compile();
         }
 
@@ -153,64 +154,171 @@ namespace Kooboo.IndexedDB.Helper
 
         public static Action<object, object> GetSetObjectValue(string FieldName, Type ObjectType, Type fieldtype)
         {
-            var objectpara = Expression.Parameter(typeof(object));
-            var fieldpara = Expression.Parameter(typeof(object));
-            var rightObjectType = Expression.Convert(objectpara, ObjectType);
-            Expression expr = Expression.PropertyOrField(rightObjectType, FieldName);
-            var righttype = Expression.Convert(fieldpara, fieldtype);
-            return Expression.Lambda<Action<object, object>>(Expression.Assign(expr, righttype), objectpara, fieldpara).Compile();
+            //var objectpara = Expression.Parameter(typeof(object));
+            //var fieldpara = Expression.Parameter(typeof(object));
+            //var rightObjectType = Expression.Convert(objectpara, ObjectType);
+            //Expression expr = Expression.PropertyOrField(rightObjectType, FieldName);
+            //var righttype = Expression.Convert(fieldpara, fieldtype);
+
+            Action<object, object> action = (object obj, object fieldObj) =>
+            {
+                var propery = ObjectType.GetProperty(FieldName);
+                if (propery != null)
+                {
+                    //var data = ConvertType(FieldName,fieldtype);
+                    propery.SetValue(obj, fieldObj);
+                }
+                else
+                {
+                    var field = ObjectType.GetField(FieldName);
+                    if (field != null)
+                    {
+                        //var data = ConvertType(FieldName, fieldtype);
+                        field.SetValue(obj, fieldObj);
+                    }
+                }
+            };
+            return action;
+
+            //return Expression.Lambda<Action<object, object>>(Expression.Assign(expr, righttype), objectpara, fieldpara).Compile();
 
         }
 
         public static Func<object, object> GetGetObjectValue(string FieldName, Type objecttype)
         {
-            ParameterExpression objectPara = Expression.Parameter(typeof(object));
+            //ParameterExpression objectPara = Expression.Parameter(typeof(object));
 
-            var expression = Expression.Convert(objectPara, objecttype);
+            //var expression = Expression.Convert(objectPara, objecttype);
 
-            //  Expression expr = Expression.PropertyOrField(expression, FieldName);
+            ////  Expression expr = Expression.PropertyOrField(expression, FieldName);
 
-            Expression expr;
-            if (objecttype.GetField(FieldName) != null)
+            //Expression expr;
+            //if (objecttype.GetField(FieldName) != null)
+            //{
+            //    expr = Expression.Field(expression, FieldName);
+            //}
+            //else
+            //{
+            //    if (objecttype.GetProperty(FieldName) != null)
+            //    {
+            //        expr = Expression.Property(expression, FieldName);
+            //    }
+            //    else
+            //    {
+            //        return null;
+            //    }
+            //}
+
+            //Expression convertobject = Expression.Convert(expr, typeof(object));
+
+
+            Func<object, object> func = (object obj) =>
             {
-                expr = Expression.Field(expression, FieldName);
-            }
-            else
-            {
-                if (objecttype.GetProperty(FieldName) != null)
+                var propery = objecttype.GetProperty(FieldName);
+                if (propery != null)
                 {
-                    expr = Expression.Property(expression, FieldName);
+                    var value = propery.GetValue(obj);
+                    return value;
                 }
-                else
+
+                var field = objecttype.GetField(FieldName);
+                if (field != null)
                 {
-                    return null;
+                    var value = field.GetValue(obj);
+                    return value;
                 }
-            }
 
-            Expression convertobject = Expression.Convert(expr, typeof(object));
+                return null;
+            };
 
-            return Expression.Lambda<Func<object, object>>(convertobject, objectPara).Compile();
+            return func;
+
+            //return Expression.Lambda<Func<object, object>>(convertobject, objectPara).Compile();
 
         }
         
 
         public static Action<object, TFieldType> GetSetFieldValue<TFieldType>(string FieldName, Type ObjectType)
         {
-            var objectpara = Expression.Parameter(typeof(object));
-            var fieldpara = Expression.Parameter(typeof(TFieldType));
-            var rightObjectType = Expression.Convert(objectpara, ObjectType);
-            Expression expr = Expression.PropertyOrField(rightObjectType, FieldName);
-            var righttype = Expression.Convert(fieldpara, typeof(TFieldType));
-            return Expression.Lambda<Action<object, TFieldType>>(Expression.Assign(expr, righttype), objectpara, fieldpara).Compile();
+            //var objectpara = Expression.Parameter(typeof(object));
+            //var fieldpara = Expression.Parameter(typeof(TFieldType));
+            //var rightObjectType = Expression.Convert(objectpara, ObjectType);
+            //Expression expr = Expression.PropertyOrField(rightObjectType, FieldName);
+            //var righttype = Expression.Convert(fieldpara, typeof(TFieldType));
+            Action<object, TFieldType> action = (object obj, TFieldType type) =>
+            {
+                var propery = ObjectType.GetProperty(FieldName);
+                if (propery != null)
+                {
+                    propery.SetValue(obj, type);
+                }
+                else
+                {
+                    var field = ObjectType.GetField(FieldName);
+                    if (field != null)
+                    {
+                        field.SetValue(obj, type);
+                    }
+                }
+            };
+            return action;
+            //return Expression.Lambda<Action<object, TFieldType>>(Expression.Assign(expr, righttype), objectpara, fieldpara).Compile();
         }
 
         public static Func<object, TFieldType> GetGetFieldValue<TFieldType>(string FieldName, Type objecttype)
         {
-            ParameterExpression objectPara = Expression.Parameter(typeof(object));
-            var expression = Expression.Convert(objectPara, objecttype);
-            Expression expr = Expression.PropertyOrField(expression, FieldName);
+            //ParameterExpression objectPara = Expression.Parameter(typeof(object));
+            //var expression = Expression.Convert(objectPara, objecttype);
+            //Expression expr = Expression.PropertyOrField(expression, FieldName);
 
-            return Expression.Lambda<Func<object, TFieldType>>(expr, objectPara).Compile();
+            Func<object, TFieldType> func = (object obj) =>
+              {
+                  var propery = objecttype.GetProperty(FieldName);
+                  if (propery != null)
+                  {
+                      var value = propery.GetValue(obj);
+                      return ConvertType<TFieldType>(value);
+                  }
+
+                  var field = objecttype.GetField(FieldName);
+                  if (field != null)
+                  {
+                      var value = field.GetValue(obj);
+                      return ConvertType<TFieldType>(value);
+                  }
+
+                  return default(TFieldType);
+              };
+
+            return func;
+            //return Expression.Lambda<Func<object, TFieldType>>(expr, objectPara).Compile();
+        }
+
+        public static T ConvertType<T>(object value,T t)
+        {
+            var type = typeof(T);
+            if (value == null)
+            {
+                if (type.IsValueType)
+                {
+                    return (T)Activator.CreateInstance(type);
+                }
+            }
+
+            return (T)Convert.ChangeType(value, type);
+        }
+        public static T ConvertType<T>(object value)
+        {
+            var type = typeof(T);
+            if (value == null)
+            {
+                if (type.IsValueType)
+                {
+                    return (T)Activator.CreateInstance(type);
+                }
+            }
+
+            return (T) Convert.ChangeType(value, type);
         }
 
     }

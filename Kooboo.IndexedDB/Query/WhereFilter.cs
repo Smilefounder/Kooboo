@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -309,15 +310,33 @@ namespace Kooboo.IndexedDB.Query
             }
             else if (binary.Right.NodeType == ExpressionType.MemberAccess)
             {
-                constatvalue = Expression.Lambda<Func<object>>(Expression.Convert(binary.Right, typeof(object))).Compile().Invoke();
+                var member = binary.Right as MemberExpression;
+                var constantExpression = member.Expression as ConstantExpression;
+                var fieldinfo = member.Member as FieldInfo;
+                if (constantExpression != null && fieldinfo != null)
+                {
+                    constatvalue = fieldinfo.GetValue(constantExpression.Value);
+                }
+                else
+                {
+                    constatvalue = Expression.Lambda<Func<object>>(Expression.Convert(binary.Right, typeof(object))).Compile().Invoke();
+                }
             }
             else if (binary.Right.NodeType == ExpressionType.Convert)
             {
 
                 UnaryExpression unary = binary.Right as UnaryExpression;
                 MemberExpression member = unary.Operand as MemberExpression;
-
-                constatvalue = Expression.Lambda<Func<object>>(Expression.Convert(member, typeof(object))).Compile().Invoke();
+                var constantExpression = member.Expression as ConstantExpression;
+                var fieldinfo = member.Member as FieldInfo;
+                if (constantExpression != null && fieldinfo != null)
+                {
+                    constatvalue = fieldinfo.GetValue(constantExpression.Value);
+                }
+                else
+                {
+                    constatvalue = Expression.Lambda<Func<object>>(Expression.Convert(member, typeof(object))).Compile().Invoke();
+                }
             }
             else
             {
