@@ -1,4 +1,5 @@
 ﻿using Kooboo.Data.Context;
+using Kooboo.Lib.Helper;
 using Kooboo.Sites.Ecommerce.Service;
 using Kooboo.Sites.Ecommerce.ViewModel;
 using System;
@@ -21,9 +22,20 @@ namespace Kooboo.Sites.Ecommerce.KScript
         }
 
         [Description("GetCountries")]
-        public List<GeoCountryViewModel> GetCountries()
+        public List<GeographicalRegionViewModel> GetCountries()
         {
             return this.service.GetCountries();
+        }
+
+        /// <summary>
+        /// parentId
+        /// </summary>
+        /// <param name="parentId"></param>
+        /// <returns></returns>
+        [Description("Get Children Geographical Regions")]
+        public List<GeographicalRegionViewModel> GetChildrenGeographicalRegions(string id)
+        {
+            return this.service.GetChildrenGeographicalRegions(id);
         }
     }
 }

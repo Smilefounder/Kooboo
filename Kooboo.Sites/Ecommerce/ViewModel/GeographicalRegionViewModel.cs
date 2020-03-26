@@ -4,12 +4,12 @@ using System.Text;
 
 namespace Kooboo.Sites.Ecommerce.ViewModel
 {
-    public class GeoCountryViewModel
+    public class GeographicalRegionViewModel
     {
         public Guid Id { get; set; }
 
         public string GeoNameId { get; set; }
 
-        public string GeoCountryName { get; set; }
+        public string GeoName { get; set; }
     }
 }

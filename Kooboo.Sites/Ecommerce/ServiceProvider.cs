@@ -74,9 +74,9 @@ namespace Kooboo.Sites.Ecommerce
             return GetService<ShippingService>(context);
         }
 
-        public static GeoCountryService GeoCountry(RenderContext context)
+        public static GeographicalRegionService GeographicalRegion(RenderContext context)
         {
-            return GetService<GeoCountryService>(context);
+            return GetService<GeographicalRegionService>(context);
         }
     }
 }

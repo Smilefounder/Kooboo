@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Kooboo.Sites.Ecommerce.Service
 {
-    public class GeoCountryService : ServiceBase<GeoCountry>
+    public class GeographicalRegionService : ServiceBase<GeographicalRegion>
     {
     }
 }

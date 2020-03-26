@@ -11,11 +11,10 @@ namespace Kooboo.Sites.Ecommerce.Service
 {
     public class CustomerAddressService : ServiceBase<CustomerAddress>
     {
-        public List<GeoCountryViewModel> GetCountries()
+        public List<GeographicalRegionViewModel> GetCountries()
         {
-            var resultCountries = new List<GeoCountryViewModel>();
-
-            var allCountries = ServiceProvider.GeoCountry(this.Context).Repo.List();
+            var geoServer = ServiceProvider.GeographicalRegion(this.Context);
+            var allCountries = geoServer.Repo.Query.Where(it => it.ParentId == Guid.Empty).SelectAll();
             if (allCountries.Count != 0)
             {
                 return MapCountries(allCountries);
@@ -25,31 +24,62 @@ namespace Kooboo.Sites.Ecommerce.Service
             var deserializeResult = JsonConvert.DeserializeObject<GeoCountryResponseModel>(ApiClient.Create().GetAsync(queryUrl).Result.Content);
             if (deserializeResult == null)
             {
-                return resultCountries;
+                return new List<GeographicalRegionViewModel>();
             }
 
             SaveAllGeoCountries(deserializeResult);
 
-            return MapCountries(ServiceProvider.GeoCountry(this.Context).Repo.List());
+            return MapCountries(geoServer.Repo.Query.Where(it => it.ParentId == Guid.Empty).SelectAll());
+        }
+
+        public List<GeographicalRegionViewModel> GetChildrenGeographicalRegions(string id)
+        {
+            var geoServer = ServiceProvider.GeographicalRegion(this.Context);
+
+            Guid parentId;
+            if (!Guid.TryParse(id, out parentId))
+            {
+                return new List<GeographicalRegionViewModel>();
+            }
+
+            var childrenGeos = geoServer.Repo.Query.Where(it => it.ParentId == parentId).SelectAll();
+            if (childrenGeos.Count != 0)
+            {
+                return MapCountries(childrenGeos);
+            }
+
+            var parentGeo = geoServer.Get(parentId);
+            var queryUrl = "http://api.geonames.org/childrenJSON?username=tenghui&geonameId=" + parentGeo.GeoNameId;
+            var deserializeResult = JsonConvert.DeserializeObject<ChildrenGeoResponseModel>(ApiClient.Create().GetAsync(queryUrl).Result.Content);
+
+            if (deserializeResult.TotalResultsCount != 0)
+            {
+                foreach (var item in deserializeResult.ChildrenGeoInfo)
+                {
+                    var geographicalRegion = new GeographicalRegion { Name = item.GeoToponymName, GeoNameId = item.GeoNameId, ParentId = parentGeo.Id };
+                    ServiceProvider.GeographicalRegion(this.Context).AddOrUpdate(geographicalRegion);
+                }
+            }
+
+            return MapCountries(geoServer.Repo.Query.Where(it => it.ParentId == parentId).SelectAll());
         }
 
         private void SaveAllGeoCountries(GeoCountryResponseModel deserializeResult)
         {
-            var geoCountryService = ServiceProvider.GeoCountry(this.Context);
             foreach (var item in deserializeResult.GeoCountryInfo)
             {
-                var geoCountry = new GeoCountry { Name = item.GeoCountryName, GeoNameId = item.GeoNameId, CurrencyCode = item.CurrencyCode, CountryCode = item.CountryCode, ContinentName = item.ContinentName, Capital = item.Capital };
-                geoCountryService.AddOrUpdate(geoCountry);
+                var geoCountry = new GeographicalRegion { Name = item.GeoCountryName, GeoNameId = item.GeoNameId, ParentId = Guid.Empty };
+                ServiceProvider.GeographicalRegion(this.Context).AddOrUpdate(geoCountry);
             }
         }
 
-        private static List<GeoCountryViewModel> MapCountries(List<GeoCountry> allCountries)
+        private static List<GeographicalRegionViewModel> MapCountries(List<GeographicalRegion> allGeographicalRegions)
         {
-            return allCountries.Select(it => new GeoCountryViewModel
+            return allGeographicalRegions.Select(it => new GeographicalRegionViewModel
             {
                 Id = it.Id,
                 GeoNameId = it.GeoNameId,
-                GeoCountryName = it.Name
+                GeoName = it.Name
             }).ToList();
         }
     }
