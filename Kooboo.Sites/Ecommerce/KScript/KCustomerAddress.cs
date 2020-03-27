@@ -3,6 +3,7 @@ using Kooboo.Sites.Ecommerce.Service;
 using Kooboo.Sites.Ecommerce.ViewModel;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 
 namespace Kooboo.Sites.Ecommerce.KScript
 {

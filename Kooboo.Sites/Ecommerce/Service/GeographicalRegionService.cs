@@ -10,12 +10,13 @@ namespace Kooboo.Sites.Ecommerce.Service
 {
     public class GeographicalRegionService : ServiceBase<GeographicalRegion>
     {
+        // 目前只做save，没有比对update
         public List<GeographicalRegionViewModel> GetCountries()
         {
             var allCountries = this.Repo.Query.Where(it => it.ParentId == Guid.Empty).SelectAll();
             if (allCountries.Count != 0)
             {
-                return MapCountries(allCountries);
+                return MapGeographicalRegions(allCountries);
             }
 
             var queryUrl = "http://api.geonames.org/countryInfoJSON?username=tenghui";
@@ -27,7 +28,7 @@ namespace Kooboo.Sites.Ecommerce.Service
 
             SaveAllGeoCountries(deserializeResult);
 
-            return MapCountries(this.Repo.Query.Where(it => it.ParentId == Guid.Empty).SelectAll());
+            return MapGeographicalRegions(this.Repo.Query.Where(it => it.ParentId == Guid.Empty).SelectAll());
         }
 
         public List<GeographicalRegionViewModel> GetChildrenGeographicalRegions(string id)
@@ -41,7 +42,7 @@ namespace Kooboo.Sites.Ecommerce.Service
             var childrenGeos = this.Repo.Query.Where(it => it.ParentId == parentId).SelectAll();
             if (childrenGeos.Count != 0)
             {
-                return MapCountries(childrenGeos);
+                return MapGeographicalRegions(childrenGeos);
             }
 
             var parentGeo = this.Get(parentId);
@@ -57,7 +58,7 @@ namespace Kooboo.Sites.Ecommerce.Service
                 }
             }
 
-            return MapCountries(this.Repo.Query.Where(it => it.ParentId == parentId).SelectAll());
+            return MapGeographicalRegions(this.Repo.Query.Where(it => it.ParentId == parentId).SelectAll());
         }
 
         private void SaveAllGeoCountries(GeoCountryResponseModel deserializeResult)
@@ -69,8 +70,9 @@ namespace Kooboo.Sites.Ecommerce.Service
             }
         }
 
-        private static List<GeographicalRegionViewModel> MapCountries(List<GeographicalRegion> allGeographicalRegions)
+        private static List<GeographicalRegionViewModel> MapGeographicalRegions(List<GeographicalRegion> allGeographicalRegions)
         {
+            allGeographicalRegions = allGeographicalRegions.OrderBy(it => it.Name).ToList();
             return allGeographicalRegions.Select(it => new GeographicalRegionViewModel
             {
                 Id = it.Id,
