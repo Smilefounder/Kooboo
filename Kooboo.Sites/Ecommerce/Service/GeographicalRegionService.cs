@@ -19,7 +19,7 @@ namespace Kooboo.Sites.Ecommerce.Service
                 return MapGeographicalRegions(allCountries);
             }
 
-            var queryUrl = "http://api.geonames.org/countryInfoJSON?username=tenghui";
+            var queryUrl = "http://api.geonames.org/countryInfoJSON?username=tenghui_kooboo";
             var deserializeResult = JsonConvert.DeserializeObject<GeoCountryResponseModel>(ApiClient.Create().GetAsync(queryUrl).Result.Content);
             if (deserializeResult == null)
             {
@@ -46,7 +46,7 @@ namespace Kooboo.Sites.Ecommerce.Service
             }
 
             var parentGeo = this.Get(parentId);
-            var queryUrl = "http://api.geonames.org/childrenJSON?username=tenghui&geonameId=" + parentGeo.GeoNameId;
+            var queryUrl = "http://api.geonames.org/childrenJSON?username=tenghui_kooboo&maxRows=10000&geonameId=" + parentGeo.GeoNameId;
             var deserializeResult = JsonConvert.DeserializeObject<ChildrenGeoResponseModel>(ApiClient.Create().GetAsync(queryUrl).Result.Content);
 
             if (deserializeResult.TotalResultsCount != 0)
