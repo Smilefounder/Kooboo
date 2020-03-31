@@ -2,6 +2,7 @@
 using Kooboo.Sites.Ecommerce.Models;
 using Kooboo.Sites.Ecommerce.Service;
 using Kooboo.Sites.Ecommerce.ViewModel;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -63,9 +64,25 @@ namespace Kooboo.Sites.Ecommerce.KScript
             return this.service.AddOrUpdate(toAdd, this.service.CommerceContext.customer.Id);
         }
 
-        public List<CustomerAddress> GetAllCustomerAddresses()
+        [Description("Get All Customer Address")]
+        public List<CustomerAddressViewModel> GetAllCustomerAddresses()
         {
-            return this.service.Repo.Query.Where(it => it.CustomerId == this.service.CommerceContext.customer.Id).SelectAll();
+            var allCustomerAddresses = this.service.Repo.Query.Where(it => it.CustomerId == this.service.CommerceContext.customer.Id).SelectAll();
+            if (allCustomerAddresses != null)
+            {
+                return allCustomerAddresses.OrderByDescending(it => it.CreationDate).Select(it => new CustomerAddressViewModel(it)).ToList();
+            }
+            return null;
+        }
+
+        [Description("Delete All Customer Address")]
+        public void DeleteCustomerAddress(string customerAddressId)
+        {
+            Guid id;
+            if (Guid.TryParse(customerAddressId, out id))
+            {
+                this.service.Delete(id);
+            }
         }
     }
 }
