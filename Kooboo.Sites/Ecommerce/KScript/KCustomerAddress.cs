@@ -41,12 +41,19 @@ namespace Kooboo.Sites.Ecommerce.KScript
         }
 
         [Description("Add Customer Address")]
-        public bool AddCustomerAddress(string lastGeoId, string detailAdress, string postCode, string consignee, string contactNumber)
+        public bool AddCustomerAddress(string selectedIdsStr, string detailAdress, string postCode, string consignee, string contactNumber)
         {
-            // address 需要处理，根据 lastGeoId 找出各个级别的地名和国家
+            var geoAdress = new List<string>();
+            var selectIds = selectedIdsStr.Split(',').ToList();
+            foreach (var item in selectIds)
+            {
+                geoAdress.Add(this.geoService.Get(item).Name);
+            }
+
             var toAdd = new CustomerAddress
             {
-                Address = detailAdress,
+                Country = geoAdress.FirstOrDefault(),
+                Address = string.Join(" ", geoAdress) + "\r\n" + detailAdress,
                 PostCode = postCode,
                 Consignee = consignee,
                 ContactNumber = contactNumber,
@@ -54,6 +61,11 @@ namespace Kooboo.Sites.Ecommerce.KScript
             };
 
             return this.service.AddOrUpdate(toAdd, this.service.CommerceContext.customer.Id);
+        }
+
+        public List<CustomerAddress> GetAllCustomerAddresses()
+        {
+            return this.service.Repo.Query.Where(it => it.CustomerId == this.service.CommerceContext.customer.Id).SelectAll();
         }
     }
 }
