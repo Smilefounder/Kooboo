@@ -12,13 +12,23 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
         {
             this.Id = customerAddress.Id;
             this.CustomerId = customerAddress.CustomerId;
-            this.Address = customerAddress.Address;
+            this.Address = MapAddress(customerAddress.Address);
             this.PostCode = customerAddress.PostCode;
             this.Address2 = customerAddress.Address2;
             this.Country = customerAddress.Country;
             this.Consignee = customerAddress.Consignee;
             this.ContactNumber = customerAddress.ContactNumber;
             this.DetailAddress = GetDetailAddress(customerAddress.Address);
+        }
+
+        public string MapAddress(string address)
+        {
+            if (string.IsNullOrEmpty(address))
+            {
+                return string.Empty;
+            }
+
+            return address.Replace("\r\n", "<br/>");
         }
 
         public string GetDetailAddress(string address)
