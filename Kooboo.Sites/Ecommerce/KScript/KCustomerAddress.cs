@@ -44,24 +44,43 @@ namespace Kooboo.Sites.Ecommerce.KScript
         [Description("Add Customer Address")]
         public bool AddCustomerAddress(string selectedIdsStr, string detailAdress, string postCode, string consignee, string contactNumber)
         {
-            var geoAdress = new List<string>();
-            var selectIds = selectedIdsStr.Split(',').ToList();
-            foreach (var item in selectIds)
-            {
-                geoAdress.Add(this.geoService.Get(item).Name);
-            }
-
+            List<string> geoAdresses = GetgeoAdresses(selectedIdsStr);
             var toAdd = new CustomerAddress
             {
-                Country = geoAdress.FirstOrDefault(),
-                Address = string.Join(" ", geoAdress) + "\r\n" + detailAdress,
+                Country = geoAdresses.FirstOrDefault(),
+                Address = MapAddress(detailAdress, geoAdresses),
                 PostCode = postCode,
                 Consignee = consignee,
                 ContactNumber = contactNumber,
                 CustomerId = this.service.CommerceContext.customer.Id
             };
 
-            return this.service.AddOrUpdate(toAdd, this.service.CommerceContext.customer.Id);
+            return this.service.AddOrUpdate(toAdd);
+        }
+
+        [Description("Update Customer Address")]
+        public bool UpdateCustomerAddress(string customerAddressId, string selectedIdsStr, string detailAdress, string postCode, string consignee, string contactNumber)
+        {
+            List<string> geoAdresses = GetgeoAdresses(selectedIdsStr);
+            var toUpdate = this.service.Get(customerAddressId);
+            if (toUpdate == null)
+            {
+                return false;
+            }
+
+            toUpdate.Country = geoAdresses.FirstOrDefault();
+            toUpdate.Address = MapAddress(detailAdress, geoAdresses);
+            toUpdate.PostCode = postCode;
+            toUpdate.Consignee = consignee;
+            toUpdate.ContactNumber = contactNumber;
+            toUpdate.CustomerId = this.service.CommerceContext.customer.Id;
+
+            return this.service.AddOrUpdate(toUpdate);
+        }
+
+        private string MapAddress(string detailAdress, List<string> geoAdresses)
+        {
+            return string.Join(" ", geoAdresses) + "\r\n" + detailAdress;
         }
 
         [Description("Get All Customer Address")]
@@ -75,6 +94,22 @@ namespace Kooboo.Sites.Ecommerce.KScript
             return null;
         }
 
+        [Description("Get Customer Address")]
+        public CustomerAddressViewModel GetCustomerAddress(string customerAddressId)
+        {
+            Guid id;
+            if (Guid.TryParse(customerAddressId, out id))
+            {
+                var customerAddress = this.service.Get(id);
+                if (customerAddress != null)
+                {
+                    return new CustomerAddressViewModel(customerAddress);
+                }
+            }
+
+            return new CustomerAddressViewModel(new CustomerAddress());
+        }
+
         [Description("Delete All Customer Address")]
         public void DeleteCustomerAddress(string customerAddressId)
         {
@@ -83,6 +118,23 @@ namespace Kooboo.Sites.Ecommerce.KScript
             {
                 this.service.Delete(id);
             }
+        }
+
+        private List<string> GetgeoAdresses(string selectedIdsStr)
+        {
+            var geoAdress = new List<string>();
+            if (string.IsNullOrEmpty(selectedIdsStr))
+            {
+                return geoAdress;
+            }
+
+            var selectIds = selectedIdsStr.Split(',').ToList();
+            foreach (var item in selectIds)
+            {
+                geoAdress.Add(this.geoService.Get(item).Name);
+            }
+
+            return geoAdress;
         }
     }
 }
