@@ -70,5 +70,18 @@ namespace KScript
             }
         }
 
+        private KCustomerAddress _customerAddress;
+        public KCustomerAddress CustomerAddress
+        {
+            get
+            {
+                if (_customerAddress == null)
+                {
+                    _customerAddress = new KCustomerAddress(this.context);
+                }
+                return _customerAddress;
+            }
+        }
+
     }
 }
