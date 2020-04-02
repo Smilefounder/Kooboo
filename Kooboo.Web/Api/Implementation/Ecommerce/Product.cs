@@ -40,17 +40,26 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             }
 
             int sequence = 0;
-            var strsequence = ExtractValue(model, "sequence");
+            var strsequence = ExtractValue(model, "sequence", false);
             if (!string.IsNullOrEmpty(strsequence))
             {
                 int.TryParse(strsequence, out sequence);
             }
 
-            Product newproduct = sitedb.Product.Get(call.ObjectId);
+            string name = ExtractValue(model, "name", false);
 
+            Product newproduct = sitedb.Product.Get(call.ObjectId);
+            
             if (newproduct == null)
             {
+
                 newproduct = new Product() { ProductTypeId = producttypeid, UserKey = userkey };
+
+                if (!string.IsNullOrEmpty(name))
+                {
+                    newproduct.Name = name;
+                }
+
                 if (!string.IsNullOrEmpty(userkey) && sitedb.TextContent.IsUserKeyExists(userkey))
                 {
                     throw new Exception(Data.Language.Hardcoded.GetValue("UserKey has been taken", call.Context));
@@ -152,13 +161,13 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
 
             foreach (var item in productlist)
             {
-                var type = sitedb.ProductType.Get(item.ProductTypeId); 
+                var type = sitedb.ProductType.Get(item.ProductTypeId);
 
                 if (type != null)
                 {
                     model.List.Add(new ProductViewModel(item, call.Context, type.Properties));
-                } 
-            } 
+                }
+            }
             return model;
         }
 
@@ -218,7 +227,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             {
                 online = product.Online;
 
-                foreach (var item in ProductType.Properties)
+                foreach (var item in ProductType.Properties) 
                 {
                     if (item.Editable)
                     {
@@ -287,7 +296,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
                 ProductTypeId = product.ProductTypeId;
                 model.Categories = sitedb.ProductCategory.GetCatIdByProduct(productid).ToList();
 
-                model.Variants = sitedb.ProductVariants.ListByProductId(productid).ToList();   
+                model.Variants = sitedb.ProductVariants.ListByProductId(productid).ToList();
             }
 
             model.Properties = GetProperties(call, ProductTypeId, product).OrderBy(o => o.Order).ToList();
@@ -295,7 +304,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             return model;
         }
 
-        public string ExtractValue(ProductUpdateViewModel updatemodel, string FieldName)
+        public string ExtractValue(ProductUpdateViewModel updatemodel, string FieldName, bool needRemove = true)
         {
             if (string.IsNullOrWhiteSpace(FieldName))
             {
@@ -326,7 +335,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
 
                     foreach (var fielditem in langitem.Value)
                     {
-                        if (fielditem.Key.ToLower() == FieldName)
+                        if (fielditem.Key.ToLower() == FieldName && needRemove)
                         {
                             keysToRemove.Add(fielditem.Key);
                         }
@@ -358,15 +367,15 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             var products = new List<Product>();
             if (categories != null && categories.Count > 0)
             {
-               var productCategories = sitedb.ProductCategory.Query.SelectAll().Where(o => categories.Contains(o.CategoryId));
+                var productCategories = sitedb.ProductCategory.Query.SelectAll().Where(o => categories.Contains(o.CategoryId));
                 products = sitedb.Product.Query.WhereIn("Id", productCategories.Select(it => it.ProductId).ToList()).SelectAll();
-            } 
+            }
             else
             {
                 products = sitedb.Product.Query.SelectAll();
             }
 
-            if(!string.IsNullOrWhiteSpace(keyword))
+            if (!string.IsNullOrWhiteSpace(keyword))
             {
                 products = products.Where(o => o.Body.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) > -1).ToList();
             }
@@ -382,10 +391,10 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             {
                 var type = sitedb.ProductType.Get(item.ProductTypeId);
 
-                if (type !=null)
+                if (type != null)
                 {
                     model.List.Add(new ProductViewModel(item, call.Context, type.Properties));
-                } 
+                }
             }
 
             return model;
