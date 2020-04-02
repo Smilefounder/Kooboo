@@ -9,6 +9,7 @@ namespace Kooboo.Sites.Ecommerce.Service
     {
         public List<Product> ByCategory(string CategorykeyIdOrPath, int skip = 0, int count = 50)
         {
+            var a = ServiceProvider.Category(this.Context).Repo.All();
             //TODO: sort product here...
             var category = ServiceProvider.Category(this.Context).Get(CategorykeyIdOrPath);
             if (category != null)

@@ -25,7 +25,7 @@ namespace Kooboo.Sites.Ecommerce.KScript
         {
             var products = service.Top(count);
 
-            return products.Select(o => new ProductViewModel(o, this.context, null)).ToArray();
+            return products.Where(it=> it.Online).OrderBy(it=>it.Order).Select(o => new ProductViewModel(o, this.context, null)).ToArray();
         }
 
         public ProductViewModel Get(string keyorid)

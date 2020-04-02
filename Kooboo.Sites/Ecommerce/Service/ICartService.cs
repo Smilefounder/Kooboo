@@ -13,6 +13,8 @@ namespace Kooboo.Sites.Ecommerce.Service
 
         void RemoveItem(Guid variantId);
 
+        void RemoveAll();
+
         void ChangeQuantity(Guid ProductVariantId, int newQuantity);
 
         /// <summary>
@@ -24,6 +26,8 @@ namespace Kooboo.Sites.Ecommerce.Service
         void CalculatePromotion(Cart cart);
 
         List<Cart> List(int skip, int count);
+
+        List<Cart> List(int skip, DateTime? start = null, DateTime? end = null, string productMsg = null, string categaryId = null, int take = 10);
 
         int Count(); 
 
