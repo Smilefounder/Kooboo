@@ -43,6 +43,19 @@ namespace KScript
             }
         }
 
+        private KOrder _order;
+        public KOrder Order
+        {
+            get
+            {
+                if (_order == null)
+                {
+                    _order = new KOrder(this.context);
+                }
+                return _order;
+            }
+        }
+
 
         private KCart _shoppingcart;
         public KCart ShoppingCart

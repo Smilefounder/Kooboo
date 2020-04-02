@@ -6,8 +6,8 @@ using System.Text;
 
 namespace Kooboo.Sites.Ecommerce.Models
 {
- public   class OrderLine : CoreObject
-    { 
+    public class OrderLine : CoreObject
+    {
         public Guid ProductVariantId { get; set; }
 
         /// <summary>
@@ -40,6 +40,6 @@ namespace Kooboo.Sites.Ecommerce.Models
             }
 
         }
-         
+
     }
 }

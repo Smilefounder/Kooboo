@@ -1,6 +1,7 @@
 ﻿using Kooboo.Data.Context;
 using Kooboo.Sites.Ecommerce.Models;
 using Kooboo.Sites.Ecommerce.Service;
+using Kooboo.Sites.Ecommerce.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,24 +12,26 @@ namespace Kooboo.Sites.Ecommerce.KScript
 
     public class KOrder
     {
-        private CommerceContext context { get; set; }
+        public RenderContext context { get; set; }
+
+        public CommerceContext commerceContext { get; set; }
 
         private OrderService service { get; set; }
 
-        public KOrder(CommerceContext context)
+        public KOrder(RenderContext context)
         {
             this.context = context;
-            this.service = Kooboo.Sites.Ecommerce.ServiceProvider.GetService<OrderService>(this.context.RenderContext);
+            this.service = Kooboo.Sites.Ecommerce.ServiceProvider.GetService<OrderService>(this.context);
         }
 
         [Description("Create an order based on current shopping cart items")]
         public Order Create()
         {
-            var cartservice = ServiceProvider.GetService<CartService>(this.context.RenderContext);
+            var cartservice = ServiceProvider.GetService<CartService>(this.context);
             var cart = cartservice.GetOrCreateCart();
             if (cart.Items.Any())
             {
-                var order = this.service.CreateOrder(cart, this.context.customer.Id);
+                var order = this.service.CreateOrder(cart);
                 return order;
             }
             return null;
@@ -50,28 +53,47 @@ namespace Kooboo.Sites.Ecommerce.KScript
                 }
             }
 
-            var cartservice = ServiceProvider.GetService<CartService>(this.context.RenderContext);
+            var cartservice = ServiceProvider.GetService<CartService>(this.context);
             var cart = cartservice.GetOrCreateCart();
             if (cart.Items.Any() && selectedCartItem.Any())
             { 
-                var order = this.service.CreateOrder(cart.Items.FindAll(o=>selectedCartItem.Contains(o.Id)).ToList(), this.context.customer.Id);
+                var order = this.service.CreateOrder(cart.Items.FindAll(o=>selectedCartItem.Contains(o.Id)).ToList());
+                if(order!=null)
+                {
+                    foreach (var item in order.Items)
+                    {
+                        cartservice.RemoveItem(item.ProductVariantId);
+                    }
+                }
                 return order;
             }
 
             return null;
         }
          
-        public void Paid(object OrderId)
+        public void Paid(object[] OrderIds)
         {
-            var guid = Lib.Helper.IDHelper.GetGuid(OrderId); 
-            if (guid != default(Guid))
+            foreach (var OrderId in OrderIds)
             {
-                var order = this.service.Get(guid); 
-                if (order !=null)
+                var guid = Lib.Helper.IDHelper.GetGuid(OrderId);
+                if (guid != default(Guid))
                 {
-                    order.IsPaid = true; 
+                    var order = this.service.Get(guid);
+                    if (order != null)
+                    {
+                        order.Status = OrderStatus.Paid;
+                    }
+
+                    this.service.AddOrUpdate(order);
                 }
             }
+        }
+
+        public OrderViewModel[] GetOrderList(int skip, int take)
+        {
+            var orders = this.service.ListByCustomerId(skip, take)
+                  .Select(it => new OrderViewModel(it, this.context)).ToArray();
+            return orders;
         }
     }
 
