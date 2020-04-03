@@ -8,15 +8,15 @@ namespace Kooboo.Sites.Ecommerce.Service
     public class OrderService : ServiceBase<Order>
     {
         //only order some of the shopping cart item... 
-        public Order CreateOrder(List<CartItem> CartItems)
+        public Order CreateOrder(List<CartItem> CartItems, Guid addressId)
         {
             Cart cart = new Cart();
             cart.Items = CartItems;
             ServiceProvider.Cart(this.Context).CalculatePromotion(cart);
-            return CreateOrder(cart);
+            return CreateOrder(cart, addressId);
         }
 
-        public Order CreateOrder(Cart cart)
+        public Order CreateOrder(Cart cart, Guid addressId)
         {
             var shipping = ServiceProvider.Shipping(this.Context).CalculateCost(cart);
 
@@ -27,7 +27,7 @@ namespace Kooboo.Sites.Ecommerce.Service
             }
             neworder.Discount = cart.Discount;
             neworder.ShippingCost = shipping;
-
+            neworder.AddressId = addressId;
             neworder.CustomerId = this.CommerceContext.customer.Id;
 
             this.Repo.AddOrUpdate(neworder);
