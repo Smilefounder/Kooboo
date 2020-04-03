@@ -83,7 +83,7 @@ namespace Kooboo.Sites.Ecommerce.KScript
             return null;
         }
 
-        public void Paid(object[] OrderIds)
+        public void DeleteOrder(object[] OrderIds)
         {
             foreach (var OrderId in OrderIds)
             {
@@ -93,7 +93,8 @@ namespace Kooboo.Sites.Ecommerce.KScript
                     var order = this.service.Get(guid);
                     if (order != null)
                     {
-                        order.Status = OrderStatus.Paid;
+                        order.DeleteByCustomer = true;
+
                     }
 
                     this.service.AddOrUpdate(order);
@@ -101,9 +102,54 @@ namespace Kooboo.Sites.Ecommerce.KScript
             }
         }
 
+        public void Cancel(object[] OrderIds)
+        {
+            foreach (var OrderId in OrderIds)
+            {
+                var guid = Lib.Helper.IDHelper.GetGuid(OrderId);
+                if (guid != default(Guid))
+                {
+                    ChangeOrderStatus(guid, "cancel");
+                }
+            }
+        }
+
+        private void ChangeOrderStatus(Guid OrderId, string status)
+        {
+            var order = this.service.Get(OrderId);
+            if (order != null)
+            {
+                if (string.Equals(status, "paid", StringComparison.OrdinalIgnoreCase))
+                {
+                    order.Status = OrderStatus.Paid;
+                }
+
+                if (string.Equals(status, "cancel", StringComparison.OrdinalIgnoreCase))
+                {
+                    if ((int)order.Status < (int)OrderStatus.Paid)
+                        order.Status = OrderStatus.Cancel;
+                }
+            }
+
+            this.service.AddOrUpdate(order);
+        }
+
+        public void Paid(object[] OrderIds)
+        {
+            foreach (var OrderId in OrderIds)
+            {
+                var guid = Lib.Helper.IDHelper.GetGuid(OrderId);
+                if (guid != default(Guid))
+                {
+                    ChangeOrderStatus(guid, "paid");
+                }
+            }
+        }
+
         public OrderViewModel[] GetOrderList(int skip, int take)
         {
             var orders = this.service.ListByCustomerId(skip, take)
+                  .Where(it => !it.DeleteByCustomer)
                   .Select(it => new OrderViewModel(it, this.context)).ToArray();
             return orders;
         }
