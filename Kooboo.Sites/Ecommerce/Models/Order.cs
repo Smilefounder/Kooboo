@@ -38,6 +38,8 @@ namespace Kooboo.Sites.Ecommerce.Models
 
         public OrderStatus Status { get; set; }
 
+        public bool DeleteByCustomer { get; set; } = false;
+
         public decimal ItemTotal
         {
             get

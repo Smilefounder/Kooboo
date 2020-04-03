@@ -9,6 +9,7 @@ namespace Kooboo.Sites.Ecommerce.Models
         Created,
         Paid,
         Shipping,
-        Finished
+        Finished,
+        Cancel
     }
 }

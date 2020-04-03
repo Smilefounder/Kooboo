@@ -69,6 +69,11 @@ namespace Kooboo.Sites.Ecommerce
             return GetService<ICartService>(context);
         }
 
+        public static OrderService Order(RenderContext context)
+        {
+            return GetService<OrderService>(context);
+        }
+
         public static ShippingService Shipping(RenderContext context)
         {
             return GetService<ShippingService>(context);

@@ -23,7 +23,7 @@ namespace Kooboo.Sites.Ecommerce.Service
         public List<Product> Top(int count = 10)
         {
             // TODO: add sort product here. 
-            return this.Repo.Query.OrderByDescending(o => o.Order).Take(count);
+            return this.Repo.Store.Where().OrderByDescending(o => o.Order).Take(count);
         }
 
         public List<Category> CategoryList(Guid ProductId)
