@@ -1,21 +1,20 @@
 ﻿using Kooboo.IndexedDB;
 using Kooboo.Sites.Ecommerce.Models;
-using Kooboo.Sites.Repository; 
+using Kooboo.Sites.Repository;
 
 namespace Kooboo.Sites.Ecommerce.Repository
 {
-  public   class OrderRepository : SiteRepositoryBase<Order>
+    public class GeographicalRegionRepository : SiteRepositoryBase<GeographicalRegion>
     {
         public override ObjectStoreParameters StoreParameters
         {
             get
             {
                 ObjectStoreParameters para = new ObjectStoreParameters();
-                para.AddIndex<Order>(o => o.CustomerId);
-                para.AddColumn<Order>(o => o.Status);
-                para.AddColumn<Order>(o => o.AddressId);
+                para.AddIndex<GeographicalRegion>(o => o.Name);
+                para.AddColumn<GeographicalRegion>(o => o.ParentId);
                 return para;
             }
-        } 
+        }
     }
 }

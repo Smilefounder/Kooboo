@@ -43,6 +43,19 @@ namespace KScript
             }
         }
 
+        private KOrder _order;
+        public KOrder Order
+        {
+            get
+            {
+                if (_order == null)
+                {
+                    _order = new KOrder(this.context);
+                }
+                return _order;
+            }
+        }
+
 
         private KCart _shoppingcart;
         public KCart ShoppingCart
@@ -54,6 +67,19 @@ namespace KScript
                     _shoppingcart = new KCart(this.context);
                 }
                 return _shoppingcart;
+            }
+        }
+
+        private KCustomerAddress _customerAddress;
+        public KCustomerAddress CustomerAddress
+        {
+            get
+            {
+                if (_customerAddress == null)
+                {
+                    _customerAddress = new KCustomerAddress(this.context);
+                }
+                return _customerAddress;
             }
         }
 
