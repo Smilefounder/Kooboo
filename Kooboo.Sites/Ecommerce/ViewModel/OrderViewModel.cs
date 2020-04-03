@@ -21,11 +21,11 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
 
         public Guid Id => order.Id;
 
-        public Guid CustomerId => order.Id;
+        public Guid CustomerId => order.CustomerId;
 
-        public Guid PaymentRequestId => order.Id;
+        public Guid PaymentRequestId => order.PaymentRequestId;
 
-        public Guid AddressId => order.Id;
+        public Guid AddressId => order.AddressId;
 
         public DateTime CreateDate => order.CreateDate;
 
