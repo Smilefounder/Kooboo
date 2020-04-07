@@ -82,7 +82,7 @@ namespace Kooboo
         public const byte PaymentRequest = 77;
         public const byte Customer = 78;
         public const byte ShippingAddress = 79;
-
+        
 
         public const byte kfile = 80;
         public const byte Kconfig = 81;
@@ -90,5 +90,7 @@ namespace Kooboo
         public const byte TableRelation = 82;
 
         public const byte DatabaseTable = 83;
+
+        public const byte LogisticsRequest = 84;
     }
 }
