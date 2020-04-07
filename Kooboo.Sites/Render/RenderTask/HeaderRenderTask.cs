@@ -79,6 +79,25 @@ namespace Kooboo.Sites.Render
                         }
                         result.Add(headerItem);
                     }
+                    else if (element.tagName == "script" || element.tagName == "link")
+                    {
+                        // get the render task. 
+                        var plan = Kooboo.Sites.Render.RenderEvaluator.Evaluate(element.OuterHtml, new EvaluatorOption());
+                        if (plan != null)
+                        {
+                            HeaderRenderItem headeritem = new HeaderRenderItem();
+                            headeritem.IsRenderTask = true;
+                            headeritem.renderTasks = plan;
+                            result.Add(headeritem);
+                        }
+                        else
+                        {
+                            HeaderRenderItem headeritem = new HeaderRenderItem();
+                            headeritem.OriginalHtml = element.OuterHtml;
+                            headeritem.NoRender = true;
+                            result.Add(headeritem);
+                        }
+                    }
                     else
                     {
                         HeaderRenderItem headeritem = new HeaderRenderItem();
@@ -122,7 +141,7 @@ namespace Kooboo.Sites.Render
                         var binding = headerbinding.Find(o => o.IsTitle);
                         if (binding != null)
                         {
-                            newcontent = GetBindingContent(binding, context);     
+                            newcontent = GetBindingContent(binding, context);
                             headerbinding.Remove(binding);
                         }
                         sb.Append(RenderTitle(item, newcontent));
@@ -134,6 +153,11 @@ namespace Kooboo.Sites.Render
                     else if (item.IsMeta)
                     {
                         sb.Append(RenderHeaderMetaItem(item, headerbinding, context));
+                    }
+                    else if (item.IsRenderTask)
+                    {
+                        var renderresult = Kooboo.Sites.Render.RenderHelper.Render(item.renderTasks, context);
+                        sb.Append(renderresult);
                     }
                 }
             }
@@ -154,6 +178,11 @@ namespace Kooboo.Sites.Render
 
         private string RenderHeaderMetaItem(HeaderRenderItem item, List<HeaderBindings> bindings, RenderContext context)
         {
+            if (item.IsRenderTask)
+            {
+                return item.renderTasks.Render(context);
+            }
+
             if (bindings == null || bindings.Count() == 0)
             {
                 return item.OriginalHtml;
@@ -176,7 +205,7 @@ namespace Kooboo.Sites.Render
             if (finditem != null)
             {
                 bindings.Remove(finditem);
-                return RenderBindingItem(finditem,context);
+                return RenderBindingItem(finditem, context);
             }
             else
             {
@@ -185,17 +214,17 @@ namespace Kooboo.Sites.Render
         }
 
         private string RenderBindingItem(HeaderBindings binding, RenderContext context)
-        {   
+        {
             if (binding == null)
             {
-                return null; 
+                return null;
             }
 
-            string newcontent = GetBindingContent(binding, context); 
-           
-             if (newcontent == null)
+            string newcontent = GetBindingContent(binding, context);
+
+            if (newcontent == null)
             {
-                return null; 
+                return null;
             }
 
             if (binding.IsTitle)
@@ -269,7 +298,25 @@ namespace Kooboo.Sites.Render
 
         public string GetBindingContent(HeaderBindings binding, RenderContext context)
         {
-            return binding.GetContent(context);    
+            return binding.GetContent(context);
+        }
+
+        public bool IsRenderTask(Element el)
+        {
+            // only process style and script now. 
+            if (el.tagName == "script" || el.tagName == "link")
+            {
+                if (Kooboo.Sites.Render.Components.Manager.IsComponent(el))
+                {
+                    return true;
+                }
+
+                if (el.hasAttribute("k-version"))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
@@ -295,6 +342,10 @@ namespace Kooboo.Sites.Render
         public bool isTitle { get; set; }
 
         public bool IsMeta { get; set; }
+
+        public bool IsRenderTask { get; set; }
+
+        public List<IRenderTask> renderTasks { get; set; }
 
         /// <summary>
         ///  Node that does not require render... 
