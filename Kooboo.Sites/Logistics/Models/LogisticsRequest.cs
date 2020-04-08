@@ -63,6 +63,8 @@ namespace Kooboo.Sites.Logistics.Models
 
         public bool Failed { get; set; }
 
+        public OrderStatus Status { get; set; }
+
         /// <summary>
         /// The reference id at the payment provider if any. 
         /// </summary>

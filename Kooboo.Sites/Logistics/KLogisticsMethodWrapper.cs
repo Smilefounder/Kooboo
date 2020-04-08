@@ -35,6 +35,11 @@ namespace Kooboo.Sites.Logistics
             if (!string.IsNullOrWhiteSpace(result.logisticsMethodReferenceId))
             {
                 request.ReferenceId = result.logisticsMethodReferenceId;
+                request.Created = true;
+            }
+            else
+            {
+                request.Failed = true;
             }
 
             if (!string.IsNullOrWhiteSpace(request.ReferenceId))
@@ -43,6 +48,36 @@ namespace Kooboo.Sites.Logistics
             }
 
             return result;
+        }
+
+        public LogisticsStatusResponse checkStatus(object requestId)
+        {
+            if (requestId == null)
+            {
+                string strid = requestId.ToString();
+                Guid id;
+                if (System.Guid.TryParse(strid, out id))
+                {
+                    var request = LogisticsManager.GetRequest(id, Context);
+
+                    if (request != null)
+                    {
+                        var status = this.LogisticsMethod.checkStatus(request);
+                        if (status != null)
+                        {
+                            request.Status = status.Status;
+
+                            var sitedb = this.Context.WebSite.SiteDb();
+                            // fire the code first...
+                            var callbackrepo = sitedb.GetSiteRepository<Repository.LogisticsRequestRepository>();
+
+                            callbackrepo.AddOrUpdate(request);
+                        }
+                    }
+                }
+            }
+
+            return new LogisticsStatusResponse();
         }
 
 
@@ -104,9 +139,9 @@ namespace Kooboo.Sites.Logistics
             request.ReceiverInfo.Phone = GetValue<string>(idict, dynamicobj, "receiverphone");
             request.ReceiverInfo.Prov = GetValue<string>(idict, dynamicobj, "receiverprovince");
             request.ReceiverInfo.Name = GetValue<string>(idict, dynamicobj, "receivername");
-            if (this.PaymentMethod != null)
+            if (this.LogisticsMethod != null)
             {
-                request.LogisticsMethod = PaymentMethod.Name;
+                request.LogisticsMethod = LogisticsMethod.Name;
             }
 
             request.OrderId = GetValue<Guid>(idict, dynamicobj, "orderId", "orderid");

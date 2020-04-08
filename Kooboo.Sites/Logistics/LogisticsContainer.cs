@@ -8,17 +8,17 @@ namespace Kooboo.Sites.Logistics
     {
         private static object _locker = new object();
 
-        private static List<ILogisticsMethod> _paymentmethods;
+        private static List<ILogisticsMethod> _logisticsMethods;
 
-        public static List<ILogisticsMethod> PaymentMethods
+        public static List<ILogisticsMethod> LogisticsMethods
         {
             get
             {
-                if (_paymentmethods == null)
+                if (_logisticsMethods == null)
                 {
-                    _paymentmethods = Lib.IOC.Service.GetInstances<ILogisticsMethod>();
+                    _logisticsMethods = Lib.IOC.Service.GetInstances<ILogisticsMethod>();
                 }
-                return _paymentmethods;
+                return _logisticsMethods;
             }
         }
     }

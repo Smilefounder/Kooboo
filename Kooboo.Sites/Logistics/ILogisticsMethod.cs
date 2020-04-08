@@ -23,5 +23,7 @@ namespace Kooboo.Sites.Logistics
         RenderContext Context { get; set; }
         
         ILogisticsResponse CreateOrder(LogisticsRequest request);
+
+        LogisticsStatusResponse checkStatus(LogisticsRequest request);
     }
 }
