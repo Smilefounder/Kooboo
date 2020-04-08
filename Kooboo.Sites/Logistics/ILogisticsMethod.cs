@@ -9,13 +9,13 @@ namespace Kooboo.Sites.Logistics
 {
     public interface ILogisticsMethod<T> : ILogisticsMethod where T : ILogisticsSetting
     {
-        [Description("Account settig to be used for this payment method")]
+        [Description("Account settig to be used for this logistics method")]
         T Setting { get; set; }
     }
 
     public interface ILogisticsMethod
     {
-        [Description("The name that can be used for k.payment.{name}")]
+        [Description("The name that can be used for k.logistics.{name}")]
         string Name { get; }
 
         string DisplayName { get; }
@@ -25,5 +25,7 @@ namespace Kooboo.Sites.Logistics
         ILogisticsResponse CreateOrder(LogisticsRequest request);
 
         LogisticsStatusResponse checkStatus(LogisticsRequest request);
+
+        string GetPostage(LogisticsRequest request);
     }
 }

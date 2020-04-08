@@ -92,5 +92,6 @@ namespace Kooboo
         public const byte DatabaseTable = 83;
 
         public const byte LogisticsRequest = 84;
+        public const byte  LogisticsCallback = 85;
     }
 }

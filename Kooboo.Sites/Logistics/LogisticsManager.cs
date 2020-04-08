@@ -101,5 +101,28 @@ namespace Kooboo.Sites.Logistics
             }
             return new LogisticsStatusResponse();
         }
+
+        public static string EnquirePostage(LogisticsRequest Request, RenderContext context)
+        {
+            var logisticsmethod = LogisticsManager.GetMethod(Request.LogisticsMethod, context);
+            if (logisticsmethod != null)
+            {
+                logisticsmethod.Context = context;
+
+                var postage = logisticsmethod.GetPostage(Request);
+
+                return postage;
+            }
+            return null;
+        }
+
+        public static void CallBack(LogisticsCallback callback, RenderContext context)
+        {
+            var workers = Lib.IOC.Service.GetInstances<ILogiticsCallbackWorker>();
+            foreach (var item in workers)
+            {
+                item.Process(callback, context);
+            }
+        }
     }
 }

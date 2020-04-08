@@ -6,7 +6,6 @@ using Kooboo.Data;
 using Kooboo.Data.Attributes;
 using Kooboo.Data.Interface;
 using Kooboo.IndexedDB.CustomAttributes;
-using Kooboo.Sites.Payment.Callback;
 
 namespace Kooboo.Sites.Logistics.Models
 {
@@ -49,10 +48,15 @@ namespace Kooboo.Sites.Logistics.Models
         public DateTime CreationDate { get; set; } = DateTime.UtcNow;
 
         [KIgnore]
-        public byte ConstType { get; set; } = ConstObjectType.PaymentCallback;
+        public byte ConstType { get; set; } = ConstObjectType.LogisticsCallback;
 
         public DateTime LastModified { get; set; }
 
         public string Name { get; set; }
+
+        public OrderStatus Status
+        {
+            get; set;
+        }
     }
 }

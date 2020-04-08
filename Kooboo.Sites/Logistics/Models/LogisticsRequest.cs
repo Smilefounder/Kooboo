@@ -66,9 +66,11 @@ namespace Kooboo.Sites.Logistics.Models
         public OrderStatus Status { get; set; }
 
         /// <summary>
-        /// The reference id at the payment provider if any. 
+        /// The reference id at the logistics provider if any. 
         /// </summary>
         public string ReferenceId { get; set; }
+
+        public string Postage { get; set; }
 
         public string ReturnPath { get; set; }
 

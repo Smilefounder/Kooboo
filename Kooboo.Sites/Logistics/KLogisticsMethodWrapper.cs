@@ -65,13 +65,7 @@ namespace Kooboo.Sites.Logistics
                         var status = this.LogisticsMethod.checkStatus(request);
                         if (status != null)
                         {
-                            request.Status = status.Status;
-
-                            var sitedb = this.Context.WebSite.SiteDb();
-                            // fire the code first...
-                            var callbackrepo = sitedb.GetSiteRepository<Repository.LogisticsRequestRepository>();
-
-                            callbackrepo.AddOrUpdate(request);
+                            LogisticsManager.CallBack(new LogisticsCallback() { RequestId = request.Id, Status = status.Status, ResponseMessage = "kscript check status" }, this.Context);
                         }
                     }
                 }
@@ -80,6 +74,83 @@ namespace Kooboo.Sites.Logistics
             return new LogisticsStatusResponse();
         }
 
+
+        public string GetPostage(object value)
+        {
+            var request = ParsePostageRequest(value);
+
+            var sitedb = this.Context.WebSite.SiteDb();
+
+            var repo = sitedb.GetSiteRepository<Repository.LogisticsRequestRepository>();
+            repo.AddOrUpdate(request);
+
+            var result = this.LogisticsMethod.GetPostage(request);
+
+            if (!string.IsNullOrWhiteSpace(result))
+            {
+                request.Postage = result;
+                repo.AddOrUpdate(request);
+            }
+
+            return result;
+        }
+
+        [KIgnore]
+        public LogisticsRequest ParsePostageRequest(object dataobj)
+        {
+            Dictionary<string, object> additionals = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
+            LogisticsRequest request = new LogisticsRequest();
+
+            System.Collections.IDictionary idict = dataobj as System.Collections.IDictionary;
+
+            IDictionary<string, object> dynamicobj = null;
+
+            if (idict == null)
+            {
+                dynamicobj = dataobj as IDictionary<string, object>;
+                foreach (var item in dynamicobj)
+                {
+                    additionals[item.Key] = item.Value;
+                }
+            }
+            else
+            {
+                foreach (var item in idict.Keys)
+                {
+                    if (item != null)
+                    {
+                        additionals[item.ToString()] = idict[item];
+                    }
+                }
+            }
+
+            request.Additional = additionals;
+
+
+            var id = GetValue<string>(idict, dynamicobj, "id", "requestId", "logisticsrequestid");
+            if (!string.IsNullOrWhiteSpace(id))
+            {
+                if (Guid.TryParse(id, out Guid requestid))
+                {
+                    request.Id = requestid;
+                }
+            }
+
+            request.Name = GetValue<string>(idict, dynamicobj, "name", "title");
+            request.Description = GetValue<string>(idict, dynamicobj, "des", "description", "detail");
+            request.SenderInfo.Prov = GetValue<string>(idict, dynamicobj, "senderprovince");
+            request.ReceiverInfo.Prov = GetValue<string>(idict, dynamicobj, "receiverprovince");
+            request.Height = GetValue<double>(idict, dynamicobj, "cargoheight");
+            request.Weight = GetValue<double>(idict, dynamicobj, "cargoweight");
+            request.Length = GetValue<double>(idict, dynamicobj, "cargolength");
+            if (this.LogisticsMethod != null)
+            {
+                request.LogisticsMethod = LogisticsMethod.Name;
+            }
+
+            return request;
+        }
 
         [KIgnore]
         public LogisticsRequest ParseRequest(object dataobj)
@@ -114,7 +185,7 @@ namespace Kooboo.Sites.Logistics
             request.Additional = additionals;
 
 
-            var id = GetValue<string>(idict, dynamicobj, "id", "requestId", "paymentrequestid");
+            var id = GetValue<string>(idict, dynamicobj, "id", "requestId", "logisticsrequestid");
             if (!string.IsNullOrWhiteSpace(id))
             {
                 if (Guid.TryParse(id, out Guid requestid))
