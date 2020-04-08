@@ -91,6 +91,11 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
             get
             {
                 var varants = ServiceProvider.ProductVariants(this.context).Get(this.ProductVariantId);
+                if (varants == null)
+                {
+                    return new ProductVariantsViewModel(new ProductVariants());
+                }
+
                 return new ProductVariantsViewModel(varants);
             }
         }

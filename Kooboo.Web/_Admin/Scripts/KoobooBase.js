@@ -1756,31 +1756,41 @@
       return this.executeGet("GetEdit", para);
     };
 
-    this.getList = function(para) {
-      return new Promise(resovel => {
-        var fakeData = {
-          model: {
-            list: [],
-            pageNr: 1,
-            pageSize: 20,
-            totalCount: 50,
-            totalPages: 2
-          },
-          success: true
-        };
-        Array(10)
-          .fill(0)
-          .forEach((x, i) => {
-            fakeData.model.list.push({
-              id: "bcd3df0f-e295-e731-f9e8-95929f33335" + i,
-              createDate: "2017-08-01T07:01:39.3677109Z",
-              isPaid: i % 2
-            });
-          });
-        resovel(fakeData);
-      });
-      return this.executeGet("GetList", para);
-    };
+      //this.getList = function (para) {
+      //    debugger
+      //return new Promise(resovel => {
+      //  var fakeData = {
+      //    model: {
+      //      list: [],
+      //      pageNr: 1,
+      //      pageSize: 20,
+      //      totalCount: 50,
+      //      totalPages: 2
+      //    },
+      //    success: true
+      //  };
+      //  Array(10)
+      //    .fill(0)
+      //    .forEach((x, i) => {
+      //      fakeData.model.list.push({
+      //        id: "bcd3df0f-e295-e731-f9e8-95929f33335" + i,
+      //        createDate: "2017-08-01T07:01:39.3677109Z",
+      //        isPaid: i % 2
+      //      });
+      //    });
+      //  resovel(fakeData);
+      //});
+      //return this.executeGet("GetList", para);
+      //};
+
+      //this.getList = function (para) {
+      //    debugger
+      //    return this.executeGet("GetOrders", para);
+      //};
+
+      this.getList = function (para) {
+          return this.executeGet("Getorders", para);
+      };
 
     this.search = function(para) {
       return this.executePost("Search", para);
@@ -1835,7 +1845,7 @@
     this.List = function(para) {
       return this.executeGet("List", para);
     };
-    this.All = function(para) {
+      this.All = function (para) {
       return this.executeGet("All", para);
     };
   }
