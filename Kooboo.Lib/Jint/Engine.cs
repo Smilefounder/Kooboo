@@ -291,80 +291,89 @@ namespace Jint
             CallStack.Clear();
         }
 
-        public Engine Execute(string source)
+
+        Program Parse(string source, ParserOptions parserOptions = null)
         {
-            var parser = new JavaScriptParser();
-            string error = null; 
             try
             {
-                return Execute(parser.Parse(source));
+                var parser = new JavaScriptParser();
+
+                if (parserOptions != null)
+                {
+                    return parser.Parse(source, parserOptions);
+                }
+
+                return parser.Parse(source);
+            }
+            catch (Exception ex)
+            {
+
+                if (ex is ParserException)
+                {
+                    var pex = ex as ParserException;
+                    if (pex != null)
+                    {
+                        var error = "JavaScript error on line" + pex.LineNumber.ToString() + ", cloumn: " + pex.Column.ToString() + " " + ex.Message;
+                        throw new Exception(error, ex.InnerException);
+                    }
+                }
+
+                throw;
+            }
+        }
+
+        public Engine Execute(string source)
+        {
+            return Execute(Parse(source));
+        }
+
+        public Engine Execute(string source, ParserOptions parserOptions)
+        {
+            return Execute(Parse(source, parserOptions));
+        }
+
+        public Engine Execute(Program program)
+        {
+            try
+            {
+                ResetStatementsCount();
+                ResetTimeoutTicks();
+                ResetLastStatement();
+                ResetCallStack();
+
+                using (new StrictModeScope(Options._IsStrict || program.Strict))
+                {
+                    DeclarationBindingInstantiation(DeclarationBindingType.GlobalCode, program.FunctionDeclarations, program.VariableDeclarations, null, null);
+
+                    var result = _statements.ExecuteProgram(program);
+                    if (result.Type == Completion.Throw)
+                    {
+                        throw new JavaScriptException(result.GetValueOrDefault())
+                        {
+                            Location = result.Location
+                        };
+                    }
+
+                    _completionValue = result.GetValueOrDefault();
+                }
+
+                return this;
+
             }
             catch (Exception ex)
             {
                 if (ex is JavaScriptException)
                 {
-                    var jsex = ex as JavaScriptException; 
-                    if (jsex !=null)
+                    var jsex = ex as JavaScriptException;
+                    if (jsex != null)
                     {
-                        error = "JavaScript error on line" + jsex.Location.Start.Line.ToString() + ", cloumn: " + jsex.Location.Start.Column.ToString() + " " + ex.Message; 
-                    }
-                }      
-                else if (ex is ParserException)
-                {
-                    var pex = ex as ParserException;
-                    if (pex != null)
-                    {
-                        error = "JavaScript error on line" + pex.LineNumber.ToString() + ", cloumn: " + pex.Column.ToString() + " " + ex.Message;
+                        var error = "JavaScript error on line" + jsex.Location.Start.Line.ToString() + ", cloumn: " + jsex.Location.Start.Column.ToString() + " " + ex.Message;
+                        throw new Exception(error, ex.InnerException);
                     }
                 }
-                else
-                {
-                    error = ex.Message;
-                    if (ex.InnerException != null && !string.IsNullOrEmpty(ex.InnerException.Message))
-                    {
-                        error += " " + ex.InnerException.Message;
-                    }
-                }
+
+                throw;
             }
-
-            if (error !=null)
-            {
-                throw new Exception(error); 
-            }
-
-            return null;  
-        }
-
-        public Engine Execute(string source, ParserOptions parserOptions)
-        {
-            var parser = new JavaScriptParser();
-            return Execute(parser.Parse(source, parserOptions));
-        }
-
-        public Engine Execute(Program program)
-        {
-            ResetStatementsCount();
-            ResetTimeoutTicks();
-            ResetLastStatement();
-            ResetCallStack();
-
-            using (new StrictModeScope(Options._IsStrict || program.Strict))
-            {
-                DeclarationBindingInstantiation(DeclarationBindingType.GlobalCode, program.FunctionDeclarations, program.VariableDeclarations, null, null);
-
-                var result = _statements.ExecuteProgram(program);
-                if (result.Type == Completion.Throw)
-                {
-                    throw new JavaScriptException(result.GetValueOrDefault())
-                    {
-                        Location = result.Location
-                    };
-                }
-
-                _completionValue = result.GetValueOrDefault();
-            }
-
-            return this;
         }
 
         private void ResetLastStatement()

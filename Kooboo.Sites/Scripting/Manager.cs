@@ -13,6 +13,7 @@ using System.Reflection;
 using Kooboo.Lib.Reflection;
 using Jint.Runtime; 
 using KScript;
+using Kooboo.Data.Extensions;
 
 namespace Kooboo.Sites.Scripting
 {
@@ -100,13 +101,13 @@ namespace Kooboo.Sites.Scripting
             var k = engine.GetValue("k");
 
             kcontext.ReturnValues.Clear();
+
             try
             {
-                engine.Execute(code.Config, new Jint.Parser.ParserOptions() { Tolerant = true });
+                engine.ExecuteWithErrorHandle(code.Config, new Jint.Parser.ParserOptions() { Tolerant = true });
             }
-            catch (System.Exception ex)
+            catch (System.Exception )
             {
-                Kooboo.Data.Log.Instance.Exception.WriteException(ex); 
             }
 
             if (kcontext.ReturnValues.Count() > 0)
@@ -250,13 +251,10 @@ namespace Kooboo.Sites.Scripting
             }
             try
             {
-                engine.Execute(JsCode, new Jint.Parser.ParserOptions() { Tolerant = true  });
-               
+                engine.ExecuteWithErrorHandle(JsCode, new Jint.Parser.ParserOptions() { Tolerant = true  });
             }
             catch (Exception ex)
             {
-                Kooboo.Data.Log.Instance.Exception.WriteException(ex); 
-
                 if (debugsession != null)
                 {
                     var info = new ScriptDebugger.DebugInfo
@@ -284,7 +282,7 @@ namespace Kooboo.Sites.Scripting
                     debugsession.DebugInfo = info;
                 }
 
-                return ex.Message + " " + ex.Source;
+                return ex.Message;
 
             }
 
@@ -349,14 +347,11 @@ namespace Kooboo.Sites.Scripting
             }
             try
             {
-                engine.Execute(InnerJsCode, new Jint.Parser.ParserOptions() { Tolerant = true }); 
+                engine.ExecuteWithErrorHandle(InnerJsCode, new Jint.Parser.ParserOptions() { Tolerant = true }); 
             }
             catch (Exception ex)
             {
-                var traceId = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).TrimEnd('=');
-                Kooboo.Data.Log.Instance.Exception.WriteException(ex, traceId);
-
-                return $"Server script error occured with trace ID [{traceId}], contact server administrator to use the trace ID and exception log for troubleshooting";
+                return ex.Message;
             }
 
             if (debugsession != null)
@@ -440,7 +435,7 @@ namespace Kooboo.Sites.Scripting
                 kcontext.config = new KDictionary(config);
                 kcontext.ReturnValues.Clear();
 
-                engine.Execute(code.Body, new Jint.Parser.ParserOptions() { Tolerant = true });
+                engine.ExecuteWithErrorHandle(code.Body, new Jint.Parser.ParserOptions() { Tolerant = true });
 
                 kcontext.config = null;
 
@@ -451,7 +446,6 @@ namespace Kooboo.Sites.Scripting
             }
             catch (Exception ex)
             {
-                Kooboo.Data.Log.Instance.Exception.WriteException(ex); 
                 return ex.Message;
             }
 

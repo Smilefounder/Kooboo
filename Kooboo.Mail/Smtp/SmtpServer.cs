@@ -29,8 +29,7 @@ namespace Kooboo.Mail.Smtp
         private CancellationTokenSource _cancellationTokenSource;
         private TcpListener _listener;
         private Task _listenTask;
-        private Heartbeat _heartbeat;
-        internal SmtpConnectionManager _connectionManager;
+        internal ConnectionManager _connectionManager;
 
         public SmtpServer(string name)
             : this(name, 25)
@@ -48,8 +47,9 @@ namespace Kooboo.Mail.Smtp
             Port = port;
             Certificate = cert;
 
-            _connectionManager = new SmtpConnectionManager(Options.MaxConnections);
-            _heartbeat = new Heartbeat(_connectionManager);
+            Heartbeat = Heartbeat.Instance;
+            _connectionManager = new ConnectionManager(Options.MaxConnections);
+            Heartbeat.Add(_connectionManager);
         }
 
         [JsonIgnore]
@@ -65,7 +65,7 @@ namespace Kooboo.Mail.Smtp
 
         public SmtpServerOptions Options { get; set; } = new SmtpServerOptions();
 
-        internal Heartbeat Heatbeat => _heartbeat;
+        internal Heartbeat Heartbeat { get; }
 
         public void Start()
         {
@@ -100,8 +100,6 @@ namespace Kooboo.Mail.Smtp
             }
 
             _listenTask = Task.Run(() => Loop());
-
-            _heartbeat.Start();
         }
 
         public void Stop()
