@@ -47,7 +47,7 @@ namespace Kooboo.Sites.Logistics
 
                     if (settingtype != null)
                     {
-                        var settingvalue = sitedb.CoreSetting.GetSiteSetting(settingtype) as ILogisticsMethod;
+                        var settingvalue = sitedb.CoreSetting.GetSiteSetting(settingtype) as ILogisticsSetting;
                         //Setting
                         var setter = Lib.Reflection.TypeHelper.GetSetObjectValue("Setting", methodType, settingtype);
                         setter(logisticsMethod, settingvalue);
