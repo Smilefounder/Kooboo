@@ -32,9 +32,6 @@ namespace Kooboo.Sites.Logistics.Models
             }
         }
 
-        //additional info if needed. 
-        public string Description { get; set; }
-
         [KIgnore]
         [Obsolete]
         public Guid OrganizationId { get; set; }
@@ -43,9 +40,9 @@ namespace Kooboo.Sites.Logistics.Models
         [Obsolete]
         public Guid WebSiteId { get; set; }
 
-        public Infos SenderInfo { get; set; }
+        public Info SenderInfo { get; set; }
 
-        public Infos ReceiverInfo { get; set; }
+        public Info ReceiverInfo { get; set; }
 
         public double Weight { get; set; }
 
@@ -93,7 +90,7 @@ namespace Kooboo.Sites.Logistics.Models
 
     }
 
-    public class Infos
+    public class Info
     {
         public string Name { get; set; }
 

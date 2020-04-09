@@ -137,10 +137,18 @@ namespace Kooboo.Sites.Logistics
                 }
             }
 
-            request.Name = GetValue<string>(idict, dynamicobj, "name", "title");
-            request.Description = GetValue<string>(idict, dynamicobj, "des", "description", "detail");
-            request.SenderInfo.Prov = GetValue<string>(idict, dynamicobj, "senderprovince");
-            request.ReceiverInfo.Prov = GetValue<string>(idict, dynamicobj, "receiverprovince");
+            var sendInfo = new Info
+            {
+                Prov = GetValue<string>(idict, dynamicobj, "senderprovince")
+            };
+
+            var receiverInfo = new Info
+            {
+                Prov = GetValue<string>(idict, dynamicobj, "receiverprovince")
+            };
+
+            request.SenderInfo = sendInfo;
+            request.ReceiverInfo = receiverInfo;
             request.Height = GetValue<double>(idict, dynamicobj, "cargoheight");
             request.Weight = GetValue<double>(idict, dynamicobj, "cargoweight");
             request.Length = GetValue<double>(idict, dynamicobj, "cargolength");
@@ -194,8 +202,6 @@ namespace Kooboo.Sites.Logistics
                 }
             }
 
-            request.Name = GetValue<string>(idict, dynamicobj, "name", "title");
-            request.Description = GetValue<string>(idict, dynamicobj, "des", "description", "detail");
             request.SenderInfo.Address = GetValue<string>(idict, dynamicobj, "senderaddress");
             request.SenderInfo.City = GetValue<string>(idict, dynamicobj, "sendercity");
             request.SenderInfo.County = GetValue<string>(idict, dynamicobj, "sendercountry");

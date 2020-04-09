@@ -90,9 +90,6 @@ namespace Kooboo.Sites.Models
             }
         }
 
-        [JsonProperty("name")]
-        public virtual string Name { get; set; }
-
         public T Clone<T>() where T: SiteObject
         {
             IndexedDB.Serializer.Simple.SimpleConverter<T> converter = new IndexedDB.Serializer.Simple.SimpleConverter<T>();
