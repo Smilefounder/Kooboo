@@ -30,7 +30,9 @@
       },
       importWp: function() {
         var client= new Kooboo.HttpClientModel("site");
-        client.executeGet("importWp")
+        client.executeGet("importWp").then(function () {
+          location.reload();
+        })
       },
       logout: function() {
         Kooboo.User.logout().then(function(res) {
