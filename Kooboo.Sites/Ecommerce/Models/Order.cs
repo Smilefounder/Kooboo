@@ -34,8 +34,6 @@ namespace Kooboo.Sites.Ecommerce.Models
 
         public Guid AddressId { get; set; }
 
-        public DateTime CreateDate { get; set; }
-
         public OrderStatus Status { get; set; }
 
         public bool DeleteByCustomer { get; set; } = false;

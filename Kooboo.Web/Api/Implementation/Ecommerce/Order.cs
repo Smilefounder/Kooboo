@@ -33,14 +33,21 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
         }
 
 
-        public OrderViewModel GetOrders(ApiCall call, Guid orderId)
+        public OrderViewModel GetEdit(ApiCall call)
         {
             var service = Sites.Ecommerce.ServiceProvider.Order(call.Context);
-            var order = service.Get(orderId);
 
-            var view = new OrderViewModel(order, call.Context);
+            var orderId = call.GetValue<Guid>("id");
+            if (orderId != default(Guid))
+            {
+                var order = service.Get(orderId);
+                if (order != null)
+                {
+                    return new OrderViewModel(order, call.Context);
+                }
+            }
 
-            return view;
+            return new OrderViewModel(new Order(), call.Context);
         }
 
         public bool ChangeOrderAddress(ApiCall call, Guid orderId, Guid addressId)
