@@ -28,6 +28,10 @@
         localStorage.clear();
         location.reload();
       },
+      importWp: function() {
+        var client= new Kooboo.HttpClientModel("site");
+        client.executeGet("importWp")
+      },
       logout: function() {
         Kooboo.User.logout().then(function(res) {
           res.success &&

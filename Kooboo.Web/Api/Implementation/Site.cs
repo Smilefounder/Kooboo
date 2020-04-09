@@ -14,6 +14,7 @@ using System.Linq;
 using Kooboo.Api;
 using Kooboo.Lib.Helper;
 using Kooboo.Data.Language;
+using Kooboo.Web.WpImport;
 
 namespace Kooboo.Web.Api.Implementation
 {
@@ -176,13 +177,13 @@ namespace Kooboo.Web.Api.Implementation
             var exportfile = ImportExport.ExportInter(site.SiteDb());
             var path = System.IO.Path.GetFullPath(exportfile);
 
-            string name = site.DisplayName; 
+            string name = site.DisplayName;
             if (string.IsNullOrEmpty(name))
             {
-                name = site.Name; 
+                name = site.Name;
             }
 
-            name = Lib.Helper.StringHelper.ToValidFileName(name); 
+            name = Lib.Helper.StringHelper.ToValidFileName(name);
 
             if (File.Exists(exportfile))
             {
@@ -331,7 +332,7 @@ namespace Kooboo.Web.Api.Implementation
                 currentsite.AutoDetectCulture = newinfo.AutoDetectCulture;
                 currentsite.ForceSSL = newinfo.ForceSSL;
 
-                currentsite.EnableJsCssCompress = newinfo.EnableJsCssCompress; 
+                currentsite.EnableJsCssCompress = newinfo.EnableJsCssCompress;
 
                 currentsite.SiteType = newinfo.SiteType;
 
@@ -458,6 +459,11 @@ namespace Kooboo.Web.Api.Implementation
             return newsite;
         }
 
+        public void ImportWp(ApiCall call)
+        {
+            WpImporter.Import(call);
+        }
+
         [Kooboo.Attributes.RequireParameters("rootdomain")]
         public bool CheckDomainBindingAvailable(ApiCall call)
         {
@@ -493,7 +499,7 @@ namespace Kooboo.Web.Api.Implementation
             {
                 return default(Guid);
             }
-            
+
             string RootDomain = null;
             string SubDomain = null;
             string SiteName = null;
