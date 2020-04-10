@@ -1,6 +1,6 @@
 ﻿using System.Collections.Specialized;
 
-namespace Kooboo.Sites.Logistics.Methods.zto.Models
+namespace Kooboo.Sites.Logistics.Methods.zop.Models
 {
     public class ZopRequest
     {

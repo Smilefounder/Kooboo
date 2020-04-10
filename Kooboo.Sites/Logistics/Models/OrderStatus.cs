@@ -6,14 +6,16 @@ namespace Kooboo.Sites.Logistics.Models
 {
     public enum OrderStatus
     {
-        GOT,//收件
-        ARRIVAL,//发件
-        SENT_CITY,//已到达
-        SENT_SCAN,//派件扫描
-        SIGNED,//签收
-        SIGNFAIL,//异常签收
-        DSQS,//第三方签收
-        FAILED,//退回件
-        PROBLEM//	问题件
+        Init,
+        Got,//收件
+        Arrival,//发件
+        Send,//已到达
+        Scan,//派件扫描
+        Signed,//签收
+        SignFailed,//异常签收
+        ThirdPartSign,//第三方签收
+        Failed,//退回件
+        FailedSigned,//退回件
+        Problem //	问题件
     }
 }

@@ -201,21 +201,25 @@ namespace Kooboo.Sites.Logistics
                     request.Id = requestid;
                 }
             }
+            var senderInfo = new Info();
+            senderInfo.Address = GetValue<string>(idict, dynamicobj, "senderaddress");
+            senderInfo.City = GetValue<string>(idict, dynamicobj, "sendercity");
+            senderInfo.County = GetValue<string>(idict, dynamicobj, "sendercountry");
+            senderInfo.Mobile = GetValue<string>(idict, dynamicobj, "sendermobile");
+            senderInfo.Phone = GetValue<string>(idict, dynamicobj, "senderphone");
+            senderInfo.Prov = GetValue<string>(idict, dynamicobj, "senderprovince");
+            senderInfo.Name = GetValue<string>(idict, dynamicobj, "sendername");
+            var receiverInfo = new Info();
+            receiverInfo.Address = GetValue<string>(idict, dynamicobj, "receiveraddress");
+            receiverInfo.City = GetValue<string>(idict, dynamicobj, "receivercity");
+            receiverInfo.County = GetValue<string>(idict, dynamicobj, "receivercountry");
+            receiverInfo.Mobile = GetValue<string>(idict, dynamicobj, "receivermobile");
+            receiverInfo.Phone = GetValue<string>(idict, dynamicobj, "receiverphone");
+            receiverInfo.Prov = GetValue<string>(idict, dynamicobj, "receiverprovince");
+            receiverInfo.Name = GetValue<string>(idict, dynamicobj, "receivername");
 
-            request.SenderInfo.Address = GetValue<string>(idict, dynamicobj, "senderaddress");
-            request.SenderInfo.City = GetValue<string>(idict, dynamicobj, "sendercity");
-            request.SenderInfo.County = GetValue<string>(idict, dynamicobj, "sendercountry");
-            request.SenderInfo.Mobile = GetValue<string>(idict, dynamicobj, "sendermobile");
-            request.SenderInfo.Phone = GetValue<string>(idict, dynamicobj, "senderphone");
-            request.SenderInfo.Prov = GetValue<string>(idict, dynamicobj, "senderprovince");
-            request.SenderInfo.Name = GetValue<string>(idict, dynamicobj, "sendername");
-            request.ReceiverInfo.Address = GetValue<string>(idict, dynamicobj, "receiveraddress");
-            request.ReceiverInfo.City = GetValue<string>(idict, dynamicobj, "receivercity");
-            request.ReceiverInfo.County = GetValue<string>(idict, dynamicobj, "receivercountry");
-            request.ReceiverInfo.Mobile = GetValue<string>(idict, dynamicobj, "receivermobile");
-            request.ReceiverInfo.Phone = GetValue<string>(idict, dynamicobj, "receiverphone");
-            request.ReceiverInfo.Prov = GetValue<string>(idict, dynamicobj, "receiverprovince");
-            request.ReceiverInfo.Name = GetValue<string>(idict, dynamicobj, "receivername");
+            request.SenderInfo = senderInfo;
+            request.ReceiverInfo = receiverInfo;
             if (this.LogisticsMethod != null)
             {
                 request.LogisticsMethod = LogisticsMethod.Name;

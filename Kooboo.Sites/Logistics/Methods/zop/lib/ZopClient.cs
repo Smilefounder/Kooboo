@@ -1,19 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
-using Kooboo.Sites.Logistics.Methods.zto.Models;
+using Kooboo.Sites.Logistics.Methods.zop.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-namespace Kooboo.Sites.Logistics.Methods.zto.lib
+namespace Kooboo.Sites.Logistics.Methods.zop.lib
 {
     public class ZopClient
     {
-        private ZTOSetting settings;
+        private ZOPSetting settings;
 
-        public ZopClient(ZTOSetting settings)
+        public ZopClient(ZOPSetting settings)
         {
             this.settings = settings;
         }
@@ -43,6 +45,38 @@ namespace Kooboo.Sites.Logistics.Methods.zto.lib
             return "";
         }
 
+        public TraceOrderResponse TraceOrder(string billCode)
+        {
+            if (string.IsNullOrEmpty(billCode))
+            {
+                return null;
+            }
+            string url = string.Format("{0}/traceInterfaceNewTraces", settings.ServerURL);
+            var request = new ZopRequest();
+            request.addParam("data", JsonConvert.SerializeObject(new[] { billCode }));
+            request.addParam("msg_type", "NEW_TRACES");
+            request.addParam("company_id", settings.CompanyId);
+            var result = execute(request, url);
+
+            if (!string.IsNullOrEmpty(result))
+            {
+                var dic = JsonConvert.DeserializeObject<Dictionary<string, object>>(result);
+
+                if (!Convert.ToBoolean(dic["status"]))
+                {
+                    throw new Exception(result);
+                }
+
+                if (dic["data"] is JArray)
+                {
+                    var response = JsonConvert.DeserializeObject<List<TraceOrderResponse>>(dic["data"].ToString());
+                    return response.FirstOrDefault();
+                }
+            }
+
+            return null;
+        }
+
         public string CreateOrder(ZopRequest request)
         {
             ValidateCreateOrderRequest(request);
@@ -70,24 +104,14 @@ namespace Kooboo.Sites.Logistics.Methods.zto.lib
 
         private void ValidateCreateOrderRequest(ZopRequest request)
         {
-            if (string.IsNullOrEmpty(request.requestParams.Get("sender")))
+            if (string.IsNullOrEmpty(request.requestParams.Get("orderInfo")))
             {
-                throw new Exception("sender不能为空！");
+                throw new Exception("orderInfo不能为空！");
             }
 
-            if (string.IsNullOrEmpty(request.requestParams.Get("receiver")))
+            if (string.IsNullOrEmpty(request.requestParams.Get("systemParameter")))
             {
-                throw new Exception("receiver不能为空！");
-            }
-
-            if (string.IsNullOrEmpty(request.requestParams.Get("partnerCode")))
-            {
-                throw new Exception("partnerCode不能为空！");
-            }
-
-            if (string.IsNullOrEmpty(request.requestParams.Get("companyCode")))
-            {
-                throw new Exception("companyCode不能为空！");
+                throw new Exception("systemParameter不能为空！");
             }
         }
 

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Sites.Logistics.Methods.zto
+namespace Kooboo.Sites.Logistics.Methods.zop
 {
-    public class ZTOSetting : ILogisticsSetting
+    public class ZOPSetting : ILogisticsSetting
     {
         private const string name = "ZTO";
 
@@ -15,8 +15,6 @@ namespace Kooboo.Sites.Logistics.Methods.zto
         public string CompanyId { get; set; }
 
         public string Key { get; set; }
-
-        public string BackUrl { get; set; }
 
         public string CompanyCode { get; set; }
 

@@ -8,6 +8,10 @@ namespace Kooboo.Sites.Logistics.Models
 {
     public class LogisticsStatusResponse
     {
+        public Guid RequestId { get; set; }
+
+        public string BillCode { get; set; }
+
         [JsonConverter(typeof(StringEnumConverter))]
         public OrderStatus Status
         {
