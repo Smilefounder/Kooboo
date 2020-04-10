@@ -16,7 +16,7 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
             this.setting = setting;
         }
 
-        public string Post(string url, string body, string method)
+        public void Post(string url, string body, string method)
         {
             Dictionary<string, string> parameters = new Dictionary<string, string>();
             parameters.Add("user_id", setting.UserId);
