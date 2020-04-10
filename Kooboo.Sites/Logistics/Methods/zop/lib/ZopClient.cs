@@ -11,16 +11,16 @@ using Newtonsoft.Json.Linq;
 
 namespace Kooboo.Sites.Logistics.Methods.zop.lib
 {
-    public class ZopClient
+    public class ZOPClient
     {
         private ZOPSetting settings;
 
-        public ZopClient(ZOPSetting settings)
+        public ZOPClient(ZOPSetting settings)
         {
             this.settings = settings;
         }
 
-        public string GetPostage(ZopRequest request)
+        public string GetPostage(ZOPRequest request)
         {
             ValidatePostageRequest(request);
 
@@ -52,7 +52,7 @@ namespace Kooboo.Sites.Logistics.Methods.zop.lib
                 return null;
             }
             string url = string.Format("{0}/traceInterfaceNewTraces", settings.ServerURL);
-            var request = new ZopRequest();
+            var request = new ZOPRequest();
             request.addParam("data", JsonConvert.SerializeObject(new[] { billCode }));
             request.addParam("msg_type", "NEW_TRACES");
             request.addParam("company_id", settings.CompanyId);
@@ -77,7 +77,7 @@ namespace Kooboo.Sites.Logistics.Methods.zop.lib
             return null;
         }
 
-        public string CreateOrder(ZopRequest request)
+        public string CreateOrder(ZOPRequest request)
         {
             ValidateCreateOrderRequest(request);
 
@@ -102,7 +102,7 @@ namespace Kooboo.Sites.Logistics.Methods.zop.lib
             return "";
         }
 
-        private void ValidateCreateOrderRequest(ZopRequest request)
+        private void ValidateCreateOrderRequest(ZOPRequest request)
         {
             if (string.IsNullOrEmpty(request.requestParams.Get("orderInfo")))
             {
@@ -115,7 +115,7 @@ namespace Kooboo.Sites.Logistics.Methods.zop.lib
             }
         }
 
-        private void ValidatePostageRequest(ZopRequest request)
+        private void ValidatePostageRequest(ZOPRequest request)
         {
             if (string.IsNullOrEmpty(request.requestParams.Get("weight")))
             {
@@ -134,7 +134,7 @@ namespace Kooboo.Sites.Logistics.Methods.zop.lib
         }
 
 
-        private string execute(ZopRequest request, string url)
+        private string execute(ZOPRequest request, string url)
         {
             NameValueCollection requestParams = request.requestParams;
             int i = 0;

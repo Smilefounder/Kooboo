@@ -49,8 +49,7 @@ request.receiverphone='11111111',
                 return res;
 
             var ztoModel = GenerateCreateOderRequest(request);
-            request.ReferenceId = "680000000000";
-            var apiClient = new ZopClient(this.Setting);
+            var apiClient = new ZOPClient(this.Setting);
             var result = apiClient.CreateOrder(ztoModel);
             if (!string.IsNullOrEmpty(result))
             {
@@ -64,7 +63,7 @@ request.receiverphone='11111111',
 
         public LogisticsStatusResponse checkStatus(LogisticsRequest request)
         {
-            var apiClient = new ZopClient(this.Setting);
+            var apiClient = new ZOPClient(this.Setting);
             var result = apiClient.TraceOrder(request.ReferenceId);
             if (result == null)
             {
@@ -96,18 +95,18 @@ request.receiverphone='11111111',
                 return "";
             }
 
-            var ztoModel = new ZopRequest();
+            var ztoModel = new ZOPRequest();
             ztoModel.addParam("companyCode", Setting.CompanyCode);
             ztoModel.addParam("provinceStart", request.ReceiverInfo.Prov);
             ztoModel.addParam("provinceEnd", request.ReceiverInfo.Prov);
             ztoModel.addParam("weight", request.Weight.ToString("0.00"));
 
-            var apiClient = new ZopClient(this.Setting);
+            var apiClient = new ZOPClient(this.Setting);
             var result = apiClient.GetPostage(ztoModel);
             return result;
         }
 
-        private ZopRequest GenerateCreateOderRequest(LogisticsRequest request)
+        private ZOPRequest GenerateCreateOderRequest(LogisticsRequest request)
         {
             var senderInfo = new Dictionary<string, string>();
             senderInfo.Add("address", request.SenderInfo.Address);
@@ -136,7 +135,7 @@ request.receiverphone='11111111',
             var systemParameter = new Dictionary<string, string>();
             systemParameter.Add("serviceCode", Setting.ServiceCode);
 
-            var ztoModel = new ZopRequest();
+            var ztoModel = new ZOPRequest();
             ztoModel.addParam("systemParameter", JsonConvert.SerializeObject(systemParameter));
             ztoModel.addParam("orderInfo", JsonConvert.SerializeObject(orderInfo));
 
