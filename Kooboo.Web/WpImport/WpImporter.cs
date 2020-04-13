@@ -5,6 +5,8 @@ using Kooboo.Lib.Helper;
 using Kooboo.Sites.Extensions;
 using Kooboo.Web.Api;
 using Kooboo.Web.Api.Implementation;
+using Kooboo.Web.ViewModel;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,13 +42,117 @@ namespace Kooboo.Web.WpImport
                 ImportStyles(sitePath, website, call.Context);
                 ImportImages(sitePath, website, call.Context);
                 ImportFiles(sitePath, website, call.Context);
-                //TODO ImportData(sitePath, newsite, call.Context);
+                ImportData(sitePath, website, call.Context);
                 ImportHtmlblock(sitePath, website, call.Context);
+                ImportViews(sitePath, website, call.Context);
+                //ImportMenus(sitePath, website, call.Context);
+                ImportLayouts(sitePath, website, call.Context);
+                ImportPages(sitePath, website, call.Context);
             }
             catch (Exception ex)
             {
                 ImportLogger.Write($"----------导入失败 {ex}");
                 if (website != null) Kooboo.Sites.Service.WebSiteService.Delete(website.Id);
+            }
+        }
+
+        private static void ImportMenus(string sitePath, WebSite website, RenderContext context)
+        {
+            var dir = Path.Combine(sitePath, "result", "menu");
+            if (!Directory.Exists(dir)) return;
+            var menus = Directory.GetFiles(dir);
+
+            foreach (var menu in menus)
+            {
+                ImportLogger.Write($"导入menu {menu}");
+
+                var siteMenu = new Sites.Models.Menu();
+                siteMenu.Name = Path.GetFileNameWithoutExtension(menu);
+                siteMenu.Template = File.ReadAllText(menu);
+                website.SiteDb().Menus.AddOrUpdate(siteMenu);
+            }
+        }
+
+        private static void ImportPages(string sitePath, WebSite website, RenderContext context)
+        {
+            var dir = Path.Combine(sitePath, "result", "pages");
+            if (!Directory.Exists(dir)) return;
+            var pages = Directory.GetFiles(dir);
+
+            foreach (var page in pages)
+            {
+                ImportLogger.Write($"导入page {page}");
+
+                context.Request.Model = new PageUpdateViewModel
+                {
+                    UrlPath = $"/{Path.GetFileNameWithoutExtension(page)}",
+                    Body = File.ReadAllText(page),
+                    Name = Path.GetFileNameWithoutExtension(page),
+                    Id = default(Guid)
+                };
+
+                var call = new ApiCall
+                {
+                    WebSite = website,
+                    Context = context
+                };
+
+                call.Context.WebSite = website;
+
+                new PageApi().Post(call);
+            }
+        }
+
+        private static void ImportLayouts(string sitePath, WebSite website, RenderContext context)
+        {
+            var dir = Path.Combine(sitePath, "result", "layout");
+            if (!Directory.Exists(dir)) return;
+            var layouts = Directory.GetFiles(dir);
+
+            foreach (var layout in layouts)
+            {
+                ImportLogger.Write($"导入layout {layout}");
+
+                context.Request.Model = new Kooboo.Sites.Models.Layout
+                {
+                    Body = File.ReadAllText(layout),
+                    Name = Path.GetFileNameWithoutExtension(layout),
+                    Id = default(Guid)
+                };
+
+                var call = new ApiCall
+                {
+                    WebSite = website,
+                    Context = context
+                };
+
+                new LayoutApi().Post(call);
+            }
+        }
+
+        private static void ImportViews(string sitePath, WebSite website, RenderContext context)
+        {
+            var dir = Path.Combine(sitePath, "result", "view");
+            if (!Directory.Exists(dir)) return;
+            var views = Directory.GetFiles(dir);
+
+            foreach (var view in views)
+            {
+                ImportLogger.Write($"导入view {view}");
+                context.Request.Model = new ViewEditViewModel //DOTO add dataSource
+                {
+                    Body = File.ReadAllText(view),
+                    Name = Path.GetFileNameWithoutExtension(view),
+                    Id = default(Guid)
+                };
+
+                var call = new ApiCall
+                {
+                    WebSite = website,
+                    Context = context
+                };
+
+                new ViewApi().Post(call);
             }
         }
 
@@ -79,17 +185,18 @@ namespace Kooboo.Web.WpImport
             }
         }
 
-        private static void ImportData(string sitePath, WebSite newsite, RenderContext context)
+        private static void ImportData(string sitePath, WebSite website, RenderContext context)
         {
             var data = File.ReadAllText(Path.Combine(sitePath, "result", "data.json"));
             var json = JsonHelper.DeserializeJObject(data);
+
             foreach (var item in json.Properties())
             {
-
+                new ContentImporter().Import(website, item, context);
             }
         }
 
-        private static void ImportFiles(string sitePath, WebSite newsite, RenderContext context)
+        private static void ImportFiles(string sitePath, WebSite website, RenderContext context)
         {
             var dir = Path.Combine(sitePath, "static");
             if (!Directory.Exists(dir)) return;
@@ -106,7 +213,7 @@ namespace Kooboo.Web.WpImport
                 var call = new ApiCall
                 {
                     ObjectId = default(Guid),
-                    WebSite = newsite,
+                    WebSite = website,
                     Context = context
                 };
 
@@ -114,7 +221,7 @@ namespace Kooboo.Web.WpImport
             }
         }
 
-        private static void ImportImages(string sitePath, WebSite newsite, RenderContext context)
+        private static void ImportImages(string sitePath, WebSite website, RenderContext context)
         {
             var dir = Path.Combine(sitePath, "image");
             if (!Directory.Exists(dir)) return;
@@ -130,7 +237,7 @@ namespace Kooboo.Web.WpImport
                 var call = new ApiCall
                 {
                     ObjectId = default(Guid),
-                    WebSite = newsite,
+                    WebSite = website,
                     Context = context
                 };
 
@@ -138,7 +245,7 @@ namespace Kooboo.Web.WpImport
             }
         }
 
-        private static void ImportStyles(string sitePath, WebSite newsite, RenderContext context)
+        private static void ImportStyles(string sitePath, WebSite website, RenderContext context)
         {
             var dir = Path.Combine(sitePath, "css");
             if (!Directory.Exists(dir)) return;
@@ -157,7 +264,7 @@ namespace Kooboo.Web.WpImport
                 var call = new ApiCall
                 {
                     ObjectId = default(Guid),
-                    WebSite = newsite,
+                    WebSite = website,
                     Context = context
                 };
 
@@ -165,7 +272,7 @@ namespace Kooboo.Web.WpImport
             }
         }
 
-        private static void ImportScripts(string sitePath, Data.Models.WebSite newsite, RenderContext context)
+        private static void ImportScripts(string sitePath, Data.Models.WebSite website, RenderContext context)
         {
             var dir = Path.Combine(sitePath, "js");
             if (!Directory.Exists(dir)) return;
@@ -183,7 +290,7 @@ namespace Kooboo.Web.WpImport
                 var call = new ApiCall
                 {
                     ObjectId = default(Guid),
-                    WebSite = newsite,
+                    WebSite = website,
                     Context = context
                 };
 
