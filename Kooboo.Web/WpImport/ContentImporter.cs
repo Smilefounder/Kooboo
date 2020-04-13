@@ -4,14 +4,12 @@ using Kooboo.Data.Models;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Contents.Models;
 using Kooboo.Sites.Extensions;
-using Kooboo.Sites.Repository;
 using Kooboo.Web.Api.Implementation;
 using Kooboo.Web.ViewModel;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Kooboo.Web.WpImport
 {
@@ -19,7 +17,64 @@ namespace Kooboo.Web.WpImport
     {
         public void Import(WebSite webSite, JProperty jProperty, RenderContext context)
         {
-            CreateContentType(webSite, jProperty, context);
+            var id = CreateContentType(webSite, jProperty, context);
+            AddData(id, webSite, jProperty, context);
+        }
+
+        private List<Guid> AddData(Guid id, WebSite webSite, JProperty jProperty, RenderContext context)
+        {
+            context.Request.Body = JsonHelper.Serialize(new
+            {
+                FolderId = id,
+                Id = default(Guid)
+            });
+
+            var call = new ApiCall
+            {
+                ObjectId = default(Guid),
+                WebSite = webSite,
+                Context = context
+            };
+
+            var vm = new TextContentApi().GetEdit(call);
+            var valueIds = new List<Guid>();
+
+            foreach (var item in jProperty.Value as JArray)
+            {
+                var value = item as JObject;
+                var properies = value.Properties();
+                var buildInTypes = properies.Where(a => a.Value is JArray);
+
+                var textContent = new LangTextContentViewModel
+                {
+                    Id = Guid.Empty.ToString(),
+                    FolderId = id.ToString(),
+                    Values = new Dictionary<string, Dictionary<string, string>> {
+                        {webSite.DefaultCulture, properies.Except(buildInTypes).ToDictionary(t => t.Name, t => t.Value.ToString())}
+                    }
+                };
+
+                var embeddedValues = new Dictionary<Guid, List<Guid>>();
+
+                foreach (var buildInType in buildInTypes)
+                {
+                    var folderId = vm.Embedded.Find(f => f.Alias == buildInType.Name).EmbeddedFolder.Id;
+                    embeddedValues.Add(folderId, AddData(folderId, webSite, buildInType, context));
+                }
+
+                textContent.Embedded = embeddedValues;
+                context.Request.Model = textContent;
+
+                context.Request.Body = JsonHelper.Serialize(new
+                {
+                    FolderId = id,
+                    Id = default(Guid)
+                });
+
+                valueIds.Add(new TextContentApi().LangUpdate(call));
+            }
+
+            return valueIds;
         }
 
         private Guid CreateContentType(WebSite webSite, JProperty jProperty, RenderContext context, string prefix = "")
@@ -32,16 +87,7 @@ namespace Kooboo.Web.WpImport
 
             var buildInTypes = properies.Where(a => a.Value is JArray);
             var name = $"{(prefix == string.Empty ? string.Empty : $"{prefix}_")}{jProperty.Name}";
-
-            var props = properies.Except(buildInTypes).Select(s => new ContentProperty
-            {
-                Name = s.Name,
-                DisplayName = s.Name,
-                ControlType = s.Value.ToString().Length > 100 ? "TextArea" : "TextBox",
-                DataType = Data.Definition.DataTypes.String,
-                Editable = true,
-                MaxLength = (s.Value.ToString().Length / 1024 + 1) * 1024
-            }).ToList();
+            var props = GetContentProperties(properies.Except(buildInTypes));
 
             context.Request.Model = new ContentType
             {
@@ -85,29 +131,20 @@ namespace Kooboo.Web.WpImport
                 folderId = new ContentFolderApi().Post(call);
             };
 
-            foreach (var item in jArray)
-            {
-                var value = item as JObject;
-                var valueProps = value.Properties();
-
-                var textContent = new LangTextContentViewModel
-                {
-                    Id = Guid.Empty.ToString(),
-                    FolderId = folderId.ToString(),
-                    Values = new Dictionary<string, Dictionary<string, string>> {
-                        {webSite.DefaultCulture, valueProps.Where(w=>!(w.Value is JArray)).ToDictionary(t => t.Name, t => t.Value.ToString())}
-                    },
-                    Embedded = new Dictionary<Guid, List<Guid>>
-                    {
-                        {Guid.Empty,new List<Guid>() }
-                    }
-                };
-
-                context.Request.Model = textContent;
-                new TextContentApi().LangUpdate(call);
-            }
-
             return folderId;
+        }
+
+        private static List<ContentProperty> GetContentProperties(IEnumerable<JProperty> properies)
+        {
+            return properies.Select(s => new ContentProperty
+            {
+                Name = s.Name,
+                DisplayName = s.Name,
+                ControlType = s.Value.ToString().Length > 100 ? "TextArea" : "TextBox",
+                DataType = Data.Definition.DataTypes.String,
+                Editable = true,
+                MaxLength = (s.Value.ToString().Length / 1024 + 1) * 1024
+            }).ToList();
         }
 
         Guid GetFolderId(WebSite webSite, Guid contentTypeId)
