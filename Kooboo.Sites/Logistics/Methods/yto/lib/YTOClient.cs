@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.Serialization;
 using Kooboo.Sites.Logistics.Methods.yto.Model;
 using Kooboo.Sites.Logistics.Methods.zop.lib;
 using Newtonsoft.Json;
@@ -21,36 +25,60 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
             this.setting = setting;
         }
 
-        public string ChargeQuery(OrderCreateRequest request)
+        public string CreateOrder(RequestOrder request)
         {
-            var result = Post(setting.ServerURL+ "/order_create/v1/U8dQd0", JsonConvert.SerializeObject(request), TransportPrice);
+            request.ClientID = setting.ClientID;
+            request.Items = new List<Item>
+            {
+                new Item
+                {
+                    ItemName ="0",
+                    Number = 0
+                }
+            };
+            request.OrderType = "1";//订单类型(0-COD,1-普通订单,3-退货单)
+            request.ServiceType = "0";//服务类型(1-上门揽收, 2-次日达 4-次晨达 8-当日达,0-自己联系)。（数据库未使用）（目前暂未使用默认为0）
+            request.Special = "0";//商品类型（保留字段，暂时不用，默认填0）
+            request.LogisticProviderID = "YTO";
+            XmlSerializerNamespaces ns = new XmlSerializerNamespaces(); ns.Add("", "");
 
+            XmlSerializer serializer = new XmlSerializer(typeof(RequestOrder));
+
+            XmlWriterSettings settings = new XmlWriterSettings()
+            {
+                Encoding = new UnicodeEncoding(false, false), // no BOM in a .NET string
+                Indent = false,
+                OmitXmlDeclaration = true
+            };
+            string xml = "";
+            using (StringWriter textWriter = new StringWriter())
+            {
+                using (XmlWriter xmlWriter = XmlWriter.Create(textWriter, settings))
+                {
+                    serializer.Serialize(xmlWriter, request, ns);
+                }
+                xml = textWriter.ToString();
+            }
+
+            var content = GenerateCreateBody(xml);
+            var result = Post("http://opentestapi.yto.net.cn/service/order_create/v1/U8dQd0", content);//setting.ServerURL + "/order_create/v1/U8dQd0", content);
+
+            var a = DeserializeResponse(result);
             return result;
         }
 
         public string ChargeQuery(ChargeQueryRequest request)
         {
-            var result = Post(setting.ServerURL+ "/charge_query/v1/U8dQd0", JsonConvert.SerializeObject(new ChargeQueryRequest[] { request }), TransportPrice);
+            var content = GenerateQueryBody(JsonConvert.SerializeObject(new ChargeQueryRequest[] { request }), TransportPrice);
+            var result = Post(setting.ServerURL + "/charge_query/v1/U8dQd0", content);
 
             return result;
         }
 
-        public string Post(string url, string body, string method)
+        public string Post(string url, string content)
         {
-            url = "";
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
-            parameters.Add("user_id", setting.UserId);
-            parameters.Add("app_key", setting.AppKey);
-            parameters.Add("format", "JSON");
-            parameters.Add("method", method);
-            parameters.Add("v", setting.Version);
-            parameters.Add("timestamp", DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss"));
-            var sign = MakeSign(parameters, method);
-            parameters.Add("sign", sign);
-            parameters.Add("param", body);
-
             string contentType = "application/x-www-form-urlencoded";
-            var httpContent = new StringContent(BuildQuery(parameters), null, contentType);
+            var httpContent = new StringContent(content, null, contentType);
             httpContent.Headers.ContentType.CharSet = null;
             var resp = ApiClient.Create()
                             .SendAsync(HttpMethod.Post, url,
@@ -61,6 +89,48 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
             }
 
             return resp.Content;
+        }
+
+        public CreateOrderResponse DeserializeResponse(string response)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(CreateOrderResponse));
+
+            XmlReaderSettings settings = new XmlReaderSettings();
+            // No settings need modifying here
+
+            using (StringReader textReader = new StringReader(response))
+            {
+                using (XmlReader xmlReader = XmlReader.Create(textReader, settings))
+                {
+                    return (CreateOrderResponse)serializer.Deserialize(xmlReader);
+                }
+            }
+        }
+
+        private string GenerateCreateBody(string body)
+        {
+            var encodeValue = HttpUtility.UrlEncode(body, Encoding.UTF8);
+            var dic = new Dictionary<string, string>();
+            dic.Add("logistics_interface", encodeValue);
+            dic.Add("data_digest", MakeDataDigest(body));
+            dic.Add("type", "online");
+            dic.Add("clientId", "TEST");//setting.ClientID);
+            return BuildQuery(dic);
+        }
+
+        private string GenerateQueryBody(string body, string method)
+        {
+            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            parameters.Add("user_id", setting.UserId);
+            parameters.Add("app_key", setting.AppKey);
+            parameters.Add("format", "JSON");
+            parameters.Add("method", method);
+            parameters.Add("v", setting.Version);
+            parameters.Add("timestamp", DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss"));
+            var sign = MakeSign(parameters, method);
+            parameters.Add("sign", sign);
+            parameters.Add("param", body);
+            return BuildQuery(parameters);
         }
 
         private static string BuildQuery(IDictionary<string, string> parameters)
@@ -97,6 +167,14 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
             }
 
             return postData.ToString();
+        }
+
+        private string MakeDataDigest(string request)
+        {
+            var md5 = MD5.Create();
+            var bs = md5.ComputeHash(Encoding.UTF8.GetBytes(request + "123456"));//setting.PartnerID));
+            var base64 = Convert.ToBase64String(bs);
+            return HttpUtility.UrlEncode(base64, Encoding.UTF8);
         }
 
         private string MakeSign(Dictionary<string, string> paras, string method)

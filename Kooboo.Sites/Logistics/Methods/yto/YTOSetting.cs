@@ -20,6 +20,12 @@ namespace Kooboo.Sites.Logistics.Methods.yto
 
         public string SecretKey { get; set; }
 
+        public string PartnerID { get; set; }
+
+        public string ClientID { get; set; }
+
+        public string LogisticProviderID { get; set; }
+
         public string ServerURL => UseSandBox ? "http://opentestapi.yto.net.cn/service" : "http://japi.zto.cn";
     }
 }

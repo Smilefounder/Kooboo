@@ -47,27 +47,13 @@ request.receiverphone='11111111',
                 return res;
 
             var apiClient = new YTOClient(this.Setting);
-
+            apiClient.CreateOrder(createRequest);
             return res;
         }
 
         public LogisticsStatusResponse checkStatus(LogisticsRequest request)
         {
-            var apiClient = new ZOPClient(this.Setting);
-            var result = apiClient.TraceOrder(request.ReferenceId);
-            if (result == null)
-            {
-                return null;
-            }
-
-            var status = result.Traces.First() == null ? OrderStatus.Init : ConvertStatus(result.Traces.First().ScanType);
-
-            return new LogisticsStatusResponse
-            {
-                RequestId = request.Id,
-                Status = status,
-                BillCode = request.ReferenceId
-            };
+            throw new NotImplementedException();
         }
 
         [Description(@"
@@ -76,7 +62,7 @@ request.receiverphone='11111111',
         request.senderprovince='江苏省',
         request.receiverprovince='福建省',
         request.cargoweight='1',
-        k.logistics.zTOLogistics.getPostage(request)
+        k.logistics.YTOLogistics.getPostage(request)
         </script> ")]
         public string GetPostage(LogisticsRequest request)
         {
@@ -98,9 +84,31 @@ request.receiverphone='11111111',
             return result;
         }
 
-        private OrderCreateRequest GenerateCreateOderRequest(LogisticsRequest request)
+        private RequestOrder GenerateCreateOderRequest(LogisticsRequest request)
         {
-            return new OrderCreateRequest();
+            var requestOrder = new RequestOrder
+            {
+                Receiver = new PersonalInfo
+                {
+                    Address = "软件园",
+                    City = "厦门市",
+                    Prov = "福建省",
+                    Name = "receiver",
+                    Phone = "11111111111",
+                    PostCode = "0"
+                },
+                Sender = new PersonalInfo
+                {
+                    Address = "软件园",
+                    City = "泉州市",
+                    Prov = "福建省",
+                    Name = "receiver",
+                    Phone = "11111111111",
+                    PostCode = "0"
+                },
+                TxLogisticID = request.Id.ToString("N")
+            };
+            return new RequestOrder();
         }
 
         private OrderStatus ConvertStatus(string code)
