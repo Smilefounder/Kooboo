@@ -5,11 +5,13 @@ using Kooboo.Lib.Helper;
 using Kooboo.Sites.Extensions;
 using Kooboo.Web.Api;
 using Kooboo.Web.Api.Implementation;
+using Kooboo.Web.Areas.Admin.ViewModels;
 using Kooboo.Web.ViewModel;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 
@@ -42,9 +44,9 @@ namespace Kooboo.Web.WpImport
                 ImportStyles(sitePath, website, call.Context);
                 ImportImages(sitePath, website, call.Context);
                 ImportFiles(sitePath, website, call.Context);
-                ImportData(sitePath, website, call.Context);
+                var datas = ImportData(sitePath, website, call.Context);
                 ImportHtmlblock(sitePath, website, call.Context);
-                ImportViews(sitePath, website, call.Context);
+                ImportViews(sitePath, website, call.Context, datas);
                 //ImportMenus(sitePath, website, call.Context);
                 ImportLayouts(sitePath, website, call.Context);
                 ImportPages(sitePath, website, call.Context);
@@ -130,21 +132,60 @@ namespace Kooboo.Web.WpImport
             }
         }
 
-        private static void ImportViews(string sitePath, WebSite website, RenderContext context)
+        private static void ImportViews(string sitePath, WebSite website, RenderContext context, Dictionary<string, Guid> datas)
         {
             var dir = Path.Combine(sitePath, "result", "view");
             if (!Directory.Exists(dir)) return;
             var views = Directory.GetFiles(dir);
 
+
             foreach (var view in views)
             {
                 ImportLogger.Write($"导入view {view}");
-                context.Request.Model = new ViewEditViewModel //DOTO add dataSource
+                var body = File.ReadAllText(view);
+
+                var model = new ViewEditViewModel
                 {
-                    Body = File.ReadAllText(view),
+                    Body = body,
                     Name = Path.GetFileNameWithoutExtension(view),
-                    Id = default(Guid)
+                    Id = default(Guid),
+                    DataSources = new List<Sites.Models.ViewDataMethod>()
                 };
+
+                var containsData = datas.Where(w => body.Contains(w.Key));
+
+                if (containsData.Count() > 0)
+                {
+                    context.Request.Body = JsonHelper.Serialize(new
+                    {
+                        Id = Guid.Empty
+                    });
+
+                    foreach (var data in containsData)
+                    {
+                        var method = GetByFolderMethod(website, context);
+                        method.Property("id").Value = Guid.Empty.ToString();
+                        var parameterBinding = method.Property("parameterBinding").Value as JObject;
+                        var folderId = parameterBinding.Property("folderId").Value as JObject;
+                        folderId.Property("binding").Value = data.Value.ToString();
+                        context.Request.Body = JsonHelper.Serialize(method);
+
+                        var typeInfoModel = new DataMethodSettingApi().Update(new ApiCall
+                        {
+                            WebSite = website,
+                            Context = context
+                        });
+
+                        model.DataSources.Add(new Sites.Models.ViewDataMethod
+                        {
+                            AliasName = data.Key,
+                            MethodId = typeInfoModel.Id
+                        });
+                    }
+                }
+
+
+                context.Request.Model = model;
 
                 var call = new ApiCall
                 {
@@ -154,6 +195,35 @@ namespace Kooboo.Web.WpImport
 
                 new ViewApi().Post(call);
             }
+        }
+
+        private static JObject GetByFolderMethod(WebSite website, RenderContext context)
+        {
+            context.Request.Body = JsonHelper.Serialize(new
+            {
+                Id = Guid.Empty
+            });
+
+            var vms = new DataMethodSettingApi().ByView(new ApiCall
+            {
+                WebSite = website,
+                Context = context
+            });
+
+            var byFolder = vms.SelectMany(s => s.Methods).First(f => f.MethodName == "ByFolder");
+
+            context.Request.Body = JsonHelper.Serialize(new
+            {
+                byFolder.Id
+            });
+
+            var dataMethodSetting = new DataMethodSettingApi().Get(new ApiCall
+            {
+                WebSite = website,
+                Context = context
+            });
+
+            return JsonHelper.DeserializeJObject(JsonHelper.Serialize(dataMethodSetting));
         }
 
         private static void ImportHtmlblock(string sitePath, WebSite website, RenderContext context)
@@ -185,15 +255,19 @@ namespace Kooboo.Web.WpImport
             }
         }
 
-        private static void ImportData(string sitePath, WebSite website, RenderContext context)
+        private static Dictionary<string, Guid> ImportData(string sitePath, WebSite website, RenderContext context)
         {
             var data = File.ReadAllText(Path.Combine(sitePath, "result", "data.json"));
             var json = JsonHelper.DeserializeJObject(data);
+            var dic = new Dictionary<string, Guid>();
 
             foreach (var item in json.Properties())
             {
-                new ContentImporter().Import(website, item, context);
+                var result = new ContentImporter().Import(website, item, context);
+                dic.Add(result.Key, result.Value);
             }
+
+            return dic;
         }
 
         private static void ImportFiles(string sitePath, WebSite website, RenderContext context)

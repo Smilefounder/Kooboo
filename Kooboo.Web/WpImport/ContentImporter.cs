@@ -15,10 +15,11 @@ namespace Kooboo.Web.WpImport
 {
     public class ContentImporter
     {
-        public void Import(WebSite webSite, JProperty jProperty, RenderContext context)
+        public KeyValuePair<string, Guid> Import(WebSite webSite, JProperty jProperty, RenderContext context)
         {
             var id = CreateContentType(webSite, jProperty, context);
             AddData(id, webSite, jProperty, context);
+            return new KeyValuePair<string, Guid>(jProperty.Name, id);
         }
 
         private List<Guid> AddData(Guid id, WebSite webSite, JProperty jProperty, RenderContext context)
