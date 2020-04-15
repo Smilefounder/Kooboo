@@ -139,12 +139,14 @@ namespace Kooboo.Sites.Logistics
 
             var sendInfo = new Info
             {
-                Prov = GetValue<string>(idict, dynamicobj, "senderprovince")
+                Prov = GetValue<string>(idict, dynamicobj, "senderprovince"),
+                City = GetValue<string>(idict, dynamicobj, "sendercity")
             };
 
             var receiverInfo = new Info
             {
-                Prov = GetValue<string>(idict, dynamicobj, "receiverprovince")
+                Prov = GetValue<string>(idict, dynamicobj, "receiverprovince"),
+                City = GetValue<string>(idict, dynamicobj, "receivercity"),
             };
 
             request.SenderInfo = sendInfo;

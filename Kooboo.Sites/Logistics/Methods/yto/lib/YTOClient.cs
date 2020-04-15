@@ -18,6 +18,7 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
     public class YTOClient
     {
         private const string TransportPrice = "yto.Marketing.TransportPrice";
+        private const string BillTrace = "yto.Marketing.WaybillTrace";
         private readonly YTOSetting setting;
 
         public YTOClient(YTOSetting setting)
@@ -25,7 +26,15 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
             this.setting = setting;
         }
 
-        public string CreateOrder(RequestOrder request)
+        public OrderCreateResponse TraceOrder(OrderTraceRequest request)
+        {
+            var content = GenerateQueryBody(JsonConvert.SerializeObject(new OrderTraceRequest[] { request }), BillTrace);
+            var result = Post(setting.ServerURL + "/waybill_query/v1/U8dQd0", content);
+            var orderModel = JsonConvert.DeserializeObject<List<OrderCreateResponse>>(result);
+            return orderModel.OrderByDescending(it => it.Upload_Time).FirstOrDefault();
+        }
+
+        public CreateOrderResponse CreateOrder(RequestOrder request)
         {
             request.ClientID = setting.ClientID;
             request.Items = new List<Item>
@@ -39,7 +48,7 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
             request.OrderType = "1";//订单类型(0-COD,1-普通订单,3-退货单)
             request.ServiceType = "0";//服务类型(1-上门揽收, 2-次日达 4-次晨达 8-当日达,0-自己联系)。（数据库未使用）（目前暂未使用默认为0）
             request.Special = "0";//商品类型（保留字段，暂时不用，默认填0）
-            request.LogisticProviderID = "YTO";
+            request.LogisticProviderID = setting.LogisticProviderID + "11";
             XmlSerializerNamespaces ns = new XmlSerializerNamespaces(); ns.Add("", "");
 
             XmlSerializer serializer = new XmlSerializer(typeof(RequestOrder));
@@ -61,10 +70,9 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
             }
 
             var content = GenerateCreateBody(xml);
-            var result = Post("http://opentestapi.yto.net.cn/service/order_create/v1/U8dQd0", content);//setting.ServerURL + "/order_create/v1/U8dQd0", content);
+            var result = Post(setting.ServerURL + "/order_create/v1/U8dQd0", content);//setting.ServerURL + "/order_create/v1/U8dQd0", content);
 
-            var a = DeserializeResponse(result);
-            return result;
+            return DeserializeResponse(result);
         }
 
         public string ChargeQuery(ChargeQueryRequest request)
@@ -86,6 +94,12 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
             if (!resp.IsSuccessStatusCode)
             {
                 throw new HttpRequestException($"Error Status: {resp.StatusCode}; content: {resp.Content}.");
+            }
+
+            var result = DeserializeResponse(resp.Content);
+            if (!result.Success)
+            {
+                throw new HttpRequestException($"content: {result.Reason}.");
             }
 
             return resp.Content;
@@ -123,7 +137,7 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
             Dictionary<string, string> parameters = new Dictionary<string, string>();
             parameters.Add("user_id", setting.UserId);
             parameters.Add("app_key", setting.AppKey);
-            parameters.Add("format", "JSON");
+            parameters.Add("format", "JSON1");
             parameters.Add("method", method);
             parameters.Add("v", setting.Version);
             parameters.Add("timestamp", DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss"));

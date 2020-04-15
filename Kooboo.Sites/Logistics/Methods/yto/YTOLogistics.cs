@@ -23,23 +23,25 @@ namespace Kooboo.Sites.Logistics.Methods.yto
         [Description(@"
         <script engine='kscript'>
         var request = {};
-    request.senderaddress='软件园三期',
-request.sendercity='厦门市',
-request.sendercountry='集美区',
-request.senderprovince='福建省',
-request.sendername='sender',
-request.senderphone='111111',
-request.receiveraddress='后龙镇',
-request.receivercity='泉州市',
-request.receivercountry='泉港区',
-request.receiverprovince='福建省',
-request.receivername='receive',
-request.receiverphone='11111111',
-        k.logistics.zTOLogistics.createOrder(request)
+        request.senderaddress='软件园三期',
+        request.sendercity='厦门市',
+        request.sendercountry='集美区',
+        request.senderprovince='福建省',
+        request.sendername='sender',
+        request.senderphone='111111',
+        request.receiveraddress='后龙镇',
+        request.receivercity='泉州市',
+        request.receivercountry='泉港区',
+        request.receiverprovince='福建省',
+        request.receivername='receive',
+        request.receiverphone='11111111',
+        k.logistics.yTOLogistics.createOrder(request)
 </script>")]
         [KDefineType(Return = typeof(LogisticsResponse))]
         public ILogisticsResponse CreateOrder(LogisticsRequest request)
         {
+            request.ReferenceId = "1111111111";
+            checkStatus(request);
             var createRequest = GenerateCreateOderRequest(request);
             LogisticsResponse res = null;
 
@@ -47,20 +49,45 @@ request.receiverphone='11111111',
                 return res;
 
             var apiClient = new YTOClient(this.Setting);
-            apiClient.CreateOrder(createRequest);
+            var result = apiClient.CreateOrder(createRequest);
+            if (result.Success)
+            {
+                res.requestId = request.Id;
+                res.logisticsMethodReferenceId = result.TxLogisticID;
+            }
+
             return res;
         }
 
         public LogisticsStatusResponse checkStatus(LogisticsRequest request)
         {
-            throw new NotImplementedException();
+            var traceRequest = new OrderTraceRequest()
+            {
+                Number = request.ReferenceId
+            };
+
+            var apiClient = new YTOClient(this.Setting);
+            var result = apiClient.TraceOrder(traceRequest);
+            if (result == null)
+            {
+                return null;
+            }
+
+            return new LogisticsStatusResponse
+            {
+                RequestId = request.Id,
+                StatusMessage = result.ProcessInfo,
+                BillCode = request.ReferenceId
+            };
         }
 
         [Description(@"
         <script engine='kscript'>
          var request = {};
         request.senderprovince='江苏省',
+        request.sendercity='厦门市',
         request.receiverprovince='福建省',
+        request.receivercity='泉州市',
         request.cargoweight='1',
         k.logistics.YTOLogistics.getPostage(request)
         </script> ")]
@@ -73,9 +100,9 @@ request.receiverphone='11111111',
             var chargeRequest = new ChargeQueryRequest
             {
                 StartProvince = request.SenderInfo.Prov,
-                StartCity = request.SenderInfo.County,
+                StartCity = request.SenderInfo.City,
                 EndProvince = request.ReceiverInfo.Prov,
-                EndCity = request.ReceiverInfo.County,
+                EndCity = request.ReceiverInfo.City,
                 GoodsWeight = request.Weight.ToString()
             };
 
@@ -108,7 +135,7 @@ request.receiverphone='11111111',
                 },
                 TxLogisticID = request.Id.ToString("N")
             };
-            return new RequestOrder();
+            return requestOrder;
         }
 
         private OrderStatus ConvertStatus(string code)

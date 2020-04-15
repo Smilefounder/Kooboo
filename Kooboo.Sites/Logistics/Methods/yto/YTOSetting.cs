@@ -26,6 +26,6 @@ namespace Kooboo.Sites.Logistics.Methods.yto
 
         public string LogisticProviderID { get; set; }
 
-        public string ServerURL => UseSandBox ? "http://opentestapi.yto.net.cn/service" : "http://japi.zto.cn";
+        public string ServerURL => UseSandBox ? "http://opentestapi.yto.net.cn/service" : "";
     }
 }

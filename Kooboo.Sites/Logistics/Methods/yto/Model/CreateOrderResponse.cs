@@ -5,6 +5,7 @@ using System.Xml.Serialization;
 
 namespace Kooboo.Sites.Logistics.Methods.yto.Model
 {
+    [XmlRoot("Response")]
     public class CreateOrderResponse
     {
         [XmlElement("logisticProviderID")]
@@ -14,7 +15,7 @@ namespace Kooboo.Sites.Logistics.Methods.yto.Model
         public string TxLogisticID { get; set; }
 
         [XmlElement("success")]
-        public string Success { get; set; }
+        public bool Success { get; set; }
 
         [XmlElement("reason")]
         public string Reason { get; set; }

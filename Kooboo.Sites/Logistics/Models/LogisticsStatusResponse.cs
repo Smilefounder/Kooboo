@@ -18,6 +18,8 @@ namespace Kooboo.Sites.Logistics.Models
             get; set;
         }
 
+        public string StatusMessage { get; set; }
+
         public string Message { get; set; }
     }
 }
