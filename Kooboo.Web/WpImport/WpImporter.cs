@@ -45,9 +45,9 @@ namespace Kooboo.Web.WpImport
                 ImportImages(sitePath, website, call.Context);
                 ImportFiles(sitePath, website, call.Context);
                 var datas = ImportData(sitePath, website, call.Context);
-                ImportHtmlblock(sitePath, website, call.Context);
                 ImportViews(sitePath, website, call.Context, datas);
-                //ImportMenus(sitePath, website, call.Context);
+                ImportHtmlblock(sitePath, website, call.Context);
+                ImportMenus(sitePath, website, call.Context);
                 ImportLayouts(sitePath, website, call.Context);
                 ImportPages(sitePath, website, call.Context);
             }
@@ -62,16 +62,13 @@ namespace Kooboo.Web.WpImport
         {
             var dir = Path.Combine(sitePath, "result", "menu");
             if (!Directory.Exists(dir)) return;
-            var menus = Directory.GetFiles(dir);
+            var menus = Directory.GetFiles(dir, "*.json");
 
             foreach (var menu in menus)
             {
                 ImportLogger.Write($"导入menu {menu}");
-
-                var siteMenu = new Sites.Models.Menu();
-                siteMenu.Name = Path.GetFileNameWithoutExtension(menu);
-                siteMenu.Template = File.ReadAllText(menu);
-                website.SiteDb().Menus.AddOrUpdate(siteMenu);
+                var menuJson = JsonHelper.DeserializeJObject(File.ReadAllText(menu));
+                new MenuImporter().Import(website, menuJson, context, Path.GetFileNameWithoutExtension(menu));
             }
         }
 
