@@ -254,9 +254,11 @@ namespace Kooboo.Web.WpImport
 
         private static Dictionary<string, Guid> ImportData(string sitePath, WebSite website, RenderContext context)
         {
-            var data = File.ReadAllText(Path.Combine(sitePath, "result", "data.json"));
-            var json = JsonHelper.DeserializeJObject(data);
+            var file = Path.Combine(sitePath, "result", "data.json");
             var dic = new Dictionary<string, Guid>();
+            if (!File.Exists(file)) return dic;
+            var data = File.ReadAllText(file);
+            var json = JsonHelper.DeserializeJObject(data);
 
             foreach (var item in json.Properties())
             {
