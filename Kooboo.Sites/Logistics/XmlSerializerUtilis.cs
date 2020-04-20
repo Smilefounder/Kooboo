@@ -26,8 +26,10 @@ namespace Kooboo.Sites.Logistics
         }
 
 
-        public static T DeserializeXML<T>(XmlReaderSettings settings, string response)
+        public static T DeserializeXML<T>(string response)
         {
+            XmlReaderSettings settings = new XmlReaderSettings();
+
             XmlSerializer serializer = new XmlSerializer(typeof(T));
             // No settings need modifying here
 

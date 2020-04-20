@@ -41,6 +41,8 @@ request.receiverphone='11111111',
         [KDefineType(Return = typeof(LogisticsResponse))]
         public ILogisticsResponse CreateOrder(LogisticsRequest request)
         {
+            request.ReferenceId = "444003077898";
+            checkStatus(request);
             LogisticsResponse res = null;
 
             if (Setting == null)
@@ -61,7 +63,26 @@ request.receiverphone='11111111',
 
         public LogisticsStatusResponse checkStatus(LogisticsRequest request)
         {
-            return null;
+            LogisticsStatusResponse res = null;
+            var traceRequest = new TraceOrderRequest
+            {
+                TrackingNumber = request.ReferenceId
+            };
+            var apiClient = new SFClient(this.Setting);
+            var result = apiClient.TraceOrder(traceRequest);
+
+            if(result !=null)
+            {
+                res = new LogisticsStatusResponse
+                {
+                    RequestId = request.Id,
+                    BillCode = request.ReferenceId,
+                    Status = ConvertStatus(result.Code),
+                    StatusMessage = result.Remark
+                };
+            }
+
+            return res;
         }
 
         public string GetPostage(LogisticsRequest request)
@@ -135,6 +156,27 @@ request.receiverphone='11111111',
             var status = OrderStatus.Init;
             switch (code.ToUpper())
             {
+                case "30":
+                    status = OrderStatus.Got;
+                    break;
+                case "31":
+                    status = OrderStatus.Got;
+                    break;
+                case "44":
+                    status = OrderStatus.Scan;
+                    break;
+                case "607":
+                    status = OrderStatus.ThirdPartSign;
+                    break;
+                case "80":
+                    status = OrderStatus.Signed;
+                    break;
+                case "648":
+                    status = OrderStatus.Failed;
+                    break;
+                case "33":
+                    status = OrderStatus.Problem;
+                    break;
             }
 
             return status;

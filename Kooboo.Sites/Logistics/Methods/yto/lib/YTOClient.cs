@@ -62,7 +62,7 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
             var content = GenerateCreateBody(xml);
             var result = Post(setting.ServerURL + "/order_create/v1/U8dQd0", content);//setting.ServerURL + "/order_create/v1/U8dQd0", content);
 
-            return DeserializeResponse(result);
+            return XmlSerializerUtilis.DeserializeXML<CreateOrderResponse>(result);
         }
 
         public string ChargeQuery(ChargeQueryRequest request)
@@ -86,20 +86,13 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
                 throw new HttpRequestException($"Error Status: {resp.StatusCode}; content: {resp.Content}.");
             }
 
-            var result = DeserializeResponse(resp.Content);
+            var result = XmlSerializerUtilis.DeserializeXML<CreateOrderResponse>(resp.Content);
             if (!result.Success)
             {
                 throw new HttpRequestException($"content: {result.Reason}.");
             }
 
             return resp.Content;
-        }
-
-        public CreateOrderResponse DeserializeResponse(string response)
-        {
-            XmlReaderSettings settings = new XmlReaderSettings();
-
-            return XmlSerializerUtilis.DeserializeXML<CreateOrderResponse>(settings, response);
         }
 
         private string GenerateCreateBody(string body)

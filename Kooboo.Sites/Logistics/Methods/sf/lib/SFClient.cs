@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Xml;
@@ -11,11 +12,22 @@ namespace Kooboo.Sites.Logistics.Methods.sf.lib
     public class SFClient
     {
         private const string OrderService = "OrderService";
-        public SFSetting setting;
+        private const string RouteService = "RouteService";
+        private SFSetting setting = null;
+        private XmlWriterSettings settings = null;
+        private XmlSerializerNamespaces ns = null;
 
         public SFClient(SFSetting setting)
         {
             this.setting = setting;
+            settings = new XmlWriterSettings()
+            {
+                Encoding = new UnicodeEncoding(false, false), // no BOM in a .NET string
+                Indent = false,
+                OmitXmlDeclaration = true
+            };
+            ns = new XmlSerializerNamespaces();
+            ns.Add("", "");
         }
 
         public CreateOrderResponse CreateOrder(CreateOrderRequest request)
@@ -30,17 +42,36 @@ namespace Kooboo.Sites.Logistics.Methods.sf.lib
                 OmitXmlDeclaration = true
             };
 
-            var body = XmlSerializerUtilis.SerializeXML<CreateOrderRequest>(settings, ns, request);
+            var body = XmlSerializerUtilis.SerializeXML(settings, ns, request);
             var xml = GenerateRequestXML(OrderService, body);
             var result = Post(setting.ServerURL, xml);
 
             if (result != null)
             {
-                XmlReaderSettings readerSettings = new XmlReaderSettings();
-                var reponse = XmlSerializerUtilis.DeserializeXML<CreateOrderResponse>(readerSettings, result);
+                var reponse = XmlSerializerUtilis.DeserializeXML<CreateOrderResponse>(result);
                 if (reponse.Head == "OK")
                 {
                     return reponse;
+                }
+            }
+
+            return null;
+        }
+
+        public Route TraceOrder(TraceOrderRequest request)
+        {
+            request.MethodType = "1";
+            request.TrackingType = "1"; //如果tracking_type = 1,则此值为顺丰运单号 如果tracking_type = 2, 则此值为客户订单号 如果tracking_type = 3,则此值为逆向单原始订单号
+              var body = XmlSerializerUtilis.SerializeXML(settings, ns, request);
+            var xml = GenerateRequestXML(RouteService, body);
+            var result = Post(setting.ServerURL, xml);
+
+            if (result != null)
+            {
+                var response = XmlSerializerUtilis.DeserializeXML<TraceOrderResponse>(result);
+                if (response.Head == "OK")
+                {
+                    return response.Body.Route.OrderByDescending(it => it.AcceptTime)?.FirstOrDefault();
                 }
             }
 

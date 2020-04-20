@@ -137,15 +137,5 @@ namespace Kooboo.Sites.Logistics.Methods.yto
             };
             return requestOrder;
         }
-
-        private OrderStatus ConvertStatus(string code)
-        {
-            var status = OrderStatus.Init;
-            switch (code.ToUpper())
-            {
-            }
-
-            return status;
-        }
     }
 }
