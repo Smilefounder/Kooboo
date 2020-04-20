@@ -51,23 +51,13 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
             request.LogisticProviderID = setting.LogisticProviderID + "11";
             XmlSerializerNamespaces ns = new XmlSerializerNamespaces(); ns.Add("", "");
 
-            XmlSerializer serializer = new XmlSerializer(typeof(RequestOrder));
-
             XmlWriterSettings settings = new XmlWriterSettings()
             {
                 Encoding = new UnicodeEncoding(false, false), // no BOM in a .NET string
                 Indent = false,
                 OmitXmlDeclaration = true
             };
-            string xml = "";
-            using (StringWriter textWriter = new StringWriter())
-            {
-                using (XmlWriter xmlWriter = XmlWriter.Create(textWriter, settings))
-                {
-                    serializer.Serialize(xmlWriter, request, ns);
-                }
-                xml = textWriter.ToString();
-            }
+            string xml = XmlSerializerUtilis.SerializeXML<RequestOrder>(settings, ns, request);
 
             var content = GenerateCreateBody(xml);
             var result = Post(setting.ServerURL + "/order_create/v1/U8dQd0", content);//setting.ServerURL + "/order_create/v1/U8dQd0", content);
@@ -107,18 +97,9 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
 
         public CreateOrderResponse DeserializeResponse(string response)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(CreateOrderResponse));
-
             XmlReaderSettings settings = new XmlReaderSettings();
-            // No settings need modifying here
 
-            using (StringReader textReader = new StringReader(response))
-            {
-                using (XmlReader xmlReader = XmlReader.Create(textReader, settings))
-                {
-                    return (CreateOrderResponse)serializer.Deserialize(xmlReader);
-                }
-            }
+            return XmlSerializerUtilis.DeserializeXML<CreateOrderResponse>(settings, response);
         }
 
         private string GenerateCreateBody(string body)

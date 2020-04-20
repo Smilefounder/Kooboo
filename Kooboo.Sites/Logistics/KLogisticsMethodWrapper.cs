@@ -203,18 +203,43 @@ namespace Kooboo.Sites.Logistics
                     request.Id = requestid;
                 }
             }
+
+            var name = GetValue<string>(idict, dynamicobj, "cargoname");
+            var cargoprice = GetValue<string>(idict, dynamicobj, "cargoprice");
+            var cargoweight = GetValue<string>(idict, dynamicobj, "cargoweight");
+            var cargocount = GetValue<string>(idict, dynamicobj, "cargocount");
+            var currency = GetValue<string>(idict, dynamicobj, "cargocurrency");
+            var unit = GetValue<string>(idict, dynamicobj, "cargounit");
+            var sourcearea = GetValue<string>(idict, dynamicobj, "cargosourcearea");
+            if (!string.IsNullOrEmpty(name) || !string.IsNullOrEmpty(cargoprice) || !string.IsNullOrEmpty(cargoweight)
+                || !string.IsNullOrEmpty(cargocount) || !string.IsNullOrEmpty(currency) || !string.IsNullOrEmpty(unit)
+                | !string.IsNullOrEmpty(sourcearea))
+            {
+                var cargo = new CargoInfo();
+                cargo.Name = name;
+                cargo.Price = cargoprice;
+                cargo.Weight = cargoweight;
+                cargo.Count = cargocount;
+                cargo.Currency = currency;
+                cargo.Unit = unit;
+                cargo.SourceArea = sourcearea;
+                request.CargoInfo = cargo;
+            }
+
             var senderInfo = new Info();
+            senderInfo.Country = GetValue<string>(idict, dynamicobj, "sendercountry");
             senderInfo.Address = GetValue<string>(idict, dynamicobj, "senderaddress");
             senderInfo.City = GetValue<string>(idict, dynamicobj, "sendercity");
-            senderInfo.County = GetValue<string>(idict, dynamicobj, "sendercountry");
+            senderInfo.County = GetValue<string>(idict, dynamicobj, "sendercounty");
             senderInfo.Mobile = GetValue<string>(idict, dynamicobj, "sendermobile");
             senderInfo.Phone = GetValue<string>(idict, dynamicobj, "senderphone");
             senderInfo.Prov = GetValue<string>(idict, dynamicobj, "senderprovince");
             senderInfo.Name = GetValue<string>(idict, dynamicobj, "sendername");
             var receiverInfo = new Info();
             receiverInfo.Address = GetValue<string>(idict, dynamicobj, "receiveraddress");
+            senderInfo.Country = GetValue<string>(idict, dynamicobj, "receivercountry");
             receiverInfo.City = GetValue<string>(idict, dynamicobj, "receivercity");
-            receiverInfo.County = GetValue<string>(idict, dynamicobj, "receivercountry");
+            receiverInfo.County = GetValue<string>(idict, dynamicobj, "receivercounty");
             receiverInfo.Mobile = GetValue<string>(idict, dynamicobj, "receivermobile");
             receiverInfo.Phone = GetValue<string>(idict, dynamicobj, "receiverphone");
             receiverInfo.Prov = GetValue<string>(idict, dynamicobj, "receiverprovince");
@@ -222,6 +247,7 @@ namespace Kooboo.Sites.Logistics
 
             request.SenderInfo = senderInfo;
             request.ReceiverInfo = receiverInfo;
+
             if (this.LogisticsMethod != null)
             {
                 request.LogisticsMethod = LogisticsMethod.Name;

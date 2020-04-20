@@ -44,6 +44,8 @@ namespace Kooboo.Sites.Logistics.Models
 
         public Info ReceiverInfo { get; set; }
 
+        public CargoInfo CargoInfo { get; set; }
+
         public double Weight { get; set; }
 
         public double Length { get; set; }
@@ -90,8 +92,27 @@ namespace Kooboo.Sites.Logistics.Models
 
     }
 
+    public class CargoInfo
+    {
+        public string Name { get; set; }
+
+        public string Price { get; set; }
+
+        public string Weight { get; set; }
+
+        public string Count { get; set; }
+
+        public string Currency { get; set; }
+
+        public string Unit { get; set; }
+
+        public string SourceArea { get; set; }
+    }
+
     public class Info
     {
+        public string Country { get; set; }
+
         public string Name { get; set; }
 
         public string Mobile { get; set; }

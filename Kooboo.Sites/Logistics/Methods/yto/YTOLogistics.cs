@@ -10,7 +10,7 @@ using Kooboo.Sites.Logistics.Models;
 
 namespace Kooboo.Sites.Logistics.Methods.yto
 {
-    public class ZOPLogistics : ILogisticsMethod<YTOSetting>
+    public class YTOLogistics : ILogisticsMethod<YTOSetting>
     {
         public YTOSetting Setting { get; set; }
 
@@ -25,13 +25,13 @@ namespace Kooboo.Sites.Logistics.Methods.yto
         var request = {};
         request.senderaddress='软件园三期',
         request.sendercity='厦门市',
-        request.sendercountry='集美区',
+        request.sendercounty='集美区',
         request.senderprovince='福建省',
         request.sendername='sender',
         request.senderphone='111111',
         request.receiveraddress='后龙镇',
         request.receivercity='泉州市',
-        request.receivercountry='泉港区',
+        request.receivercounty='泉港区',
         request.receiverprovince='福建省',
         request.receivername='receive',
         request.receiverphone='11111111',
