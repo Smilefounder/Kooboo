@@ -46,8 +46,6 @@ request.receiverphone='11111111',
         [KDefineType(Return = typeof(LogisticsResponse))]
         public ILogisticsResponse CreateOrder(LogisticsRequest request)
         {
-            request.ReferenceId = "TEST000000051";
-            checkStatus(request);
             LogisticsResponse res = null;
 
             if (Setting == null)
@@ -73,13 +71,15 @@ request.receiverphone='11111111',
                 return null;
             }
 
-            var trace = result.traceLogs.FirstOrDefault()?.traces?.trace.FirstOrDefault()?.scanType ?? "";
-            var status = result.traceLogs.FirstOrDefault()?.problems.problem.Count > 0 ? OrderStatus.Problem : ConvertStatus(trace);
+            var trace = result.traceLogs.FirstOrDefault()?.traces?.trace?.FirstOrDefault()?.scanType ?? "";
+            var problem = result.traceLogs.FirstOrDefault()?.problems?.problem;
+            var status = problem == null || problem.Count > 0 ? OrderStatus.Problem : ConvertStatus(trace);
 
             return new LogisticsStatusResponse
             {
                 RequestId = request.Id,
                 Status = status,
+                StatusMessage = problem?.FirstOrDefault()?.problemType,
                 BillCode = request.ReferenceId
             };
         }
