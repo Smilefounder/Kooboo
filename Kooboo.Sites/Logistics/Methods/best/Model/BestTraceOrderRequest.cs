@@ -4,13 +4,13 @@ using System.Text;
 
 namespace Kooboo.Sites.Logistics.Methods.best.Model
 {
-    public class KdTraceQueryReq
+    public class BestTraceOrderRequest
     {
         public MailNos mailNos { get; set; }
     }
 
     public class MailNos
     {
-        public List<String> mailNo { get; set; }
+        public List<string> mailNo { get; set; }
     }
 }

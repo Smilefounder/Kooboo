@@ -4,11 +4,9 @@ using System.Text;
 
 namespace Kooboo.Sites.Logistics.Methods.best.Model
 {
-	public class KdCreateOrderNotifyReq 
+	public class BestCreateOrderRequest 
 	{
 		public string txLogisticID { get; set; }
-		public string tradeNo { get; set; }
-		public string mailNo { get; set; }
 		public string orderType { get; set; }
 		public string serviceType { get; set; }
 		public string orderFlag { get; set; }

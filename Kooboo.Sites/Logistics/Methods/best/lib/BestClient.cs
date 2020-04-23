@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Web;
 using Kooboo.Sites.Logistics.Methods.best.Model;
@@ -18,30 +19,46 @@ namespace Kooboo.Sites.Logistics.Methods.best.lib
             this.setting = setting;
         }
 
-        public KdCreateOrderNotifyRsp CreateOrder(KdCreateOrderNotifyReq request)
+        public BestCreateOrderResponse CreateOrder(BestCreateOrderRequest request)
         {
+            request.orderFlag = "1";//业务类型(0-线下下单,1-线上下单,10-我要寄快递)
+            request.serviceType = "1";//服务类型(0 - 线下下单, 1 - 线上下单)
+            request.orderType = "1";//订单类型(1-普通订单)
             var body = JsonConvert.SerializeObject(request);
             var result = execute(body, CreateNotify);
-            var response = JsonConvert.DeserializeObject<KdCreateOrderNotifyRsp>(result);
+            var response = JsonConvert.DeserializeObject<BestCreateOrderResponse>(result);
             if (response.result)
             {
                 return response;
             }
-
-            return null;
+            else
+            {
+                throw new Exception($"Error Status: {response.errorCode}; content: {response.errorDescription}.");
+            }
         }
 
-        public KdTraceQueryRsp TraceOrder(KdTraceQueryReq request)
+        public BestTraceOrderResponse TraceOrder(string biilCode)
         {
+            var mailNos = new MailNos
+            {
+                mailNo = new List<string> { biilCode }
+            };
+
+            var request = new BestTraceOrderRequest
+            {
+                mailNos = mailNos
+            };
             var body = JsonConvert.SerializeObject(request);
             var result = execute(body, TraceQuery);
-            var response = JsonConvert.DeserializeObject<KdTraceQueryRsp>(result);
-            if(response.result)
+            var response = JsonConvert.DeserializeObject<BestTraceOrderResponse>(result);
+            if (response.result)
             {
                 return response;
             }
-
-            return null;
+            else
+            {
+                throw new Exception($"Error Status: {response.errorCode}; content: {response.errorDescription}.");
+            }
         }
 
         public string execute(string bizData, string serviceType)
@@ -63,7 +80,7 @@ namespace Kooboo.Sites.Logistics.Methods.best.lib
             data.Add("sign", SignUtil.MakeMd5Sign(signString));
 
             string body = BuildQuery(data);
-            var resp = ApiClient.Create().PostAsync(setting.ServerURL, body, contentType: "application/x-www-form-urlencoded;charset=utf-8").Result;
+            var resp = ApiClient.Create().PostAsync(setting.ServerURL, body, contentType: "application/x-www-form-urlencoded").Result;
 
             if (!resp.IsSuccessStatusCode)
             {

@@ -5,6 +5,9 @@ using System.Linq;
 using System.Text;
 using Kooboo.Data.Attributes;
 using Kooboo.Data.Context;
+using Kooboo.Sites.Logistics.Methods.best;
+using Kooboo.Sites.Logistics.Methods.best.lib;
+using Kooboo.Sites.Logistics.Methods.best.Model;
 using Kooboo.Sites.Logistics.Methods.zop;
 using Kooboo.Sites.Logistics.Methods.zop.lib;
 using Kooboo.Sites.Logistics.Methods.zop.Models;
@@ -13,13 +16,13 @@ using Newtonsoft.Json;
 
 namespace Kooboo.Sites.Logistics.Methods.zop
 {
-    public class BestLogistics : ILogisticsMethod<ZOPSetting>
+    public class BestLogistics : ILogisticsMethod<BestSetting>
     {
-        public ZOPSetting Setting { get; set; }
+        public BestSetting Setting { get; set; }
 
-        public string Name => "ZTOLogistics";
+        public string Name => "BestLogistics";
 
-        public string DisplayName => Data.Language.Hardcoded.GetValue("ZTO", Context);
+        public string DisplayName => Data.Language.Hardcoded.GetValue("Best", Context);
 
         public RenderContext Context { get; set; }
 
@@ -38,39 +41,40 @@ request.receivercounty='泉港区',
 request.receiverprovince='福建省',
 request.receivername='receive',
 request.receiverphone='11111111',
-        k.logistics.zTOLogistics.createOrder(request)
+        k.logistics.bestLogistics.createOrder(request)
 </script>")]
         [KDefineType(Return = typeof(LogisticsResponse))]
         public ILogisticsResponse CreateOrder(LogisticsRequest request)
         {
+            request.ReferenceId = "TEST000000051";
+            checkStatus(request);
             LogisticsResponse res = null;
 
             if (Setting == null)
                 return res;
 
-            var ztoModel = GenerateCreateOderRequest(request);
-            var apiClient = new ZOPClient(this.Setting);
-            var result = apiClient.CreateOrder(ztoModel);
-            if (!string.IsNullOrEmpty(result))
-            {
-                request.ReferenceId = result;
-                res.requestId = request.Id;
-                res.logisticsMethodReferenceId = result;
-            }
+            var oderRequest = GenerateCreateOderRequest(request);
+            var apiClient = new BestClient(this.Setting);
+            var result = apiClient.CreateOrder(oderRequest);
+            res = new LogisticsResponse();
+            request.ReferenceId = result.remark;
+            res.requestId = request.Id;
+            res.logisticsMethodReferenceId = result.remark;
 
             return res;
         }
 
         public LogisticsStatusResponse checkStatus(LogisticsRequest request)
         {
-            var apiClient = new ZOPClient(this.Setting);
+            var apiClient = new BestClient(this.Setting);
             var result = apiClient.TraceOrder(request.ReferenceId);
             if (result == null)
             {
                 return null;
             }
 
-            var status = result.Traces.First() == null ? OrderStatus.Init : ConvertStatus(result.Traces.First().ScanType);
+            var trace = result.traceLogs.FirstOrDefault()?.traces?.trace.FirstOrDefault()?.scanType ?? "";
+            var status = result.traceLogs.FirstOrDefault()?.problems.problem.Count > 0 ? OrderStatus.Problem : ConvertStatus(trace);
 
             return new LogisticsStatusResponse
             {
@@ -80,66 +84,41 @@ request.receiverphone='11111111',
             };
         }
 
-        [Description(@"
-        <script engine='kscript'>
-         var request = {};
-        request.senderprovince='江苏省',
-        request.receiverprovince='福建省',
-        request.cargoweight='1',
-        k.logistics.zTOLogistics.getPostage(request)
-        </script> ")]
         public string GetPostage(LogisticsRequest request)
         {
-            if (Setting == null)
-            {
-                return "";
-            }
-
-            var ztoModel = new ZOPRequest();
-            ztoModel.addParam("companyCode", Setting.CompanyCode);
-            ztoModel.addParam("provinceStart", request.ReceiverInfo.Prov);
-            ztoModel.addParam("provinceEnd", request.ReceiverInfo.Prov);
-            ztoModel.addParam("weight", request.Weight.ToString("0.00"));
-
-            var apiClient = new ZOPClient(this.Setting);
-            var result = apiClient.GetPostage(ztoModel);
-            return result;
+            return "";
         }
 
-        private ZOPRequest GenerateCreateOderRequest(LogisticsRequest request)
+        private BestCreateOrderRequest GenerateCreateOderRequest(LogisticsRequest request)
         {
-            var senderInfo = new Dictionary<string, string>();
-            senderInfo.Add("address", request.SenderInfo.Address);
-            senderInfo.Add("city", request.SenderInfo.City);
-            senderInfo.Add("county", request.SenderInfo.County);
-            senderInfo.Add("phone", request.SenderInfo.Phone);
-            senderInfo.Add("prov", request.SenderInfo.Prov);
-            senderInfo.Add("mobile", request.SenderInfo.Mobile);
-            senderInfo.Add("name", request.SenderInfo.Name);
-            var receiverInfo = new Dictionary<string, string>();
-            receiverInfo.Add("address", request.ReceiverInfo.Address);
-            receiverInfo.Add("city", request.ReceiverInfo.City);
-            receiverInfo.Add("county", request.ReceiverInfo.County);
-            receiverInfo.Add("phone", request.ReceiverInfo.Phone);
-            receiverInfo.Add("prov", request.ReceiverInfo.Prov);
-            receiverInfo.Add("mobile", request.ReceiverInfo.Mobile);
-            receiverInfo.Add("name", request.ReceiverInfo.Name);
+            var sender = new Sender
+            {
+                name = request.SenderInfo.Name,
+                address = request.SenderInfo.Address,
+                city = request.SenderInfo.City,
+                county = request.SenderInfo.County,
+                phone = request.SenderInfo.Phone,
+                prov = request.SenderInfo.Prov
+            };
 
-            var orderInfo = new Dictionary<string, string>();
-            orderInfo.Add("companyCode", Setting.CompanyCode);
-            orderInfo.Add("partnerCode", request.Id.ToString("N"));
-            orderInfo.Add("hallCode", Setting.HallCode);
-            orderInfo.Add("sender", JsonConvert.SerializeObject(senderInfo));
-            orderInfo.Add("receiver", JsonConvert.SerializeObject(receiverInfo));
+            var receiver = new Receiver
+            {
+                name = request.ReceiverInfo.Name,
+                address = request.ReceiverInfo.Address,
+                city = request.ReceiverInfo.City,
+                county = request.ReceiverInfo.County,
+                phone = request.ReceiverInfo.Phone,
+                prov = request.ReceiverInfo.Prov
+            };
 
-            var systemParameter = new Dictionary<string, string>();
-            systemParameter.Add("serviceCode", Setting.ServiceCode);
+            var orderRequest = new BestCreateOrderRequest
+            {
+                sender = sender,
+                receiver = receiver,
+                txLogisticID = request.Id.ToString("N")
+            };
 
-            var ztoModel = new ZOPRequest();
-            ztoModel.addParam("systemParameter", JsonConvert.SerializeObject(systemParameter));
-            ztoModel.addParam("orderInfo", JsonConvert.SerializeObject(orderInfo));
-
-            return ztoModel;
+            return orderRequest;
         }
 
         private OrderStatus ConvertStatus(string code)
@@ -159,23 +138,11 @@ request.receiverphone='11111111',
                 case "签收":
                     status = OrderStatus.Signed;
                     break;
-                case "第三方签收":
+                case "代理点签收":
                     status = OrderStatus.ThirdPartSign;
                     break;
-                case "ARRIVAL":
-                    status = OrderStatus.ThirdPartSign;
-                    break;
-                case "SIGNED":
+                case "用户提货":
                     status = OrderStatus.Signed;
-                    break;
-                case "退件":
-                    status = OrderStatus.Failed;
-                    break;
-                case "退件签收":
-                    status = OrderStatus.FailedSigned;
-                    break;
-                case "问题件":
-                    status = OrderStatus.Problem;
                     break;
             }
 

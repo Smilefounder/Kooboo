@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Kooboo.Sites.Logistics.Methods.best.Model
 {
-	public class KdTraceQueryRsp 
+	public class BestTraceOrderResponse 
 	{
 		public bool result { get; set; }
 		public string remark { get; set; }
