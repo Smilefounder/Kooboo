@@ -160,7 +160,7 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
         private string MakeDataDigest(string request)
         {
             var md5 = MD5.Create();
-            var bs = md5.ComputeHash(Encoding.UTF8.GetBytes(request + "123456"));//setting.PartnerID));
+            var bs = md5.ComputeHash(Encoding.UTF8.GetBytes(request + setting.PartnerID));
             var base64 = Convert.ToBase64String(bs);
             return HttpUtility.UrlEncode(base64, Encoding.UTF8);
         }
