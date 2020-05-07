@@ -41,8 +41,6 @@ request.receiverphone='11111111',
         [KDefineType(Return = typeof(LogisticsResponse))]
         public ILogisticsResponse CreateOrder(LogisticsRequest request)
         {
-            request.ReferenceId = "444003077898";
-            checkStatus(request);
             LogisticsResponse res = null;
 
             if (Setting == null)

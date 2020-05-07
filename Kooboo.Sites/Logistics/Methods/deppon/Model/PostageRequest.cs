@@ -7,10 +7,11 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.Model
 {
     public class PostageRequest
     {
-        public string DestCity { get; set; }
-        public string DestProvince { get; set; }
-        public string DestDistrict { get; set; }
-        public string OriginalCity { get; set; }
-        public string OriginalProvince { get; set; }
+        public string LogisticCompanyID { get; set; }
+        public string OriginalsStreet { get; set; }
+        public string Originalsaddress { get; set; }
+        public string SendDateTime { get; set; }
+        public string TotalVolume { get; set; }
+        public string TotalWeight { get; set; }
     }
 }

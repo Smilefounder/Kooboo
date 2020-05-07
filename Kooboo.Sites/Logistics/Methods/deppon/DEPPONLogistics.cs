@@ -51,7 +51,7 @@ request.receiverphone='11111111',
 
         public LogisticsStatusResponse checkStatus(LogisticsRequest request)
         {
-            return new LogisticsStatusResponse(); 
+            return new LogisticsStatusResponse();
         }
 
         [Description(@"
@@ -59,11 +59,12 @@ request.receiverphone='11111111',
          var request = {};
         request.senderprovince='北京省',
         request.sendercity='北京市',
-        request.sendercounty='大兴区,
+        request.sendercounty='大兴区',
         request.receiverprovince='福建省',
         request.receivercity='泉州市',
         request.receivercounty='泉港区',
         request.cargoweight='1',
+        request.expresstype='标准快递',//https://www.deppon.com/mail/price
         k.logistics.dEPPONLogistics.getPostage(request)
         </script>")]
         public string GetPostage(LogisticsRequest request)
@@ -73,15 +74,26 @@ request.receiverphone='11111111',
                 return "";
             }
 
+            request.Additional.TryGetValue("expresstype", out var expresstype);
+            if (expresstype == null)
+            {
+                return "快递类型不能为空！";
+            }
+
             var postageRequest = new PostageRequest();
-            postageRequest.DestProvince = request.ReceiverInfo.Prov;
-            postageRequest.DestDistrict = request.ReceiverInfo.County;
-            postageRequest.DestCity = request.ReceiverInfo.City;
-            postageRequest.OriginalProvince = request.SenderInfo.Prov;
-            postageRequest.OriginalCity = request.SenderInfo.City;
+            string receiverAddress = string.Format("{0}-{1}-{2}", request.ReceiverInfo.Prov, request.ReceiverInfo.City, request.ReceiverInfo.County);
+            string senderAddress = string.Format("{0}-{1}-{2}", request.SenderInfo.Prov, request.SenderInfo.City, request.SenderInfo.County);
+            postageRequest.Originalsaddress = receiverAddress;
+            postageRequest.OriginalsStreet = senderAddress;
+            postageRequest.TotalWeight = request.Weight.ToString();
 
             var apiClient = new DEPPONClient(this.Setting);
-            var result = apiClient.GetPostage(postageRequest);
+            var result = apiClient.GetPostage(postageRequest, expresstype.ToString());
+            if (result == null)
+            {
+                return "查询新官网";
+            }
+
             return result;
         }
     }

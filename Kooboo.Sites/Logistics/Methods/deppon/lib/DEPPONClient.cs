@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
@@ -19,15 +20,26 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.lib
             this.setting = setting;
         }
 
-        public string GetPostage(PostageRequest request)
+        public string GetPostage(PostageRequest request, string expressType)
         {
+            request.TotalVolume = "0.001";
+            request.LogisticCompanyID = setting.LogisticCompanyID;
+            request.SendDateTime = DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss");
             var settings = new JsonSerializerSettings();
             settings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             var content = GenerateQueryBody(JsonConvert.SerializeObject(request, settings));
-            string url = "http://dpsanbox.deppon.com/sandbox-web/standard-order/queryPrice.action";//string.Format(setting.ServerURL + "/queryPrice.action");
-            var result = Post(url, content);
+            string url = "http://dpsanbox.deppon.com/sandbox-web/standard-order/queryPriceTime.action";//string.Format(setting.ServerURL + "/queryPrice.action");
+            var response = Post(url, content);
 
-            return result;
+            var postageResponse = JsonConvert.DeserializeObject<PostageResponse>(response);
+            Boolean.TryParse(postageResponse.Result, out bool success);
+            if (success)
+            {
+                var fee = postageResponse.ResponseParam.FirstOrDefault(it => string.Equals(it.ProductName, expressType))?.Totalfee;
+                return fee;
+            }
+
+            return null;
         }
 
         public string Post(string url, string content)
@@ -41,7 +53,7 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.lib
 
             return resp.Content;
         }
-        
+
 
         public long CurrentTimeMillis()
         {
@@ -62,8 +74,8 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.lib
 
         private string MakeDataDigest(string request, string timestamp)
         {
-            var md5 = MD5.Create();
-            var bs = md5.ComputeHash(Encoding.UTF8.GetBytes(request + setting.APPKey + timestamp));
+            var md5 = Md5Helper.Md5Hex(request + setting.APPKey + timestamp);
+            var bs = Encoding.UTF8.GetBytes(md5);
             var base64 = Convert.ToBase64String(bs);
             return base64;
         }

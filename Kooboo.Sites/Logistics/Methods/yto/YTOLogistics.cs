@@ -40,8 +40,6 @@ namespace Kooboo.Sites.Logistics.Methods.yto
         [KDefineType(Return = typeof(LogisticsResponse))]
         public ILogisticsResponse CreateOrder(LogisticsRequest request)
         {
-            request.ReferenceId = "1111111111";
-            checkStatus(request);
             var createRequest = GenerateCreateOderRequest(request);
             LogisticsResponse res = null;
 
