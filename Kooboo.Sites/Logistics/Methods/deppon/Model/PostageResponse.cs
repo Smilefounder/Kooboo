@@ -17,7 +17,7 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.Model
 
     public class ResponseParam
     {
-        public string ProductName { get; set; }
+        public string ProducteCode { get; set; }
 
         public string Totalfee { get; set; }
     }

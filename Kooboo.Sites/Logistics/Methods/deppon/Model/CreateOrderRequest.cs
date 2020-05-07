@@ -23,6 +23,10 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.Model
 
 
         public PackageInfo PackageInfo { get; set; }
+
+        public string GmtCommit { get; set; }
+
+        public string PayType { get; set; }
     }
 
     public class Sender
@@ -49,10 +53,7 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.Model
         public string TotalWeight { get; set; }
 
         public string DeliveryType { get; set; }
-
-        public string GmtCommit { get; set; }
-
-        public string PayType { get; set; }
+        
     }
 
     public class Receiver

@@ -91,15 +91,15 @@ request.receiverphone='11111111',
 
         private CreateOrderRequest GenerateCreateOderRequest(LogisticsRequest request)
         {
-            request.Additional.TryGetValue("delivery_code", out var deliverycode);
+            request.Additional.TryGetValue("receiver_countrycode", out var deliverycode);
             request.Additional.TryGetValue("receiver_company", out var receivercompany);
             request.Additional.TryGetValue("receiver_postcode", out var receiverpostcode);
 
             request.Additional.TryGetValue("sender_company", out var sendercompany);
             request.Additional.TryGetValue("sender_postcode", out var senderpostcode);
 
-            request.Additional.TryGetValue("declared_value", out var declareValue);
-            request.Additional.TryGetValue("j_shippercode", out var shippercode);
+            request.Additional.TryGetValue("totalfee", out var declareValue);
+            request.Additional.TryGetValue("sender_countrycode", out var shippercode);
 
             var orderRequest = new CreateOrderRequest();
 

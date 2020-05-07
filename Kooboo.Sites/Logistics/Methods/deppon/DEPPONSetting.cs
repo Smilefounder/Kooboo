@@ -16,8 +16,14 @@ namespace Kooboo.Sites.Logistics.Methods.deppon
 
         public string CompanyCode { get; set; }
 
+        public string CustomerCode { get; set; }
+
         public string APPKey { get; set; }
 
-        public string ServerURL => UseSandBox ? "http://dpsanbox.deppon.com/sandbox-web/standard-order" : "";
+        public string TransportType { get; set; }//运输方式/产品类型
+
+        public string Sign { get; set; }
+
+        public string ServerURL => UseSandBox ? "http://dpsanbox.deppon.com/sandbox-web" : "";
     }
 }

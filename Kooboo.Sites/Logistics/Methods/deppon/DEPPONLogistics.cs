@@ -37,6 +37,9 @@ request.receivercounty='泉港区',
 request.receiverprovince='福建省',
 request.receivername='receive',
 request.receiverphone='11111111',
+request.cargoname='test',
+request.cargocount='2',
+request.cargoweight='1'
         k.logistics.dEPPONLogistics.createOrder(request)
 </script>")]
         [KDefineType(Return = typeof(LogisticsResponse))]
@@ -46,6 +49,35 @@ request.receiverphone='11111111',
 
             if (Setting == null)
                 return res;
+
+            request.Additional.TryGetValue("cargoname", out var cargoName);
+            request.Additional.TryGetValue("cargocount", out var cargoCount);
+            request.Additional.TryGetValue("cargoweight", out var cargoWeight);
+
+            if (cargoName == null || cargoCount == null || cargoWeight == null)
+            {
+                return res;
+            }
+            var orderRequest = GenerateCreateOderRequest(request);
+            var packageInfo = new PackageInfo
+            {
+                CargoName = request.CargoInfo.Name,
+                TotalNumber = request.CargoInfo.Count,
+                TotalWeight = request.CargoInfo.Weight,
+                DeliveryType = "3",//1、自提； 2、送货进仓； 3、送货（不含上楼）； 4、送货上楼； 5、大件上楼
+            };
+            orderRequest.PackageInfo = packageInfo;
+
+            var apiClient = new DEPPONClient(this.Setting);
+            var result = apiClient.CreateOrder(orderRequest);
+            if (result != null)
+            {
+                res = new LogisticsResponse(); 
+                request.ReferenceId = result.MailNo;
+                res.requestId = request.Id;
+                res.logisticsMethodReferenceId = result.MailNo;
+            }
+
             return res;
         }
 
@@ -64,7 +96,6 @@ request.receiverphone='11111111',
         request.receivercity='泉州市',
         request.receivercounty='泉港区',
         request.cargoweight='1',
-        request.expresstype='标准快递',//https://www.deppon.com/mail/price
         k.logistics.dEPPONLogistics.getPostage(request)
         </script>")]
         public string GetPostage(LogisticsRequest request)
@@ -72,12 +103,6 @@ request.receiverphone='11111111',
             if (Setting == null)
             {
                 return "";
-            }
-
-            request.Additional.TryGetValue("expresstype", out var expresstype);
-            if (expresstype == null)
-            {
-                return "快递类型不能为空！";
             }
 
             var postageRequest = new PostageRequest();
@@ -88,13 +113,45 @@ request.receiverphone='11111111',
             postageRequest.TotalWeight = request.Weight.ToString();
 
             var apiClient = new DEPPONClient(this.Setting);
-            var result = apiClient.GetPostage(postageRequest, expresstype.ToString());
+            var result = apiClient.GetPostage(postageRequest);
             if (result == null)
             {
                 return "查询新官网";
             }
 
             return result;
+        }
+
+        private CreateOrderRequest GenerateCreateOderRequest(LogisticsRequest request)
+        {
+            var orderRequest = new CreateOrderRequest();
+
+            var sender = new Sender
+            {
+                Name = request.SenderInfo.Name,
+                Mobile = request.SenderInfo.Phone,
+                Province = request.SenderInfo.Prov,
+                City = request.SenderInfo.City,
+                County = request.SenderInfo.County,
+                Address = request.SenderInfo.Address,
+            };
+
+            var receiver = new Receiver
+            {
+                Name = request.ReceiverInfo.Name,
+                Mobile = request.ReceiverInfo.Phone,
+                Province = request.ReceiverInfo.Prov,
+                City = request.ReceiverInfo.City,
+                County = request.ReceiverInfo.County,
+                Address = request.ReceiverInfo.Address,
+            };
+
+            orderRequest.GmtCommit = DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss");
+            orderRequest.PayType = "2";//0:发货人付款（现付） 1:收货人付款（到付） 2：发货人付款（月结） （电子运单客户不支持寄付）
+            orderRequest.Sender = sender;
+            orderRequest.Receiver = receiver;
+            orderRequest.LogisticID = Setting.Sign + request.Id.ToString();
+            return orderRequest;
         }
     }
 }

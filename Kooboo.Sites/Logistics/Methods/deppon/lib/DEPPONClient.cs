@@ -20,7 +20,30 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.lib
             this.setting = setting;
         }
 
-        public string GetPostage(PostageRequest request, string expressType)
+        public CreateOrderResponse CreateOrder(CreateOrderRequest request)
+        {
+            request.CompanyCode = setting.CompanyCode;
+            request.CustomerCode = setting.CustomerCode;
+            request.TransportType = setting.TransportType;
+            request.OrderType = "2";
+
+            var settings = new JsonSerializerSettings();
+            settings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            var content = GenerateQueryBody(JsonConvert.SerializeObject(request, settings));
+            string url = "/dop-standard-ewborder/createOrderNotify.action";//string.Format(setting.ServerURL + "/queryPrice.action");
+            var response = Post(url, content);
+
+            var createOrderResponse = JsonConvert.DeserializeObject<CreateOrderResponse>(response);
+            Boolean.TryParse(createOrderResponse.Result, out bool success);
+            if (success)
+            {
+                return createOrderResponse;
+            }
+
+            return null;
+        }
+
+        public string GetPostage(PostageRequest request)
         {
             request.TotalVolume = "0.001";
             request.LogisticCompanyID = setting.LogisticCompanyID;
@@ -28,14 +51,14 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.lib
             var settings = new JsonSerializerSettings();
             settings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             var content = GenerateQueryBody(JsonConvert.SerializeObject(request, settings));
-            string url = "http://dpsanbox.deppon.com/sandbox-web/standard-order/queryPriceTime.action";//string.Format(setting.ServerURL + "/queryPrice.action");
+            string url = "/standard-order/queryPriceTime.action";//string.Format(setting.ServerURL + "/queryPrice.action");
             var response = Post(url, content);
 
             var postageResponse = JsonConvert.DeserializeObject<PostageResponse>(response);
             Boolean.TryParse(postageResponse.Result, out bool success);
             if (success)
             {
-                var fee = postageResponse.ResponseParam.FirstOrDefault(it => string.Equals(it.ProductName, expressType))?.Totalfee;
+                var fee = postageResponse.ResponseParam.FirstOrDefault(it => string.Equals(it.ProducteCode, setting.TransportType))?.Totalfee;
                 return fee;
             }
 
@@ -44,7 +67,7 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.lib
 
         public string Post(string url, string content)
         {
-            var resp = ApiClient.Create().PostAsync(url, content, contentType: "application/x-www-form-urlencoded").Result;
+            var resp = ApiClient.Create().PostAsync(setting.ServerURL + url, content, contentType: "application/x-www-form-urlencoded").Result;
 
             if (!resp.IsSuccessStatusCode)
             {
