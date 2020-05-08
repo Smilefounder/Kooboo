@@ -30,7 +30,7 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.lib
             var settings = new JsonSerializerSettings();
             settings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             var content = GenerateQueryBody(JsonConvert.SerializeObject(request, settings));
-            string url = "/dop-standard-ewborder/createOrderNotify.action";//string.Format(setting.ServerURL + "/queryPrice.action");
+            string url = "/dop-standard-ewborder/createOrderNotify.action";
             var response = Post(url, content);
 
             var createOrderResponse = JsonConvert.DeserializeObject<CreateOrderResponse>(response);
@@ -51,7 +51,7 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.lib
             var settings = new JsonSerializerSettings();
             settings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             var content = GenerateQueryBody(JsonConvert.SerializeObject(request, settings));
-            string url = "/standard-order/queryPriceTime.action";//string.Format(setting.ServerURL + "/queryPrice.action");
+            string url = "/standard-order/queryPriceTime.action";
             var response = Post(url, content);
 
             var postageResponse = JsonConvert.DeserializeObject<PostageResponse>(response);
@@ -65,7 +65,29 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.lib
             return null;
         }
 
-        public string Post(string url, string content)
+        public Trace TraceOrder(Dictionary<string,string> request)
+        {
+            var settings = new JsonSerializerSettings();
+            settings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            var content = GenerateQueryBody(JsonConvert.SerializeObject(request, settings));
+            string url = "/standard-order/newTraceQuery.action";
+            var response = Post(url, content);
+
+            var result = JsonConvert.DeserializeObject<TraceOrderResponse>(response);
+            Boolean.TryParse(result.Result, out bool success);
+            if (success)
+            {
+                var traces = result.ResponseParam?.TraceList?.OrderByDescending(it => it.Time);
+                if(traces!=null)
+                {
+                    return traces.FirstOrDefault();
+                }
+            }
+
+            return null;
+        }
+
+        private string Post(string url, string content)
         {
             var resp = ApiClient.Create().PostAsync(setting.ServerURL + url, content, contentType: "application/x-www-form-urlencoded").Result;
 
@@ -76,7 +98,6 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.lib
 
             return resp.Content;
         }
-
 
         public long CurrentTimeMillis()
         {
@@ -102,13 +123,6 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.lib
             var base64 = Convert.ToBase64String(bs);
             return base64;
         }
-
-        //private string MakeDataDigest(string request, string timestamp)
-        //{
-        //    byte[] body = Encoding.UTF8.GetBytes(request + setting.APPKey + timestamp);
-        //    var base64 = Convert.ToBase64String(body);
-        //    return base64;
-        //}
 
         private static string BuildQuery(IDictionary<string, string> parameters)
         {

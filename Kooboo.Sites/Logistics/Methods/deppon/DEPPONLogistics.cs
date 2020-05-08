@@ -46,7 +46,6 @@ request.cargoweight='1'
         public ILogisticsResponse CreateOrder(LogisticsRequest request)
         {
             LogisticsResponse res = null;
-
             if (Setting == null)
                 return res;
 
@@ -83,7 +82,26 @@ request.cargoweight='1'
 
         public LogisticsStatusResponse checkStatus(LogisticsRequest request)
         {
-            return new LogisticsStatusResponse();
+            LogisticsStatusResponse res = null;
+
+            var dic = new Dictionary<string, string>();
+            dic.Add("mailNo", request.ReferenceId);
+            var apiClient = new DEPPONClient(this.Setting);
+            var result = apiClient.TraceOrder(dic);
+
+            if (result != null)
+            {
+                res = new LogisticsStatusResponse
+                {
+                    RequestId = request.Id,
+                    BillCode = request.ReferenceId,
+                    Status = ConvertStatus(result.Status),
+                    StatusMessage = result.Description
+                };
+            }
+
+            return res;
+
         }
 
         [Description(@"
@@ -152,6 +170,34 @@ request.cargoweight='1'
             orderRequest.Receiver = receiver;
             orderRequest.LogisticID = Setting.Sign + request.Id.ToString();
             return orderRequest;
+        }
+
+        private OrderStatus ConvertStatus(string code)
+        {
+            var status = OrderStatus.Init;
+            switch (code.ToUpper())
+            {
+                case "GOT":
+                    status = OrderStatus.Got;
+                    break;
+                case "ARRIVAL":
+                    status = OrderStatus.Arrival;
+                    break;
+                case "SENT_SCAN":
+                    status = OrderStatus.Scan;
+                    break;
+                case "SIGNED":
+                    status = OrderStatus.Signed;
+                    break;
+                case "ERROR":
+                    status = OrderStatus.Problem;
+                    break;
+                case "FAILED":
+                    status = OrderStatus.Failed;
+                    break;
+            }
+
+            return status;
         }
     }
 }
