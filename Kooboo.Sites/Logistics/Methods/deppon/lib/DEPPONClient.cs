@@ -47,8 +47,10 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.lib
         {
             var data = new Dictionary<string, string>();
             data.Add("tracking_number", mailNo);
-            var body = JsonConvert.SerializeObject(data);
-            var result = execute(body, CreateNotify);
+            var content = GenerateQueryBody(JsonConvert.SerializeObject(data));
+            string url = "/standard-order/standTraceSubscribe.action";
+            var result = Post(url, content);
+
             var response = JsonConvert.DeserializeObject<Dictionary<string, string>>(result);
             Boolean.TryParse(response["result"], out bool isSuccess);
 
