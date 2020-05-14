@@ -43,6 +43,18 @@ namespace Kooboo.Sites.Logistics.Methods.deppon.lib
             return null;
         }
 
+        public bool TraceSubscribe(string mailNo)
+        {
+            var data = new Dictionary<string, string>();
+            data.Add("tracking_number", mailNo);
+            var body = JsonConvert.SerializeObject(data);
+            var result = execute(body, CreateNotify);
+            var response = JsonConvert.DeserializeObject<Dictionary<string, string>>(result);
+            Boolean.TryParse(response["result"], out bool isSuccess);
+
+            return isSuccess;
+        }
+
         public string GetPostage(PostageRequest request)
         {
             request.TotalVolume = "0.001";

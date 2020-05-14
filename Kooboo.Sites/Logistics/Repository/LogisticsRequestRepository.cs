@@ -16,6 +16,7 @@ namespace Kooboo.Sites.Logistics.Repository
                 para.AddIndex<LogisticsRequest>(o => o.OrderId);
                 para.AddColumn<LogisticsRequest>(o => o.Created);
                 para.AddColumn<LogisticsRequest>(o => o.Failed);
+                para.AddColumn<LogisticsRequest>(o => o.ReferenceIdHash);
                 return para;
             }
         }

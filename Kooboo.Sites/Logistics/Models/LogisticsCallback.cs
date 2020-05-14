@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
 using Kooboo.Data;
 using Kooboo.Data.Attributes;
 using Kooboo.Data.Interface;
 using Kooboo.IndexedDB.CustomAttributes;
 
+
 namespace Kooboo.Sites.Logistics.Models
 {
+    [Serializable]
     public class LogisticsCallback : IGolbalObject, ISiteObject
     {
         private Guid _id;
@@ -36,7 +36,8 @@ namespace Kooboo.Sites.Logistics.Models
         public string PostData { get; set; }
 
         [Description("Orginal request data")]
-        public KScript.KDictionary Request;
+        [KoobooIgnore]
+        public KScript.KDictionary Request { get; set; }
 
         [KoobooIgnore]
         [KIgnore]

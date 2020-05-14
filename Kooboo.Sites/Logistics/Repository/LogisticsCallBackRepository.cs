@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Kooboo.IndexedDB;
+﻿using Kooboo.IndexedDB;
 using Kooboo.Sites.Logistics.Models;
 
 namespace Kooboo.Sites.Logistics.Repository

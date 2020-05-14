@@ -69,6 +69,26 @@ namespace Kooboo.Sites.Logistics.Models
         /// </summary>
         public string ReferenceId { get; set; }
 
+        private Guid _referenceIdHash;
+        public Guid ReferenceIdHash
+        {
+            get
+            {
+                if (_referenceIdHash == default(Guid))
+                {
+                    if (!string.IsNullOrWhiteSpace(this.ReferenceId))
+                    {
+                        _referenceIdHash = Lib.Security.Hash.ComputeHashGuid(this.ReferenceId);
+                    }
+                }
+                return _referenceIdHash;
+            }
+            set
+            {
+                _referenceIdHash = value;
+            }
+        }
+
         public string Postage { get; set; }
 
         public string ReturnPath { get; set; }

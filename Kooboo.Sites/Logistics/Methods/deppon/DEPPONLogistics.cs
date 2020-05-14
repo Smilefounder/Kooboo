@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Text;
 using System.Web;
 using Kooboo.Data.Attributes;
@@ -71,10 +72,12 @@ request.cargoweight='1'
             var result = apiClient.CreateOrder(orderRequest);
             if (result != null)
             {
-                res = new LogisticsResponse(); 
+                res = new LogisticsResponse();
                 request.ReferenceId = result.MailNo;
                 res.requestId = request.Id;
                 res.logisticsMethodReferenceId = result.MailNo;
+                //状态订阅
+                apiClient.TraceSubscribe(result.MailNo);
             }
 
             return res;
@@ -102,6 +105,36 @@ request.cargoweight='1'
 
             return res;
 
+        }
+
+        public LogisticsCallback Notify(RenderContext context)
+        {
+            LogisticsCallback callback = null;
+            var response = JsonConvert.DeserializeObject<TraceSubscribeReponse>(context.Request.Body);
+            if (response == null)
+            {
+                return null;
+            }
+
+            var track = response.TrackList?.FirstOrDefault();
+            var trace = track?.TraceList?.FirstOrDefault();
+            if (trace != null)
+            {
+                var request = LogisticsManager.GetRequestByReferece(track.Number, context);
+
+                if (request != null)
+                {
+
+                    callback = new LogisticsCallback()
+                    {
+                        RequestId = request.Id,
+                        Status = ConvertStatus(trace.Status),
+                        StatusMessage = trace.Description
+                    };
+                }
+            }
+
+            return callback;
         }
 
         [Description(@"

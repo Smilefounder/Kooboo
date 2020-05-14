@@ -71,6 +71,25 @@ namespace Kooboo.Sites.Logistics
             throw new Exception(MethodName + " missing setting infomatoin");
         }
 
+        public static LogisticsRequest GetRequestByReferece(string ReferenceId, RenderContext context)
+        {
+            if (context.WebSite != null)
+            {
+                var sitedb = context.WebSite.SiteDb();
+                var repo = sitedb.GetSiteRepository<Repository.LogisticsRequestRepository>();
+
+                var hash = Lib.Security.Hash.ComputeHashGuid(ReferenceId);
+
+                var result = repo.Query.Where(o => o.ReferenceIdHash == hash).FirstOrDefault();
+
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+            return null;
+        }
+
         public static LogisticsRequest GetRequest(Guid LogisticsRequestId, RenderContext context)
         {
             if (context.WebSite != null)
