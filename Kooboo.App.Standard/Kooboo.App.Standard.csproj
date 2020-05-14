@@ -3,17 +3,15 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp2.1;net461</TargetFrameworks>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AssemblyName>Kooboo.App</AssemblyName>
     <RootNamespace>Kooboo.App</RootNamespace>
+    <Deterministic>False</Deterministic>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp2.1'">
     <DefineConstants>TRACE;NETSTANDARD;NETCOREAPP;NETCOREAPP2_0;NETCOREAPP2_1</DefineConstants>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Veldrid.ImageSharp" Version="4.5.0" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Kooboo.App.Upgrade\Kooboo.App.Upgrade.csproj" />
@@ -28,6 +26,6 @@
   </ItemGroup>
 
   <Target Name="generateLinuxZip" AfterTargets="Publish">
-    <Exec Command="$(SolutionDir)generateLinuxZip.bat"></Exec>
+    <Exec Command="$(ProjectDir)../generateLinuxZip.bat"></Exec>
   </Target>
 </Project>

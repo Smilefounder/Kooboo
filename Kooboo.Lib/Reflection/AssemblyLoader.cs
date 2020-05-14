@@ -33,13 +33,13 @@ namespace Kooboo.Lib.Reflection
                 }
             }
 
-            var path =  AppDomain.CurrentDomain.BaseDirectory;
+            var path = AppDomain.CurrentDomain.BaseDirectory;
             dlls = LoadKoobooDlls(dlls, path);
 
-            return dlls; 
+            return dlls;
         }
 
-        public static List<Assembly> LoadKoobooDlls(List<Assembly> dlls,string path)
+        public static List<Assembly> LoadKoobooDlls(List<Assembly> dlls, string path)
         {
             if (dlls == null)
             {
@@ -75,7 +75,6 @@ namespace Kooboo.Lib.Reflection
             }
             return dlls;
         }
-
 
         public static List<Assembly> AllAssemblies
         {
@@ -155,7 +154,7 @@ namespace Kooboo.Lib.Reflection
             {
                 foreach (var type in item.GetTypes())
                 {
-                    if (!type.IsAbstract && type.IsClass&& type.IsSubclassOf(baseType))
+                    if (!type.IsAbstract && type.IsClass && type.IsSubclassOf(baseType))
                     {
                         typelist.Add(type);
                     }

@@ -14,32 +14,57 @@ namespace Kooboo.Sites.Payment.Methods.Square
             var body = context.Request.Body;
             var data = JsonHelper.Deserialize<CallbackRequest>(body);
 
+            if (data.Data == null || data.Data.Object == null || data.Data.Object.Payment == null)
+            {
+                return null;
+            }
+
+            PaymentRequest paymentRequest;
+            Guid paymentRequestId;
+            if (data.Data.Object.Payment.ReferenceId != null && Guid.TryParse(data.Data.Object.Payment.ReferenceId, out paymentRequestId))
+            {
+                paymentRequest = PaymentManager.GetRequest(paymentRequestId, context);
+            }
+            else
+            {
+                paymentRequest = PaymentManager.GetRequestByReferece(data.Data.Object.Payment.OrderId, context);
+            }
+
+            if (paymentRequest == null)
+            {
+                return null;
+            }
+
             // https://developer.squareup.com/reference/square/objects/LaborShiftCreatedWebhookObject
             var status = new PaymentStatus();
-            if (data.Data.Object.Status == "OPEN")
+
+            switch (data.Data.Object.Payment.Status)
             {
-                status = PaymentStatus.Pending;
-            }
-            if (data.Data.Object.Status == "CLOSED")
-            {
-                status = PaymentStatus.Paid;
+                case "OPEN":
+                case "APPROVED":
+                    status = PaymentStatus.Pending;
+                    break;
+                case "COMPLETED":
+                    status = PaymentStatus.Paid;
+                    break;
+                case "CANCELED":
+                    status = PaymentStatus.Cancelled;
+                    break;
+                case "FAILED":
+                    status = PaymentStatus.Rejected;
+                    break;
+                default:
+                    break;
             }
 
             var result = new PaymentCallback
             {
-                // to do  该字段不是guid，无法转换赋值
-                //  "merchant_id": "6SSW7HV8K2ST5",
-                //RequestId = data.MerchantID,
+                RequestId = paymentRequest.Id,
                 RawData = body,
                 Status = status
             };
 
             return result;
-        }
-
-        public static long GetSquareAmount(decimal totalAmount)
-        {
-            return (long)(totalAmount * 100);
         }
     }
 }

@@ -23,25 +23,8 @@ namespace Kooboo.Sites.Routing
                 if (foundroute == null)
                 {
                     foundroute = GetRoute(context, context.RenderContext.Request.RelativeUrl);
-                    if (foundroute == null)
-                    {
-                        var relativeUrl = context.RenderContext.Request.RelativeUrl;
-                        int questionMarkIndex = relativeUrl.IndexOf("?");
-                        if (questionMarkIndex>0)
-                        {
-                            relativeUrl = relativeUrl.Substring(0, questionMarkIndex);
-                        }
-                        var lastSlashIndex= relativeUrl.LastIndexOf("/");
-                        if (lastSlashIndex > -1)
-                        {
-                            var url = relativeUrl.Substring(0, lastSlashIndex);
-                            nameOrId = relativeUrl.Substring(lastSlashIndex + 1);
-                            foundroute = GetRoute(context, url);
-                        }
-                        
-                    }
-                    if (foundroute != null && foundroute.objectId != default(Guid))
-                    // if (foundroute != null)
+                    
+                    if (foundroute != null && foundroute.objectId != default(Guid)) 
                     {
                         var foundRouteEventResult = FrontEvent.Manager.RaiseRouteEvent(FrontEvent.enumEventType.RouteFound, context.RenderContext, foundroute);
 
@@ -219,11 +202,8 @@ namespace Kooboo.Sites.Routing
             if (routeid != default(Guid))
             {
                 return sitedb.Routes.Get(routeid);
-            }
-
-            // find system route...  
-            return GetSystemRoute(relativeurl);
-            // return null;
+            } 
+            return GetSystemRoute(relativeurl); 
         }
 
         // if other routes does not match... find the system route. 
@@ -381,7 +361,7 @@ namespace Kooboo.Sites.Routing
 
             List<string> segroute = UrlHelper.getSegments(route.Name);
 
-            List<string> segurl = UrlHelper.getSegments(relativeUrl);
+            List<string> segurl = UrlHelper.getSegments(relativeUrl, false);
 
             int maxi = segroute.Count;
             if (segurl.Count < maxi)

@@ -179,6 +179,12 @@ var value = k.session.key; ")]
                                 _siteinfo.Name = this.RenderContext.WebSite.Name;
                                 _siteinfo.Setting = new KDictionary(this.RenderContext.WebSite.CustomSettings);
                                 _siteinfo.User = new UserModel(this.RenderContext.User);
+
+                               var db = this.RenderContext.WebSite.SiteDb().DatabaseDb; 
+
+                                var last = db.Log.Store.LastKey;
+
+                                _siteinfo.Version = last; 
                             }
                         }
                     }
@@ -244,6 +250,8 @@ var value = k.session.key; ")]
             public string BaseUrl { get; set; }
 
             public RenderContext RenderContext { get; set; }
+
+            public long Version { get; set; }
              
         }
 
@@ -292,7 +300,7 @@ var value = k.session.key; ")]
                     {
                         if (_url == null)
                         {
-                            _url = new Curl();
+                            _url = new Curl(RenderContext);
                         }
                     }
                 }
@@ -503,7 +511,7 @@ var value = k.session.key; ")]
                             }
 
                             var url = new MongoUrl(setting.ConnectionString);
-                            var databaseName = url.DatabaseName ?? $"db_{RenderContext.WebSite.Name.ToString()}_{RenderContext.WebSite.Id.ToString()}";
+                            var databaseName = url.DatabaseName ?? $"db_{RenderContext.WebSite.Name.ToString()}";
                             var client = new MongoClient(url);
                             _mongo = new MongoDatabase(client.GetDatabase(databaseName));
                         }

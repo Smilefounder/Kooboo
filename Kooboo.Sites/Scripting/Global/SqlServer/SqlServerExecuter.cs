@@ -76,7 +76,8 @@ SELECT
 	( CASE TKey.COLUMN_NAME WHEN TCol.COLUMN_NAME THEN 1 ELSE 0 END ) AS IsPrimaryKey 
 FROM
 	INFORMATION_SCHEMA.columns AS TCol
-	LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS TKey ON TKey.TABLE_NAME = TCol.TABLE_NAME 
+	LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS TKey 
+         ON TKey.TABLE_NAME = TCol.TABLE_NAME AND TKey.COLUMN_NAME = TCol.COLUMN_NAME
 WHERE
 	TCol.TABLE_NAME= @Name
 ", new { Name = name });
@@ -107,7 +108,8 @@ WHERE
 
             foreach (var item in items)
             {
-                sb.AppendLine($@"ALTER TABLE {WarpField(name)} ADD {WarpField(item.Name)} {item.Type.ToString()};");
+                var length = item.Length > 0 ? $"({item.Length})" : string.Empty;
+                sb.AppendLine($@"ALTER TABLE {WarpField(name)} ADD {WarpField(item.Name)} {item.Type.ToString()}{length};");
             }
 
             using (var connection = CreateConnection())

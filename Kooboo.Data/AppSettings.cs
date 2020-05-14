@@ -1,15 +1,19 @@
 //Copyright (c) 2018 Yardi Technology Limited. Http://www.kooboo.com 
 //All rights reserved.
-using System;
-using Kooboo.Lib;
-using System.IO;
-using System.Configuration;
-using Kooboo.Lib.Helper;
-using Kooboo.Data.Models;
-using System.Collections.Generic;
 using Kooboo.Data.Context;
-using System.Linq;
+using Kooboo.Data.Models;
 using Kooboo.Data.Service;
+using Kooboo.Lib;
+using Kooboo.Lib.Helper;
+using Kooboo.Lib.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Kooboo.Data
 {
@@ -22,9 +26,15 @@ namespace Kooboo.Data
 
         public static void LoadSetting()
         {
+            ModulePath = Path.Combine(AppContext.BaseDirectory, "modules");
+            if (!Directory.Exists(ModulePath)) Directory.CreateDirectory(ModulePath);
+            var modulesHash = GetModulesHash();
             Version = typeof(Kooboo.Data.Models.WebSite).Assembly.GetName().Version;
+            var build = Version.Build + modulesHash.Take(8).Sum(s => s);
+            var revision = Version.Revision + modulesHash.Skip(8).Sum(s => s);
+            Version = new Version(Version.Major, Version.Minor, build, revision);
 
-            RootPath = TryRootPath();
+            RootPath = PathUtility.TryRootPath();
             IsOnlineServer = GetBool("IsOnlineServer");
 
             CmsLang = ConfigurationManager.AppSettings.Get("CmsLang");
@@ -36,7 +46,7 @@ namespace Kooboo.Data
             }
             else { QuotaControl = GetBool("QuotaControl"); }
 
-            Global = new GlobalInfo(); 
+            Global = new GlobalInfo();
             Global.EnableLog = GetBool("Log");
 
             Global.LogPath = System.IO.Path.Combine(RootPath, "logs");
@@ -67,6 +77,21 @@ namespace Kooboo.Data
             _serversetting = null; // reset server setting. 
 
             KscriptConfig = KscriptConfigReader.GetConfig();
+        }
+
+        private static byte[] GetModulesHash()
+        {
+            var sb = new StringBuilder();
+            var files = Directory.GetFiles(ModulePath, "*.zip");
+
+            foreach (var item in files)
+            {
+                var fi = new FileInfo(item);
+                sb.Append(fi.Length.ToString());
+                sb.Append(fi.FullName);
+            }
+
+            return MD5.Create().ComputeHash(Encoding.Default.GetBytes(sb.ToString()));
         }
 
         private static void SetUser()
@@ -110,9 +135,10 @@ namespace Kooboo.Data
                 }
             }
         }
-         
+
         public static bool QuotaControl { get; set; }
 
+        public static string ModulePath { get; set; }
 
         public static BasicUser DefaultUser { get; set; }
 
@@ -226,65 +252,28 @@ namespace Kooboo.Data
             }
         }
 
-        private static bool IsKoobooDiskRoot(string FullPath)
-        {
-            string ScriptFolder = System.IO.Path.Combine(FullPath, "_Admin", "Scripts");
-            if (!Directory.Exists(ScriptFolder))
-            {
-                return false;
-            }
-            string ViewFolder = System.IO.Path.Combine(FullPath, "_Admin", "View");
-            if (!Directory.Exists(ViewFolder))
-            {
-                return false;
-            }
-            return true;
-        }
-
-        private static string TryRootPath()
-        {
-            var basefolder = AppDomain.CurrentDomain.BaseDirectory;
-            if (IsKoobooDiskRoot(basefolder))
-            {
-                return basefolder;
-            }
-
-            List<string> trypaths = Kooboo.Lib.Compatible.CompatibleManager.Instance.System.GetTryPaths();
-
-            foreach (var item in trypaths)
-            {
-                basefolder = System.IO.Path.GetFullPath(item);
-                if (basefolder != null && IsKoobooDiskRoot(basefolder))
-                {
-                    return basefolder;
-                }
-            }
-
-            return AppDomain.CurrentDomain.BaseDirectory;
-        }
-
         public static string RootPath
         {
             get; set;
         }
 
-        private static string _cmslang; 
+        private static string _cmslang;
         public static string CmsLang
         {
             get
             {
-                if(string.IsNullOrWhiteSpace(_cmslang))
+                if (string.IsNullOrWhiteSpace(_cmslang))
                 {
-                    return "en"; 
+                    return "en";
                 }
                 else
                 {
-                    return _cmslang; 
+                    return _cmslang;
                 }
             }
             set
             {
-                _cmslang = value; 
+                _cmslang = value;
             }
         }
 
@@ -723,7 +712,7 @@ namespace Kooboo.Data
         public static GlobalInfo Global { get; set; }
 
         public class GlobalInfo
-        { 
+        {
 
             public bool EnableLog { get; set; }
 
@@ -737,7 +726,7 @@ namespace Kooboo.Data
             {
                 HttpPort = result.HttpPort;
                 SslPort = result.SslPort;
-            } 
+            }
             return result;
         }
     }

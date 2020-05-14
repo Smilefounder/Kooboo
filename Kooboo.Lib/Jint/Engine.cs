@@ -24,6 +24,7 @@ using Jint.Runtime.Descriptors;
 using Jint.Runtime.Environments;
 using Jint.Runtime.Interop;
 using Jint.Runtime.References;
+using Kooboo.Lib.Exceptions;
 
 namespace Jint
 {
@@ -200,6 +201,11 @@ namespace Jint
         internal DebugHandler DebugHandler { get; private set; }
         public List<BreakPoint> BreakPoints { get; private set; }
 
+        public StepMode SetDebugHandlerMode(StepMode stepMode)
+        {
+            return DebugHandler.SetMode(stepMode);
+        }
+
         internal StepMode? InvokeStepEvent(DebugInformation info)
         {
             if (Step != null)
@@ -291,80 +297,91 @@ namespace Jint
             CallStack.Clear();
         }
 
-        public Engine Execute(string source)
+
+        Program Parse(string source, ParserOptions parserOptions = null)
         {
-            var parser = new JavaScriptParser();
-            string error = null; 
             try
             {
-                return Execute(parser.Parse(source));
+                var parser = new JavaScriptParser();
+
+                if (parserOptions != null)
+                {
+                    return parser.Parse(source, parserOptions);
+                }
+
+                return parser.Parse(source);
             }
             catch (Exception ex)
             {
-                if (ex is JavaScriptException)
-                {
-                    var jsex = ex as JavaScriptException; 
-                    if (jsex !=null)
-                    {
-                        error = "JavaScript error on line" + jsex.Location.Start.Line.ToString() + ", cloumn: " + jsex.Location.Start.Column.ToString() + " " + ex.Message; 
-                    }
-                }      
-                else if (ex is ParserException)
+
+                if (ex is ParserException)
                 {
                     var pex = ex as ParserException;
                     if (pex != null)
                     {
-                        error = "JavaScript error on line" + pex.LineNumber.ToString() + ", cloumn: " + pex.Column.ToString() + " " + ex.Message;
+                        var error = "JavaScript error on line" + pex.LineNumber.ToString() + ", cloumn: " + pex.Column.ToString() + " " + ex.Message;
+                        throw new Exception(error, ex.InnerException);
                     }
                 }
-                else
-                {
-                    error = ex.Message;
-                    if (ex.InnerException != null && !string.IsNullOrEmpty(ex.InnerException.Message))
-                    {
-                        error += " " + ex.InnerException.Message;
-                    }
-                }
-            }
 
-            if (error !=null)
-            {
-                throw new Exception(error); 
+                throw;
             }
+        }
 
-            return null;  
+        public Engine Execute(string source)
+        {
+            return Execute(Parse(source));
         }
 
         public Engine Execute(string source, ParserOptions parserOptions)
         {
-            var parser = new JavaScriptParser();
-            return Execute(parser.Parse(source, parserOptions));
+            return Execute(Parse(source, parserOptions));
         }
 
         public Engine Execute(Program program)
         {
-            ResetStatementsCount();
-            ResetTimeoutTicks();
-            ResetLastStatement();
-            ResetCallStack();
-
-            using (new StrictModeScope(Options._IsStrict || program.Strict))
+            try
             {
-                DeclarationBindingInstantiation(DeclarationBindingType.GlobalCode, program.FunctionDeclarations, program.VariableDeclarations, null, null);
+                ResetStatementsCount();
+                ResetTimeoutTicks();
+                ResetLastStatement();
+                ResetCallStack();
 
-                var result = _statements.ExecuteProgram(program);
-                if (result.Type == Completion.Throw)
+                using (new StrictModeScope(Options._IsStrict || program.Strict))
                 {
-                    throw new JavaScriptException(result.GetValueOrDefault())
+                    DeclarationBindingInstantiation(DeclarationBindingType.GlobalCode, program.FunctionDeclarations, program.VariableDeclarations, null, null);
+
+                    var result = _statements.ExecuteProgram(program);
+                    if (result.Type == Completion.Throw)
                     {
-                        Location = result.Location
-                    };
+                        throw new JavaScriptException(result.GetValueOrDefault())
+                        {
+                            Location = result.Location
+                        };
+                    }
+
+                    _completionValue = result.GetValueOrDefault();
                 }
 
-                _completionValue = result.GetValueOrDefault();
-            }
+                return this;
 
-            return this;
+            }
+            catch (Exception ex)
+            {
+                Location location = null;
+                var isJsError = ex is JavaScriptException;
+                var isDotnetError = ex is DotnetOnJavaScriptException;
+                if (isJsError) location = (ex as JavaScriptException).Location;
+                if (isDotnetError) location = (ex as DotnetOnJavaScriptException).Location;
+
+                if (location != null)
+                {
+                    var error = "JavaScript error on line" + location.Start.Line.ToString() + ", cloumn: " + location.Start.Column.ToString() + " " + ex.Message;
+                    throw new Exception(error, ex.InnerException);
+                }
+
+                throw;
+            }
         }
 
         private void ResetLastStatement()

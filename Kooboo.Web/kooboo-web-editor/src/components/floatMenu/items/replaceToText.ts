@@ -1,19 +1,19 @@
 import { TEXT } from "@/common/lang";
 import context from "@/common/context";
-import { isImg, isInTable } from "@/dom/utils";
-import { getRepeatComment, getViewComment, getEditComment, clearContent } from "../utils";
-import { isDynamicContent, getCleanParent, getRelatedRepeatComment, clearKoobooInfo, setGuid } from "@/kooboo/utils";
+import { isImg, isInTable, getParentElements } from "@/dom/utils";
+import { getEditableComment, ElementAnalyze } from "../utils";
+import { setGuid, getUnpollutedEl, clearKoobooInfo, isDynamicContent, getWarpContent, getWrapDom, markDirty } from "@/kooboo/utils";
 import { setInlineEditor } from "@/components/richEditor";
 import { KOOBOO_ID, KOOBOO_DIRTY } from "@/common/constants";
 import { emitSelectedEvent, emitHoverEvent } from "@/dom/events";
 import { KoobooComment } from "@/kooboo/KoobooComment";
 import { createP } from "@/dom/element";
 import { InnerHtmlUnit } from "@/operation/recordUnits/InnerHtmlUnit";
-import { DomLog } from "@/operation/recordLogs/DomLog";
 import { operationRecord } from "@/operation/Record";
 import BaseMenuItem from "./BaseMenuItem";
 import { Menu } from "../menu";
-import { htmlModeCheck } from "@/common/utils";
+import { Log } from "@/operation/Log";
+import { kvInfo } from "@/common/kvInfo";
 
 export default class ReplaceToTextItem extends BaseMenuItem {
   constructor(parentMenu: Menu) {
@@ -29,56 +29,69 @@ export default class ReplaceToTextItem extends BaseMenuItem {
 
   setVisiable: (visiable: boolean) => void;
 
-  update(comments: KoobooComment[]): void {
+  update(): void {
     this.setVisiable(true);
-    let args = context.lastSelectedDomEventArgs;
-    if (getRepeatComment(comments)) return this.setVisiable(false);
-    if (getRelatedRepeatComment(args.element)) return this.setVisiable(false);
-    if (isInTable(args.element)) return this.setVisiable(false);
-    if (!getViewComment(comments)) return this.setVisiable(false);
-    let { koobooId, parent } = getCleanParent(args.element);
-    if (!parent || !koobooId) return this.setVisiable(false);
-    if (!isImg(args.element)) return this.setVisiable(false);
-    if (isDynamicContent(parent)) return this.setVisiable(false);
+    let { element } = context.lastSelectedDomEventArgs;
+    let { operability, kooobooIdEl, fieldComment } = ElementAnalyze(element);
+    if (!isImg(element) || !operability) return this.setVisiable(false);
+    if (kooobooIdEl == element) {
+      var parent = ElementAnalyze(element.parentElement!);
+      if (!parent.operability || !parent.kooobooIdEl) return this.setVisiable(false);
+    }
+    if (!kooobooIdEl && !fieldComment) return this.setVisiable(false);
+    if (isInTable(element)) return this.setVisiable(false);
+    let parents = getParentElements(element);
+    if (parents.find(f => f.tagName.toLowerCase() == "p")) return this.setVisiable(false);
+    if (isInTable(element)) return this.setVisiable(false);
   }
 
   async click() {
-    if (!htmlModeCheck()) {
-      this.parentMenu.hidden();
-      return;
+    let { element } = context.lastSelectedDomEventArgs;
+    let { scopeComment, kooobooIdEl, fieldComment, koobooId } = ElementAnalyze(element);
+    if (kooobooIdEl == element) {
+      var parentInfo = ElementAnalyze(element.parentElement!);
+      kooobooIdEl = parentInfo.kooobooIdEl;
+      koobooId == parentInfo.koobooId;
     }
-
-    let args = context.lastSelectedDomEventArgs;
-    let { parent, koobooId } = getCleanParent(args.element);
-    let startContent = parent!.innerHTML;
+    let parent = element.parentElement!;
+    let startContent = parent.innerHTML;
     let text = createP();
-    let style = getComputedStyle(args.element);
+    let style = getComputedStyle(element);
     let width = style.width;
-    let widthImportant = args.element.style.getPropertyPriority("width");
+    let widthImportant = element.style.getPropertyPriority("width");
     let height = style.height;
-    let heightImportant = args.element.style.getPropertyPriority("height");
-    args.element.parentElement!.replaceChild(text, args.element);
-    text.setAttribute(KOOBOO_ID, args.koobooId!);
-    text.setAttribute(KOOBOO_DIRTY, "");
+    let display = style.display;
+    let heightImportant = element.style.getPropertyPriority("height");
+    let guid = setGuid(parent);
+    element.parentElement!.replaceChild(text, element);
+    text.setAttribute(KOOBOO_ID, element.getAttribute(KOOBOO_ID)!);
     text.style.setProperty("width", width, widthImportant);
     text.style.setProperty("height", height, heightImportant);
-    text.style.display = "block";
+    text.style.display = display!.startsWith("inline") ? "inline-block" : "block";
     emitHoverEvent(text);
     emitSelectedEvent();
+    let aroundScopeComment = KoobooComment.getAroundScopeComments(text!);
+    if (aroundScopeComment) {
+      let { nodes } = getWrapDom(text, aroundScopeComment.source);
+      for (const node of nodes) {
+        if (node instanceof HTMLElement) markDirty(node, true);
+      }
+    } else {
+      markDirty(parent!);
+    }
 
     const onSave = () => {
-      if (clearContent(startContent) == clearContent(text.innerHTML)) return;
-      let guid = setGuid(parent!);
-      let comments = KoobooComment.getComments(parent!);
-      let comment = getEditComment(comments)!;
       let unit = new InnerHtmlUnit(startContent);
-      let log = DomLog.createUpdate(comment.nameorid!, clearKoobooInfo(parent!.innerHTML), koobooId!, comment.objecttype!);
+      let content = kooobooIdEl ? kooobooIdEl.innerHTML : getWarpContent(text);
+      let comment = fieldComment ? fieldComment : scopeComment;
+      koobooId = kooobooIdEl ? kooobooIdEl!.getAttribute(KOOBOO_ID) : koobooId;
+      let log = new Log([...comment!.infos, kvInfo.value(clearKoobooInfo(content)), kvInfo.koobooId(koobooId)]);
       let operation = new operationRecord([unit], [log], guid);
       context.operationManager.add(operation);
     };
 
     const onCancel = () => {
-      parent!.innerHTML = startContent;
+      parent.innerHTML = startContent;
     };
 
     await setInlineEditor({ selector: text, onSave, onCancel });

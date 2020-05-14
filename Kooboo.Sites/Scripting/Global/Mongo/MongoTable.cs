@@ -35,25 +35,13 @@ namespace KScript
         {
             var data = MongoCollection.AsQueryable().ToArray();
             var list = data.Select(s => s as IDictionary<string, object>).ToArray();
-            return MongoDynamicTableObject.CreateList(list);
+            return MongoDynamicTableObject.CreateList(list, MongoCollection.CollectionNamespace.CollectionName);
         }
 
         public object append(object value)
         {
             value = kHelper.CleanDynamicObject(value);
-            var option = new MapReduceOptions<object, object>();
-            option.OutputOptions = MapReduceOutputOptions.Inline;
-
-            var existFields = MongoCollection.MapReduce(
-                "function() { for (var key in this) { emit(key, 1); } }",
-                "function(key, values) { return Array.sum(values); }",
-                option)
-                .ToList()
-                .Select(s =>
-                {
-                    var obj = s as IDictionary<string, object>;
-                    return obj["_id"];
-                });
+            var existFields = GetAllField();
 
             var dic = value as IDictionary<string, object>;
             var removedKeys = dic.Where(w => !existFields.Contains(w.Key)).Select(s => s.Key).ToArray();
@@ -66,6 +54,23 @@ namespace KScript
             if (!dic.ContainsKey("_id")) dic["_id"] = ObjectId.GenerateNewId();
             MongoCollection.InsertOne(value);
             return dic["_id"];
+        }
+
+        [KIgnore]
+        public IEnumerable<object> GetAllField()
+        {
+            var option = new MapReduceOptions<object, object>();
+            option.OutputOptions = MapReduceOutputOptions.Inline;
+            return MongoCollection.MapReduce(
+                            "function() { for (var key in this) { emit(key, 1); } }",
+                            "function(key, values) { return Array.sum(values); }",
+                            option)
+                            .ToList()
+                            .Select(s =>
+                            {
+                                var obj = s as IDictionary<string, object>;
+                                return obj["_id"];
+                            });
         }
 
         public void createIndex(string fieldname)
@@ -81,7 +86,7 @@ namespace KScript
             MongoCollection.DeleteOne(filter);
         }
 
-        private static FilterDefinition<object> GetIdFilter(object id)
+        public static FilterDefinition<object> GetIdFilter(object id)
         {
             object objectId;
 
@@ -102,7 +107,7 @@ namespace KScript
         {
             var filter = QueryToFilter(query);
             var data = MongoCollection.Find(filter).FirstOrDefault();
-            return MongoDynamicTableObject.Create(data as IDictionary<string, object>);
+            return MongoDynamicTableObject.Create(data as IDictionary<string, object>, MongoCollection.CollectionNamespace.CollectionName);
         }
 
         public static FilterDefinition<object> QueryToFilter(string query)
@@ -173,7 +178,7 @@ namespace KScript
             var filter = QueryToFilter(query);
             var data = MongoCollection.Find(filter).ToList();
             var list = data.Select(s => s as IDictionary<string, object>).ToArray();
-            return MongoDynamicTableObject.CreateList(list);
+            return MongoDynamicTableObject.CreateList(list, MongoCollection.CollectionNamespace.CollectionName);
         }
 
         public IDynamicTableObject[] findAll(string field, object value)
@@ -185,7 +190,7 @@ namespace KScript
         {
             var filter = GetIdFilter(id);
             var data = MongoCollection.Find(filter).FirstOrDefault();
-            return MongoDynamicTableObject.Create(data as IDictionary<string, object>);
+            return MongoDynamicTableObject.Create(data as IDictionary<string, object>, MongoCollection.CollectionNamespace.CollectionName);
         }
 
         public IDynamicTableObject GetByLog(long LogId)

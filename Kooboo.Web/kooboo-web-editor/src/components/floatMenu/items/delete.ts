@@ -1,15 +1,17 @@
 import { TEXT } from "@/common/lang";
 import context from "@/common/context";
-import { setGuid, clearKoobooInfo, isDynamicContent, getCleanParent, isDirty, markDirty, getRelatedRepeatComment } from "@/kooboo/utils";
+import { setGuid, clearKoobooInfo, markDirty, getUnpollutedEl, isDynamicContent, getWrapDom, isDirty, getWarpContent } from "@/kooboo/utils";
 import { isBody } from "@/dom/utils";
 import { operationRecord } from "@/operation/Record";
-import { Log } from "@/operation/recordLogs/Log";
-import { DomLog } from "@/operation/recordLogs/DomLog";
-import { getViewComment, getRepeatComment } from "../utils";
+import { getEditableComment, getRepeatSourceComment, ElementAnalyze } from "../utils";
 import { KoobooComment } from "@/kooboo/KoobooComment";
 import BaseMenuItem from "./BaseMenuItem";
 import { Menu } from "../menu";
 import { InnerHtmlUnit } from "@/operation/recordUnits/InnerHtmlUnit";
+import { KOOBOO_ID } from "@/common/constants";
+import { kvInfo } from "@/common/kvInfo";
+import { Log } from "@/operation/Log";
+import { emitHoverEvent, emitSelectedEvent } from "@/dom/events";
 
 export default class DeleteItem extends BaseMenuItem {
   constructor(parentMenu: Menu) {
@@ -25,38 +27,56 @@ export default class DeleteItem extends BaseMenuItem {
 
   setVisiable: (visiable: boolean) => void;
 
-  update(comments: KoobooComment[]): void {
+  update(): void {
     this.setVisiable(true);
-    let args = context.lastSelectedDomEventArgs;
-    let { parent } = getCleanParent(args.element);
-    if (!args.koobooId) return this.setVisiable(false);
-    let comment = getViewComment(comments);
-    if (!comment) return this.setVisiable(false);
-    if (getRepeatComment(comments)) return this.setVisiable(false);
-    if (getRelatedRepeatComment(args.element)) return this.setVisiable(false);
-    if (isDirty(args.element) && parent && isDynamicContent(parent)) return this.setVisiable(false);
-    if (isBody(args.element)) return this.setVisiable(false);
+    let { element } = context.lastSelectedDomEventArgs;
+    let { operability, comments, kooobooIdEl, fieldComment } = ElementAnalyze(element);
+    if (!operability || !comments) return this.setVisiable(false);
+    if (!kooobooIdEl && !fieldComment) return this.setVisiable(false);
+    if (getRepeatSourceComment(comments)) return this.setVisiable(false);
   }
 
   click() {
-    let args = context.lastSelectedDomEventArgs;
+    let { element, koobooId } = context.lastSelectedDomEventArgs;
+    let { kooobooIdEl, fieldComment, scopeComment } = ElementAnalyze(element);
     this.parentMenu.hidden();
+    var log = [];
+    let oldValue = element.parentElement!.innerHTML;
+    let guid = setGuid(element.parentElement!);
+    let aroundScopeComment = KoobooComment.getAroundScopeComments(element);
 
-    let { koobooId, parent } = getCleanParent(args.element);
-    let comments = KoobooComment.getComments(args.element);
-    let comment = getViewComment(comments)!;
-    parent = parent || args.element.parentElement!;
-    let oldValue = parent.innerHTML;
-    let guid = setGuid(parent);
-    args.element.parentElement!.removeChild(args.element);
-    let log!: Log;
-    markDirty(parent);
-    if (isDirty(args.element) && parent) {
-      log = DomLog.createUpdate(comment.nameorid!, clearKoobooInfo(parent.innerHTML), koobooId!, comment.objecttype!);
+    if (aroundScopeComment) {
+      let { nodes } = getWrapDom(element, aroundScopeComment.source);
+      for (const node of nodes) {
+        if (node instanceof HTMLElement) markDirty(node, true);
+      }
     } else {
-      log = DomLog.createDelete(comment.nameorid!, args.koobooId!, comment.objecttype!);
+      markDirty(element.parentElement!);
     }
-    let operation = new operationRecord([new InnerHtmlUnit(oldValue)], [log], guid);
+
+    let placeholder = new Text("");
+    let aroundComments = KoobooComment.getAroundComments(element);
+    if (aroundComments.length > 0) {
+      let { nodes } = getWrapDom(element, aroundComments[aroundComments.length - 1].uid);
+      nodes[0].parentNode!.insertBefore(placeholder, nodes[0]);
+      nodes.forEach(f => f.parentElement!.removeChild(f));
+    } else {
+      element.parentElement!.insertBefore(placeholder, element);
+      element.parentElement!.removeChild(element);
+    }
+
+    if (element == kooobooIdEl) {
+      log.push(...scopeComment!.infos, kvInfo.delete, kvInfo.koobooId(koobooId));
+    } else {
+      let content = kooobooIdEl ? kooobooIdEl.innerHTML : getWarpContent(placeholder!);
+      let comment = fieldComment ? fieldComment : scopeComment;
+      koobooId = kooobooIdEl ? kooobooIdEl!.getAttribute(KOOBOO_ID) : koobooId;
+      log.push(...comment!.infos, kvInfo.value(clearKoobooInfo(content)), kvInfo.koobooId(koobooId));
+    }
+
+    let operation = new operationRecord([new InnerHtmlUnit(oldValue)], [new Log(log)], guid);
     context.operationManager.add(operation);
+    emitHoverEvent(document.body);
+    emitSelectedEvent();
   }
 }

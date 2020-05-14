@@ -1,14 +1,15 @@
 import context from "@/common/context";
-import { setGuid, markDirty, clearKoobooInfo, isDynamicContent, getGuidComment, getCleanParent, getRelatedRepeatComment } from "@/kooboo/utils";
+import { setGuid, markDirty, clearKoobooInfo, getWrapDom, getWarpContent } from "@/kooboo/utils";
 import { TEXT } from "@/common/lang";
-import { getEditComment, getRepeatComment, getViewComment } from "../utils";
-import { isBody } from "@/dom/utils";
+import { getRepeatSourceComment, ElementAnalyze } from "../utils";
 import { operationRecord } from "@/operation/Record";
-import { DomLog } from "@/operation/recordLogs/DomLog";
 import { KoobooComment } from "@/kooboo/KoobooComment";
 import BaseMenuItem from "./BaseMenuItem";
 import { Menu } from "../menu";
 import { InnerHtmlUnit } from "@/operation/recordUnits/InnerHtmlUnit";
+import { kvInfo } from "@/common/kvInfo";
+import { KOOBOO_ID } from "@/common/constants";
+import { Log } from "@/operation/Log";
 
 export default class CopyItem extends BaseMenuItem {
   constructor(parentMenu: Menu) {
@@ -24,35 +25,60 @@ export default class CopyItem extends BaseMenuItem {
 
   setVisiable: (visiable: boolean) => void;
 
-  update(comments: KoobooComment[]): void {
+  update(): void {
     this.setVisiable(true);
-    let args = context.lastSelectedDomEventArgs;
-    if (getRepeatComment(comments)) return this.setVisiable(false);
-    if (getRelatedRepeatComment(args.element)) return this.setVisiable(false);
-    if (!getViewComment(comments)) return this.setVisiable(false);
-    let { koobooId, parent } = getCleanParent(args.element);
-    if (!parent || !koobooId) return this.setVisiable(false);
-    if (isBody(args.element)) return this.setVisiable(false);
-    if (parent && isDynamicContent(parent)) return this.setVisiable(false);
+    let { element } = context.lastSelectedDomEventArgs;
+    let { operability, comments, kooobooIdEl, fieldComment } = ElementAnalyze(element);
+    if (!operability || !comments) return this.setVisiable(false);
+    if (!kooobooIdEl && !fieldComment) return this.setVisiable(false);
+    if (getRepeatSourceComment(comments)) return this.setVisiable(false);
   }
 
   click() {
-    let args = context.lastSelectedDomEventArgs;
+    let { element } = context.lastSelectedDomEventArgs;
+    let { unpollutedEl, koobooId, kooobooIdEl, scopeComment, fieldComment } = ElementAnalyze(element);
     this.parentMenu.hidden();
+    var log = [];
+    let cloneElement = element.cloneNode(true) as HTMLElement;
+    let guid = setGuid(element.parentElement!);
+    let oldValue = element.parentElement!.innerHTML;
+    let aroundComments = KoobooComment.getAroundComments(element!);
 
-    let comments = KoobooComment.getComments(args.element);
-    let { koobooId, parent } = getCleanParent(args.element);
-    let cloneElement = args.element.cloneNode(true) as HTMLElement;
-    let guid = setGuid(parent!);
-    let oldValue = parent!.innerHTML;
-    args.element.parentElement!.insertBefore(cloneElement, args.element.nextSibling);
-    markDirty(parent!);
-    let value = clearKoobooInfo(parent!.innerHTML);
-    let unit = new InnerHtmlUnit(oldValue);
-    let comment = getEditComment(comments)!;
-    let log = DomLog.createUpdate(comment.nameorid!, value, koobooId!, comment.objecttype!);
+    if (aroundComments.length > 0) {
+      let { nodes, endNode } = getWrapDom(element!, aroundComments[aroundComments.length - 1].uid);
+      for (const node of nodes.reverse()) {
+        let cloned = node.cloneNode(true);
+        if (KoobooComment.isComment(cloned)) {
+          let koobooComment = new KoobooComment(cloned);
+          koobooComment.setValue("uid", koobooComment.uid + "_copy");
+          cloned = koobooComment.ToComment();
+        }
+        element.parentElement!.insertBefore(cloned, endNode!.nextSibling);
+      }
+    } else {
+      element.parentElement!.insertBefore(cloneElement, element.nextSibling);
+    }
 
-    let operation = new operationRecord([unit], [log], guid);
+    if (element == kooobooIdEl) {
+      log.push(...scopeComment!.infos, kvInfo.copy, kvInfo.koobooId(koobooId));
+    } else {
+      let content = kooobooIdEl ? kooobooIdEl.innerHTML : getWarpContent(unpollutedEl!);
+      let comment = fieldComment ? fieldComment : scopeComment;
+      koobooId = kooobooIdEl ? kooobooIdEl!.getAttribute(KOOBOO_ID) : koobooId;
+      log.push(...comment!.infos, kvInfo.value(clearKoobooInfo(content)), kvInfo.koobooId(koobooId));
+    }
+
+    let aroundScopeComment = KoobooComment.getAroundScopeComments(element!);
+    if (aroundScopeComment) {
+      let { nodes } = getWrapDom(element, aroundScopeComment.source);
+      for (const node of nodes) {
+        if (node instanceof HTMLElement) markDirty(node, true);
+      }
+    } else {
+      markDirty(element.parentElement!);
+    }
+
+    let operation = new operationRecord([new InnerHtmlUnit(oldValue)], [new Log(log)], guid);
     context.operationManager.add(operation);
   }
 }

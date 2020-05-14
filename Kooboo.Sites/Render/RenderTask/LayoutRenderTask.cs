@@ -16,7 +16,7 @@ namespace Kooboo.Sites.Render
         {
             get
             {
-                return false; 
+                return false;
             }
         }
 
@@ -63,10 +63,10 @@ namespace Kooboo.Sites.Render
                         if (!string.IsNullOrWhiteSpace(innerhtml))
                         {
                             var newoption = option.Clone();
-                            newoption.RenderHeader = false; 
-                            ComTask =  RenderEvaluator.Evaluate(innerhtml, option);
+                            newoption.RenderHeader = false;
+                            ComTask = RenderEvaluator.Evaluate(innerhtml, option);
                         }
-                          
+
                         if (Components.ContainsKey(positionname))
                         {
                             var current = Components[positionname];
@@ -85,10 +85,32 @@ namespace Kooboo.Sites.Render
 
         public string Render(RenderContext context)
         {
-            RenderComponent(context);
             var plans = RenderPlanManager.GetLayoutPlan(this.LayoutName, context);
+            plans = PreRenderLayout(context, plans);
+            RenderComponent(context);
             var result = RenderHelper.Render(plans, context);
-            return result; 
+            return result;
+        }
+
+        private List<IRenderTask> PreRenderLayout(RenderContext context, List<IRenderTask> layoutplan)
+        {
+            List<IRenderTask> newPlan = new List<IRenderTask>(); 
+
+            for (int i = 0; i < layoutplan.Count; i++)
+            {
+                var item = layoutplan[i];
+                if (item is HeaderRenderTask || item is PlaceHolderRenderTask || item is ContentRenderTask)
+                {
+                    //do nothing.
+                    newPlan.Add(item);
+                }
+                else
+                {
+                    var result = item.Render(context);
+                    newPlan.Add(new ContentRenderTask(result));
+                }
+            } 
+            return newPlan;
         }
 
         private void RenderComponent(RenderContext context)
@@ -111,7 +133,7 @@ namespace Kooboo.Sites.Render
 
         public void AppendResult(RenderContext context, List<RenderResult> result)
         {
-            result.Add(new RenderResult() { Value = this.Render(context) });  
+            result.Add(new RenderResult() { Value = this.Render(context) });
         }
     }
 }
