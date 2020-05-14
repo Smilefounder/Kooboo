@@ -89,6 +89,32 @@ request.receiverphone='11111111',
             return "";
         }
 
+        public LogisticsCallback Notify(RenderContext context)
+        {
+            LogisticsCallback callback = null;
+            var txLogisticID = context.Request.GetValue("txLogisticID");
+            var remark = context.Request.GetValue("remark");
+            var status = context.Request.GetValue("trackingInfo");
+
+            if (string.IsNullOrWhiteSpace(txLogisticID) || string.IsNullOrWhiteSpace(remark) || string.IsNullOrWhiteSpace(status))
+            {
+                return callback;
+            }
+
+            Guid logisticsRequestId;
+            if (Guid.TryParse(txLogisticID, out logisticsRequestId))
+            {
+                callback = new LogisticsCallback()
+                {
+                    RequestId = logisticsRequestId,
+                    Status = ConvertStatus(status),
+                    StatusMessage = remark
+                };
+            }
+
+            return callback;
+        }
+
         private BestCreateOrderRequest GenerateCreateOderRequest(LogisticsRequest request)
         {
             var sender = new Sender
