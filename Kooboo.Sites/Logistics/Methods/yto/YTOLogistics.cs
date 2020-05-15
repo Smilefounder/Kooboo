@@ -8,6 +8,7 @@ using Kooboo.Data.Context;
 using Kooboo.Sites.Logistics.Methods.yto.lib;
 using Kooboo.Sites.Logistics.Methods.yto.Model;
 using Kooboo.Sites.Logistics.Models;
+using Newtonsoft.Json;
 
 namespace Kooboo.Sites.Logistics.Methods.yto
 {
@@ -62,7 +63,20 @@ namespace Kooboo.Sites.Logistics.Methods.yto
         public LogisticsCallback Notify(RenderContext context)
         {
             LogisticsCallback callback = null;
-            var logisticsMsg = context.Request.GetValue("");
+            var logisticsMsg = ConvertOrderTrace(context.Request.Body);
+            var model = XmlSerializerUtilis.DeserializeXML<OrderTracePushRequest>(logisticsMsg);
+            if (model != null)
+            {
+                Guid logisticsRequestId;
+                if (Guid.TryParse(model.TxLogisticID, out logisticsRequestId))
+                {
+                    callback = new LogisticsCallback()
+                    {
+                        RequestId = logisticsRequestId,
+                        StatusMessage = model.Remark
+                    };
+                }
+            }
             return callback;
         }
 
@@ -150,10 +164,10 @@ namespace Kooboo.Sites.Logistics.Methods.yto
             var param = body.Split('&');
             foreach (var item in param)
             {
-                if(item.Contains("logistics_interface"))
+                if (item.Contains("logistics_interface"))
                 {
                     var request = item.Split('=');
-                    if(string.IsNullOrEmpty(request[1]))
+                    if (!string.IsNullOrEmpty(request[1]))
                     {
                         return HttpUtility.UrlDecode(request[1], Encoding.UTF8);
                     }
