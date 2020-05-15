@@ -48,7 +48,7 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
             request.OrderType = "1";//订单类型(0-COD,1-普通订单,3-退货单)
             request.ServiceType = "0";//服务类型(1-上门揽收, 2-次日达 4-次晨达 8-当日达,0-自己联系)。（数据库未使用）（目前暂未使用默认为0）
             request.Special = "0";//商品类型（保留字段，暂时不用，默认填0）
-            request.LogisticProviderID = setting.LogisticProviderID + "11";
+            request.LogisticProviderID = setting.LogisticProviderID;
             XmlSerializerNamespaces ns = new XmlSerializerNamespaces(); ns.Add("", "");
 
             XmlWriterSettings settings = new XmlWriterSettings()
@@ -102,7 +102,7 @@ namespace Kooboo.Sites.Logistics.Methods.yto.lib
             dic.Add("logistics_interface", encodeValue);
             dic.Add("data_digest", MakeDataDigest(body));
             dic.Add("type", "online");
-            dic.Add("clientId", "TEST");//setting.ClientID);
+            dic.Add("clientId", setting.ClientID);
             return BuildQuery(dic);
         }
 

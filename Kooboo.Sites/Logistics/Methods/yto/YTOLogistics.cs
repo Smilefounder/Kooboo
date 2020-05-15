@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
+using System.Web;
 using Kooboo.Data.Attributes;
 using Kooboo.Data.Context;
 using Kooboo.Sites.Logistics.Methods.yto.lib;
@@ -50,11 +51,19 @@ namespace Kooboo.Sites.Logistics.Methods.yto
             var result = apiClient.CreateOrder(createRequest);
             if (result.Success)
             {
+                res = new LogisticsResponse();
                 res.requestId = request.Id;
                 res.logisticsMethodReferenceId = result.TxLogisticID;
             }
 
             return res;
+        }
+
+        public LogisticsCallback Notify(RenderContext context)
+        {
+            LogisticsCallback callback = null;
+            var logisticsMsg = context.Request.GetValue("");
+            return callback;
         }
 
         public LogisticsStatusResponse checkStatus(LogisticsRequest request)
@@ -134,6 +143,24 @@ namespace Kooboo.Sites.Logistics.Methods.yto
                 TxLogisticID = request.Id.ToString("N")
             };
             return requestOrder;
+        }
+
+        private string ConvertOrderTrace(string body)
+        {
+            var param = body.Split('&');
+            foreach (var item in param)
+            {
+                if(item.Contains("logistics_interface"))
+                {
+                    var request = item.Split('=');
+                    if(string.IsNullOrEmpty(request[1]))
+                    {
+                        return HttpUtility.UrlDecode(request[1], Encoding.UTF8);
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }
