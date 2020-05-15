@@ -51,6 +51,7 @@ request.receiverphone='11111111',
             var result = apiClient.CreateOrder(sfModel);
             if (result != null)
             {
+                res = new LogisticsResponse();
                 request.ReferenceId = result.Body.MailNo;
                 res.requestId = request.Id;
                 res.logisticsMethodReferenceId = result.Body.MailNo;
