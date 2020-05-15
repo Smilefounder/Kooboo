@@ -90,6 +90,29 @@ request.receiverphone='11111111',
             return "";
         }
 
+        public LogisticsCallback Notify(RenderContext context)
+        {
+            LogisticsCallback callback = null;
+            var response = XmlSerializerUtilis.DeserializeXML<OrderTracePushRequest>(context.Request.Body);
+
+            if (response != null)
+            {
+                Guid logisticsRequestId;
+                if (Guid.TryParse(response.OrderId, out logisticsRequestId))
+                {
+
+                    callback = new LogisticsCallback()
+                    {
+                        RequestId = logisticsRequestId,
+                        Status = ConvertStatus(response.StateCode),
+                        StatusMessage = response.Description
+                    };
+                }
+            }
+
+            return callback;
+        }
+
         private CreateOrderRequest GenerateCreateOderRequest(LogisticsRequest request)
         {
             request.Additional.TryGetValue("receiver_countrycode", out var deliverycode);

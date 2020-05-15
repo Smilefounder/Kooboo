@@ -22,6 +22,10 @@ namespace Kooboo.Sites.Logistics.Methods.zop
 
         public string ServiceCode { get; set; }
 
+        public string Actions { get; set; }
+
+        public string ProblemCodes { get; set; }
+
         public string ServerURL => UseSandBox ? "http://58.40.16.122:8080" : "http://japi.zto.cn";
     }
 }

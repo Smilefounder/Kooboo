@@ -45,6 +45,30 @@ namespace Kooboo.Sites.Logistics.Methods.zop.lib
             return "";
         }
 
+        public bool TraceSubscribe(ZOPRequest request)
+        {
+            ValidateTraceSubscribe(request);
+
+            string url = string.Format("{0}/subscribeData", settings.ServerURL);
+            var result = execute(request, url);
+
+            if (!string.IsNullOrEmpty(result))
+            {
+                var dic = JsonConvert.DeserializeObject<Dictionary<string, object>>(result);
+
+                if (!Convert.ToBoolean(dic["status"]))
+                {
+                    throw new Exception(result);
+                }
+
+                Boolean.TryParse(dic["status"].ToString(), out bool status);
+
+                return status;
+            }
+
+            return false;
+        }
+
         public TraceOrderResponse TraceOrder(string billCode)
         {
             if (string.IsNullOrEmpty(billCode))
@@ -112,6 +136,19 @@ namespace Kooboo.Sites.Logistics.Methods.zop.lib
             if (string.IsNullOrEmpty(request.requestParams.Get("systemParameter")))
             {
                 throw new Exception("systemParameter不能为空！");
+            }
+        }
+
+        private void ValidateTraceSubscribe(ZOPRequest request)
+        {
+            if (string.IsNullOrEmpty(request.requestParams.Get("action")))
+            {
+                throw new Exception("action不能为空！");
+            }
+
+            if (string.IsNullOrEmpty(request.requestParams.Get("pushUrl")))
+            {
+                throw new Exception("pushUrl不能为空！");
             }
         }
 

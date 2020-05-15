@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Web;
 using Kooboo.Data.Attributes;
 using Kooboo.Data.Context;
 using Kooboo.Sites.Logistics.Methods.zop;
@@ -50,12 +51,14 @@ request.receiverphone='11111111',
 
             var ztoModel = GenerateCreateOderRequest(request);
             var apiClient = new ZOPClient(this.Setting);
+            
             var result = apiClient.CreateOrder(ztoModel);
             if (!string.IsNullOrEmpty(result))
             {
                 request.ReferenceId = result;
                 res.requestId = request.Id;
                 res.logisticsMethodReferenceId = result;
+                TraceSubscribe(apiClient, result);
             }
 
             return res;
@@ -104,6 +107,64 @@ request.receiverphone='11111111',
             var apiClient = new ZOPClient(this.Setting);
             var result = apiClient.GetPostage(ztoModel);
             return result;
+        }
+
+        public LogisticsCallback Notify(RenderContext context)
+        {
+            LogisticsCallback callback = null;
+            var data = GetOrderTrace(context.Request.Body);
+            var response = JsonConvert.DeserializeObject<OrderTracePushRequest>(data);
+            if(response!=null)
+            {
+                var request = LogisticsManager.GetRequestByReferece(response.BillCode, context);
+
+                if (request != null)
+                {
+
+                    callback = new LogisticsCallback()
+                    {
+                        RequestId = request.Id,
+                        StatusMessage = response.Desc
+                    };
+                }
+            }
+
+            return callback;
+        }
+
+        private void TraceSubscribe(ZOPClient client,string billCode)
+        {
+            //https://zop.zto.com/apiDoc/
+            var ztoModel = new ZOPRequest();
+            ztoModel.addParam("billCode", billCode);
+            ztoModel.addParam("action", Setting.Actions);
+            ztoModel.addParam("problemCode", Setting.ProblemCodes);
+            ztoModel.addParam("pushUrl", LogisticsHelper.GetCallbackUrl(this, nameof(Notify), Context));
+            ztoModel.addParam("token", Guid.NewGuid().ToString());
+
+            var result = client.TraceSubscribe(ztoModel);
+            if(!result)
+            {
+                throw new Exception("订阅轨迹失败！");
+            }
+        }
+
+        private string GetOrderTrace(string body)
+        {
+            var param = body.Split('&');
+            foreach (var item in param)
+            {
+                if (item.Contains("data"))
+                {
+                    var request = item.Split('=');
+                    if (!string.IsNullOrEmpty(request[1]))
+                    {
+                        return HttpUtility.UrlDecode(request[1], Encoding.UTF8);
+                    }
+                }
+            }
+
+            return null;
         }
 
         private ZOPRequest GenerateCreateOderRequest(LogisticsRequest request)
