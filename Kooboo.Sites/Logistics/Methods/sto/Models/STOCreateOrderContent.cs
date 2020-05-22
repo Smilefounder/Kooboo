@@ -19,6 +19,7 @@ namespace Kooboo.Sites.Logistics.Methods.sto.Models
         public assignAnnex assignAnnex { get; set; }
         public string codValue { get; set; }
         public string productType { get; set; }
+        public List<string> serviceTypeList { get; set; }
         public string remark { get; set; }
         public string regionType { get; set; }
         public insuredAnnex insuredAnnex { get; set; }

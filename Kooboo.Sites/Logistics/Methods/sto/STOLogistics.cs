@@ -1,6 +1,8 @@
 ﻿using Kooboo.Data.Context;
 using Kooboo.Sites.Logistics.Methods.sto.lib;
+using Kooboo.Sites.Logistics.Methods.sto.Models;
 using Kooboo.Sites.Logistics.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -70,6 +72,7 @@ namespace Kooboo.Sites.Logistics.Methods.sto
             res.requestId = request.Id;
             res.logisticsMethodReferenceId = apiResult.data.waybillNo;
 
+            // to be remove
             checkStatus(request);
 
             return res;
@@ -77,7 +80,64 @@ namespace Kooboo.Sites.Logistics.Methods.sto
 
         public string GetPostage(LogisticsRequest request)
         {
-            throw new NotImplementedException();
+            return "";
+        }
+
+        public LogisticsCallback Notify(RenderContext context)
+        {
+            LogisticsCallback callback = null;
+
+            // https://open.sto.cn/#/apiDocument/STO_TRACE_PLATFORM_PUSH
+            var notifyContentStr = context.Request.GetValue("content");
+            if (notifyContentStr == null)
+            {
+                return callback;
+            }
+
+            var response = JsonConvert.DeserializeObject<STONotifyContent>(notifyContentStr);
+            if (response == null || string.IsNullOrEmpty(response.linkCode))
+            {
+                return callback;
+            }
+
+            Guid logisticsRequestId;
+            if (Guid.TryParse(response.linkCode, out logisticsRequestId))
+            {
+                callback = new LogisticsCallback()
+                {
+                    RequestId = logisticsRequestId,
+                    Status = ConvertStatus(response.trace.scanType),
+                    StatusMessage = response.trace.memo
+                };
+            }
+
+            return callback;
+        }
+
+        private OrderStatus ConvertStatus(string scanType)
+        {
+            var status = OrderStatus.Init;
+            switch (scanType.ToUpper())
+            {
+                case "收件":
+                    status = OrderStatus.Got;
+                    break;
+                case "发件":
+                    status = OrderStatus.Got;
+                    break;
+                case "派件":
+                case "到件":
+                    status = OrderStatus.Scan;
+                    break;
+                case "签收":
+                    status = OrderStatus.Signed;
+                    break;
+                case "代理点签收":
+                    status = OrderStatus.ThirdPartSign;
+                    break;
+            }
+
+            return status;
         }
     }
 }
