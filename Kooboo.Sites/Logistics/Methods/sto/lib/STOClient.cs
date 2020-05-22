@@ -12,6 +12,10 @@ namespace Kooboo.Sites.Logistics.Methods.sto.lib
     public class STOClient
     {
         private STOSetting setting;
+        private const string CreateOrderAPIName = "OMS_EXPRESS_ORDER_CREATE";
+        private const string CreateOrderRegistApplyKey = "sto_oms";
+        private const string TraceOrderAPIName = "STO_TRACE_QUERY_COMMON";
+        private const string TraceOrderRegistApplyKey = "sto_trace_query";
 
         public STOClient(STOSetting setting)
         {
@@ -20,23 +24,36 @@ namespace Kooboo.Sites.Logistics.Methods.sto.lib
 
         public STOCreateOrderResponse CreateOrder(LogisticsRequest request)
         {
-            var content = GenerateCreateOrderContent(request);
-            var contentStr = JsonConvert.SerializeObject(content);
-
             // https://open.sto.cn/#/apiDocument/OMS_EXPRESS_ORDER_CREATE
-            Dictionary<string, string> param = new Dictionary<string, string>();
-            param["api_name"] = "OMS_EXPRESS_ORDER_CREATE";
-            param["content"] = contentStr;
-            param["from_appkey"] = setting.FromAppkey;
-            param["from_code"] = setting.FromCode;
-            param["to_appkey"] = "sto_oms";
-            param["to_code"] = "sto_oms";
-            param["data_digest"] = CalculateDigest(contentStr, setting.SecretKey);
+            var content = GenerateCreateOrderContent(request);
 
-            string postData = Util.CreateLinkString(param, false, true, Encoding.UTF8);
+            string postData = GeneratePostData(CreateOrderAPIName, JsonConvert.SerializeObject(content), CreateOrderRegistApplyKey);
             var apiResponse = DoPost(setting.ServerURL, postData).Result;
 
             var response = JsonConvert.DeserializeObject<STOCreateOrderResponse>(apiResponse.Content);
+            if (response.success && response.data != null)
+            {
+                return response;
+            }
+            else
+            {
+                throw new Exception($"Error Code: {response.errorCode}; content: {response.errorMsg}.");
+            }
+        }
+
+        public STOTraceOrderResponse TraceOrder(List<string> waybillNoList)
+        {
+            // https://open.sto.cn/#/apiDocument/STO_TRACE_QUERY_COMMON
+            var content = new STOTraceOrderContent
+            {
+                order = "asc",
+                waybillNoList = waybillNoList
+            };
+
+            string postData = GeneratePostData(TraceOrderAPIName, JsonConvert.SerializeObject(content), TraceOrderRegistApplyKey);
+            var apiResponse = DoPost(setting.ServerURL, postData).Result;
+
+            var response = JsonConvert.DeserializeObject<STOTraceOrderResponse>(apiResponse.Content);
             if (response.success && response.data != null)
             {
                 return response;
@@ -121,6 +138,20 @@ namespace Kooboo.Sites.Logistics.Methods.sto.lib
                 remark = remark?.ToString(),
             };
             return content;
+        }
+
+        private string GeneratePostData(string apiName, string contentStr, string registApplyKey)
+        {
+            Dictionary<string, string> param = new Dictionary<string, string>();
+            param["api_name"] = apiName;
+            param["content"] = contentStr;
+            param["from_appkey"] = setting.FromAppkey;
+            param["from_code"] = setting.FromCode;
+            param["to_appkey"] = registApplyKey;
+            param["to_code"] = registApplyKey;
+            param["data_digest"] = CalculateDigest(contentStr, setting.SecretKey);
+
+            return Util.CreateLinkString(param, false, true, Encoding.UTF8);
         }
     }
 }

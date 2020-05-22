@@ -2,6 +2,7 @@
 using Kooboo.Sites.Logistics.Methods.sto.lib;
 using Kooboo.Sites.Logistics.Models;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace Kooboo.Sites.Logistics.Methods.sto
@@ -18,7 +19,16 @@ namespace Kooboo.Sites.Logistics.Methods.sto
 
         public LogisticsStatusResponse checkStatus(LogisticsRequest request)
         {
-            throw new NotImplementedException();
+            var apiClient = new STOClient(this.Setting);
+            var waybillNoList = new List<string> { request.ReferenceId, "6606002282568" };
+
+            var apiResult = apiClient.TraceOrder(waybillNoList);
+
+            // 申通 api返回数据跟文档不符，需要确认，暂时电话联系不上
+            return new LogisticsStatusResponse
+            {
+
+            };
         }
 
         [Description(@"<script engine='kscript'>
@@ -55,10 +65,12 @@ namespace Kooboo.Sites.Logistics.Methods.sto
             var apiClient = new STOClient(this.Setting);
             var apiResult = apiClient.CreateOrder(request);
 
-            request.ReferenceId = apiResult.data.orderNo;
+            request.ReferenceId = apiResult.data.waybillNo;
             res = new LogisticsResponse();
             res.requestId = request.Id;
-            res.logisticsMethodReferenceId = apiResult.data.orderNo;
+            res.logisticsMethodReferenceId = apiResult.data.waybillNo;
+
+            checkStatus(request);
 
             return res;
         }

@@ -74,7 +74,6 @@ namespace Kooboo.Sites.Logistics
             return new LogisticsStatusResponse();
         }
 
-
         public string GetPostage(object value)
         {
             var request = ParsePostageRequest(value);
