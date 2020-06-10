@@ -35,6 +35,36 @@ namespace KScript
         {
             this.RenderContext = context;
         }
+         
+        public k GetBySite(string SiteName)
+        {
+            var orgid = this.RenderContext.WebSite.OrganizationId;
+            var allsites = Kooboo.Data.GlobalDb.WebSites.ListByOrg(orgid);
+
+            if (allsites == null || !allsites.Any())
+            {
+                return null;
+            }
+
+            var find = allsites.Find(o => o.Name == SiteName);
+            if (find == null)
+            {
+                find = allsites.Find(o => o.DisplayName == SiteName);
+            }
+
+            if (find == null)
+            {
+                return null;
+            }
+
+            RenderContext newcontext = new RenderContext();
+            newcontext.Request = this.RenderContext.Request;
+            newcontext.User = this.RenderContext.User;
+            newcontext.WebSite = find;
+            newcontext.IsSiteBinding = true; 
+            return new k(newcontext);  
+        }
+
 
         [KIgnore]
         public object this[string key] { get { return ExtensionContainer.Get(key, RenderContext); } set { ExtensionContainer.Set(value); } }
@@ -172,20 +202,7 @@ var value = k.session.key; ")]
                     {
                         if (_siteinfo == null)
                         {
-                            _siteinfo = new InfoModel();
-                            if (this.RenderContext.WebSite != null)
-                            {
-                                _siteinfo.Culture = this.RenderContext.Culture;
-                                _siteinfo.Name = this.RenderContext.WebSite.Name;
-                                _siteinfo.Setting = new KDictionary(this.RenderContext.WebSite.CustomSettings);
-                                _siteinfo.User = new UserModel(this.RenderContext.User);
-
-                               var db = this.RenderContext.WebSite.SiteDb().DatabaseDb; 
-
-                                var last = db.Log.Store.LastKey;
-
-                                _siteinfo.Version = last; 
-                            }
+                            _siteinfo = new InfoModel(this.RenderContext); 
                         }
                     }
 
@@ -221,40 +238,7 @@ var value = k.session.key; ")]
             }
         }
 
-        public class InfoModel
-        {
-            public string Culture { get; set; }
-
-            [Description("WebSite name")]
-            public string Name { get; set; }
-
-            private KDictionary _setting;
-            public KDictionary Setting
-            {
-                get
-                {
-                    if (_setting == null)
-                    {
-                        _setting = new KDictionary();
-                    }
-                    return _setting;
-                }
-                set { _setting = value; }
-            }
-             
-            public UserModel User
-            {
-                get; set;
-            }
-
-            public string BaseUrl { get; set; }
-
-            public RenderContext RenderContext { get; set; }
-
-            public long Version { get; set; }
-             
-        }
-
+         
         private kSiteDb _sitedb;
 
         [KIgnore]
