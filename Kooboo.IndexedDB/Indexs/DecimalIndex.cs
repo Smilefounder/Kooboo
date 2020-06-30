@@ -108,5 +108,10 @@ namespace Kooboo.IndexedDB.Indexs
         {
             return this.index.AllKeyBytesCollection(ascending); 
         }
+
+        public byte[] GetBytes(object key)
+        {
+            return index.GetBytes((double)key);
+        }
     }
 }

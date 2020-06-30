@@ -149,6 +149,11 @@ namespace Kooboo.IndexedDB.Btree
             }
         }
 
+        public byte[] GetBytes(T key)
+        {
+            return this.Converter.ToByte(key);
+        }
+
         public bool Add(T key, Int64 blockposition)
         {
 

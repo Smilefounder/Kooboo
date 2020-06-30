@@ -1,6 +1,7 @@
 //Copyright (c) 2018 Yardi Technology Limited. Http://www.kooboo.com 
 //All rights reserved.
 using Kooboo.IndexedDB.Btree;
+using Kooboo.IndexedDB.Indexs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,14 +10,9 @@ using System.Threading.Tasks;
 
 namespace Kooboo.IndexedDB.Dynamic
 {  
-    public interface ITableIndex
+    public interface ITableIndex:IIndex
     {  
-        /// <summary>
-        ///  the key length of this index. 
-        /// </summary>
-        int Length { get; set; }
-
-        string FieldName { get; set; }
+     
 
         bool IsIncremental { get; set; }
 
@@ -28,7 +24,7 @@ namespace Kooboo.IndexedDB.Dynamic
 
         long NextIncrement();  
 
-        Type keyType { get; set; }
+      
 
         bool IsPrimaryKey { get; set; }
 
@@ -47,25 +43,6 @@ namespace Kooboo.IndexedDB.Dynamic
         bool Del(object  key, Int64 blockPosition);
 
         List<Int64> Del(object key);  
-
-        /// <summary>
-        /// count of the total records number.
-        /// </summary>
-        /// <returns></returns>
-        int Count(bool distinct);
-
-        ItemCollection AllItems(bool ascending);
-
-        ItemCollection GetCollection(byte[] startBytes, byte[] endBytes, bool lowerOpen, bool upperOpen, bool ascending);
-
-        KeyBytesCollection AllKeys(bool ascending);
-         
-
-        void Close();
-
-        void Flush();
-
-        void DelSelf(); 
     }
      
 }

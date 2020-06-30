@@ -83,7 +83,12 @@ namespace Kooboo.IndexedDB.Indexs
         public KeyBytesCollection AllKeys(bool ascending)
         {
             return this.index.AllKeyBytesCollection(ascending); 
-        } 
+        }
+
+        public byte[] GetBytes(object key)
+        {
+            return this.index.GetBytes((TKey)key);
+        }
 
         public void Close()
         {

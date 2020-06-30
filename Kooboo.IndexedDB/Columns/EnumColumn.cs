@@ -65,7 +65,13 @@ namespace Kooboo.IndexedDB.Columns
                 this.Set(input, bytevalue); 
             }
         }
-         
+        public byte[] GetBytes(object input)
+        {
+            int enumvalue = (int)input;
+            return ValueConverter.ToBytes(enumvalue);
+        }
+
+     
         public string FieldName
         {
             get;

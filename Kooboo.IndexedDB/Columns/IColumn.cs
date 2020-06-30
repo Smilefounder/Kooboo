@@ -8,21 +8,15 @@ using System.Threading.Tasks;
 
 namespace Kooboo.IndexedDB.Columns
 {
-    public interface IColumn<TValue>
+    public interface IColumn
     {
         string FieldName { get; set; }
-          
-       
         // fieldname + len. 8 bytes. this is for the fixed len column. 
         byte[] FieldNameLengthBytes { get; set; }
 
         bool IsString { get; set; }
 
         int FieldNameHash { get; set; }
-
-        byte[] GetBytes(TValue input);
- 
-        void SetBytes(TValue input, byte[] bytes);
 
         /// <summary>
         /// The data type, string/int/decimal, etc of this column.
@@ -35,5 +29,14 @@ namespace Kooboo.IndexedDB.Columns
         int Length { get; set; }
 
         int relativePosition { get; set; }
+
+        byte[] GetBytes(object input);
+    }
+
+    public interface IColumn<TValue>: IColumn
+    {
+        byte[] GetBytes(TValue input);
+ 
+        void SetBytes(TValue input, byte[] bytes);
     }
 }

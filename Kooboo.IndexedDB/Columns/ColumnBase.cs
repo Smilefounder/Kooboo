@@ -54,19 +54,19 @@ namespace Kooboo.IndexedDB.Columns
             this.FieldName = FieldName;
             this.Length = len;
 
-            this.FieldNameHash = Helper.ObjectHelper.GetHashCode(this.FieldName); 
+            this.FieldNameHash = Helper.ObjectHelper.GetHashCode(this.FieldName);
             var fieldnamehashbytes = BitConverter.GetBytes(FieldNameHash);
 
             this.Get = Helper.ObjectHelper.GetGetValue<TValue, TColumn>(FieldName);
             this.Set = Helper.ObjectHelper.GetSetValue<TValue, TColumn>(FieldName);
             ByteConverter = ObjectContainer.GetConverter<TColumn>();
 
-            this.IsString = this.DataType == typeof(string); 
+            this.IsString = this.DataType == typeof(string);
 
             this.FieldNameLengthBytes = new byte[8];
             var lenbytes = BitConverter.GetBytes(this.Length);
             System.Buffer.BlockCopy(fieldnamehashbytes, 0, this.FieldNameLengthBytes, 0, 4);
-            System.Buffer.BlockCopy(lenbytes, 0, this.FieldNameLengthBytes, 4, 4);  
+            System.Buffer.BlockCopy(lenbytes, 0, this.FieldNameLengthBytes, 4, 4);
         }
 
         public string FieldName
@@ -74,7 +74,7 @@ namespace Kooboo.IndexedDB.Columns
             get;
             set;
         }
-          
+
         public byte[] GetBytes(TValue input)
         {
             if (this.Get != null)
@@ -82,15 +82,15 @@ namespace Kooboo.IndexedDB.Columns
                 var value = this.Get(input);
                 if (value != null)
                 {
-                    var bytes =  ByteConverter.ToByte(Get(input));
+                    var bytes = ByteConverter.ToByte(Get(input));
 
                     if (this.IsString)
                     {
-                        return Helper.KeyHelper.AppendToKeyLength(bytes, true, this.Length); 
+                        return Helper.KeyHelper.AppendToKeyLength(bytes, true, this.Length);
                     }
                     else
                     {
-                        return bytes; 
+                        return bytes;
                     }
                 }
             }
@@ -105,6 +105,13 @@ namespace Kooboo.IndexedDB.Columns
                 Set(input, value);
             }
         }
+
+        public byte[] GetBytes(object input)
+        {
+            return ByteConverter.ToByte((TColumn)input);
+
+        }
+      
 
         public int Length { get; set; }
 

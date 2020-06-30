@@ -208,5 +208,10 @@ namespace Kooboo.IndexedDB.Dynamic
                 return nextvalue;
             }
         }
+
+        public byte[] GetBytes(object key)
+        {
+            return index.GetBytes((T)key);
+        }
     }
 }

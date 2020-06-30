@@ -9,7 +9,7 @@ using Kooboo.IndexedDB.Btree;
 
 namespace Kooboo.IndexedDB.Indexs
 {
-    public interface IIndex<TValue>
+    public interface IIndex
     {
         string FieldName { get; set; }
 
@@ -19,13 +19,6 @@ namespace Kooboo.IndexedDB.Indexs
         int Length { get; set; }
 
         Type keyType { get; set; }
-          
-        bool Add(TValue input, Int64 blockPosition);
-
-
-        void Update(TValue oldRecord, TValue NewRecord, Int64 oldBlockPosition, Int64 newBlockPosition);
-
-        bool Del(TValue record, Int64 blockPosition);
 
         /// <summary>
         /// count of the total records number.
@@ -43,7 +36,18 @@ namespace Kooboo.IndexedDB.Indexs
 
         void Flush();
 
-        void DelSelf(); 
+        void DelSelf();
 
+        byte[] GetBytes(object key);
+    }
+
+    public interface IIndex<TValue>: IIndex
+    {
+   
+        bool Add(TValue input, Int64 blockPosition);
+
+        void Update(TValue oldRecord, TValue NewRecord, Int64 oldBlockPosition, Int64 newBlockPosition);
+
+        bool Del(TValue record, Int64 blockPosition);
     }
 }

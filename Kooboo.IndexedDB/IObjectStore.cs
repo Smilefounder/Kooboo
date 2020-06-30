@@ -1,5 +1,6 @@
 //Copyright (c) 2018 Yardi Technology Limited. Http://www.kooboo.com 
 //All rights reserved.
+using Kooboo.IndexedDB.Query;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Kooboo.IndexedDB
 {
-    public interface IObjectStore
+    public interface IObjectStore 
     {
         string Name { get; set; }
         string ObjectFolder { get; set; }

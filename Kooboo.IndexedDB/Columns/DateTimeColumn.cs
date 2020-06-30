@@ -63,7 +63,12 @@ namespace Kooboo.IndexedDB.Columns
                 this.Set(input, date);
             }
         }
+        public byte[] GetBytes(object input)
+        {
+            return ValueConverter.DateTimeToBytes((DateTime)input);
+        }
 
+      
         public string FieldName
         {
             get;

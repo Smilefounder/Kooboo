@@ -9,14 +9,77 @@ using Kooboo.IndexedDB.Indexs;
 using Kooboo.IndexedDB.Query;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Kooboo.IndexedDB.Btree;
 
 namespace Kooboo.IndexedDB
 {
-    public class ObjectStore<TKey, TValue> : IObjectStore
+    public abstract class ObjectStore : IObjectStore
     {
-        public Guid CurrentUserId { get; set; }
+        public abstract string Name { get; set; }
+        public abstract string ObjectFolder { get; set; }
+        public abstract Database OwnerDatabase { get; set; }
+
+        public abstract bool add(object key, object value);
+        public abstract void CheckOut(long VersionId, IObjectStore DestinationStore, bool SelfIncluded = true);
+        public abstract void CheckOut(List<LogEntry> logs, IObjectStore DestinationStore);
+        public abstract void Close();
+        public abstract int Count();
+        public abstract void delete(object key);
+        public abstract void DelSelf();
+        public abstract void Flush();
+        public abstract object get(object key);
+        public abstract int getLength(long blockposition);
+        public abstract List<object> List(int count = 9999, int skip = 0);
+        public abstract void RollBack(LogEntry log);
+        public abstract void RollBack(List<LogEntry> loglist);
+        public abstract void RollBack(long LastVersionId, bool SelfIncluded = true);
+        public abstract void RollBackTimeTick(long TimeTick, bool SelfIncluded = true);
+        public abstract bool update(object key, object value);
+
+        internal abstract IColumn GetIColumn(string ColumnName);
+        internal abstract IIndex GetIIndex(string IndexName);
+        internal abstract ItemCollection GetColloction(bool ascending);
+        internal abstract byte[] GetColumnsBytes(long blockposition, int relativePosition, int length);
+    }
+
+    public class ObjectStore<TKey, TValue> : ObjectStore
+    {
+        public  Guid CurrentUserId { get; set; }
 
         public StoreSetting StoreSetting { get; set; }
+
+        public override string ObjectFolder { get; set; }
+
+        /// <summary>
+        /// The name of this object store.
+        /// </summary>
+        public override string Name { get; set; }
+
+        public override Database OwnerDatabase { get; set; }
+
+        public Dictionary<string, int> SettingColumns
+        {
+            get
+            {
+                if (_settingColumns == null)
+                {
+                    _settingColumns = new Dictionary<string, int>();
+
+                    Dictionary<string, int> setcols = new Dictionary<string, int>();
+                    if (this.StoreSetting.Columns != null)
+                    {
+                        foreach (var item in this.StoreSetting.Columns)
+                        {
+                            setcols[item.Key] = item.Value;
+                        }
+                    }
+                    _settingColumns = Helper.SettingHelper.GetColumns<TValue>(setcols, this.StoreSetting.PrimaryKey, this.StoreSetting.PrimaryKeyLen);
+                }
+
+                return _settingColumns;
+            }
+
+        }
 
         private Action<TValue, long> SetVersionNr;
 
@@ -75,16 +138,11 @@ namespace Kooboo.IndexedDB
         /// </summary>
         private bool IsStringKey = false;
 
-        public string ObjectFolder { get; set; }
+
 
         internal string StoreSettingFile { get; set; }
 
-        /// <summary>
-        /// The name of this object store.
-        /// </summary>
-        public string Name { get; set; }
 
-        public Database OwnerDatabase { get; set; }
 
         public TKey FirstKey
         {
@@ -175,31 +233,7 @@ namespace Kooboo.IndexedDB
 
         private Dictionary<string, int> _settingColumns;
 
-        public Dictionary<string, int> SettingColumns
-        {
-            get
-            {
-                if (_settingColumns == null)
-                {
-                    _settingColumns = new Dictionary<string, int>();
-
-                    Dictionary<string, int> setcols = new Dictionary<string, int>();
-                    if (this.StoreSetting.Columns != null)
-                    {
-                        foreach (var item in this.StoreSetting.Columns)
-                        {
-                            setcols[item.Key] = item.Value;
-                        }
-                    }
-                    _settingColumns = Helper.SettingHelper.GetColumns<TValue>(setcols, this.StoreSetting.PrimaryKey, this.StoreSetting.PrimaryKeyLen);
-                }
-
-                return _settingColumns;
-            }
-
-        }
-
-        public IColumn<TValue> GetColumn(string ColumnName)
+        public  IColumn<TValue> GetColumn(string ColumnName)
         {
             var koobooconverter = this.ValueConverter as KoobooSimpleConverter<TValue>;
             if (koobooconverter != null)
@@ -207,12 +241,6 @@ namespace Kooboo.IndexedDB
                 return koobooconverter.GetColumn(ColumnName);
             }
             return null;
-        }
-
-        public bool CheckSameSetting(ObjectStoreParameters ParametersToCheck)
-        {
-            var parasetting = Helper.SettingHelper.GetSetting<TValue>(ParametersToCheck);
-            return Helper.SettingHelper.IsSameSetting(this.StoreSetting, parasetting);
         }
 
         /// <summary>
@@ -302,65 +330,10 @@ namespace Kooboo.IndexedDB
             }
         }
 
-        /// <summary>
-        /// Add a new record, 
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <param name="EnableLog">set to false to disable the log per records</param>
-        /// <returns></returns>
-        public bool put(TKey key, TValue value, bool EnableLog = true)
+        public bool CheckSameSetting(ObjectStoreParameters ParametersToCheck)
         {
-            lock (_Locker)
-            {
-                long logid = 0;
-
-                if (this.StoreSetting.EnableLog && EnableLog)
-                {
-                    logid = this.OwnerDatabase.Log.GetNewLogId(this.OwnerDatabase.Name);
-
-                    if (this.StoreSetting.EnableVersion && this.SetVersionNr != null)
-                    {
-                        this.SetVersionNr(value, logid);
-                    }
-                }
-
-                Int64 contentposition = addValueBlock(key, value);
-                // add the primary index first. 
-                bool ok = this.primaryIndex.Add(key, contentposition);
-                // continue with the rest of indexes.
-                // 
-                if (ok)
-                {
-                    bool updateindex = true;
-
-                    if (this.HasIndex)
-                    {
-                        updateindex = this.Indexes.Add(value, contentposition);
-                    }
-
-                    if (updateindex)
-                    {
-                        // if all ok, write to the log. 
-                        if (this.StoreSetting.EnableLog && EnableLog)
-                        {
-                            var log = new LogEntry() { Id = logid, EditType = EditType.Add, OldBlockPosition = 0, NewBlockPosition = contentposition, UserId = this.CurrentUserId, StoreName = this.Name, UpdateTime = DateTime.UtcNow, KeyBytes = this.KeyConverter.ToByte(key) };
-                            this.OwnerDatabase.Log.Add(log);
-                        }
-                    }
-                    else
-                    {
-                        // should roll back primary index as well. 
-                        this.primaryIndex.Del(key);
-                    }
-                    return updateindex;
-                }
-                else
-                {
-                    return false;
-                }
-
-            }
+            var parasetting = Helper.SettingHelper.GetSetting<TValue>(ParametersToCheck);
+            return Helper.SettingHelper.IsSameSetting(this.StoreSetting, parasetting);
         }
 
         private void updateindex(TKey key, TValue value, Int64 blockposition)
@@ -499,6 +472,66 @@ namespace Kooboo.IndexedDB
             return put(key, value, Enablelog);
         }
 
+        /// <summary>
+        /// Add a new record, 
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <param name="EnableLog">set to false to disable the log per records</param>
+        /// <returns></returns>
+        public bool put(TKey key, TValue value, bool EnableLog = true)
+        {
+            lock (_Locker)
+            {
+                long logid = 0;
+
+                if (this.StoreSetting.EnableLog && EnableLog)
+                {
+                    logid = this.OwnerDatabase.Log.GetNewLogId(this.OwnerDatabase.Name);
+
+                    if (this.StoreSetting.EnableVersion && this.SetVersionNr != null)
+                    {
+                        this.SetVersionNr(value, logid);
+                    }
+                }
+
+                Int64 contentposition = addValueBlock(key, value);
+                // add the primary index first. 
+                bool ok = this.primaryIndex.Add(key, contentposition);
+                // continue with the rest of indexes.
+                // 
+                if (ok)
+                {
+                    bool updateindex = true;
+
+                    if (this.HasIndex)
+                    {
+                        updateindex = this.Indexes.Add(value, contentposition);
+                    }
+
+                    if (updateindex)
+                    {
+                        // if all ok, write to the log. 
+                        if (this.StoreSetting.EnableLog && EnableLog)
+                        {
+                            var log = new LogEntry() { Id = logid, EditType = EditType.Add, OldBlockPosition = 0, NewBlockPosition = contentposition, UserId = this.CurrentUserId, StoreName = this.Name, UpdateTime = DateTime.UtcNow, KeyBytes = this.KeyConverter.ToByte(key) };
+                            this.OwnerDatabase.Log.Add(log);
+                        }
+                    }
+                    else
+                    {
+                        // should roll back primary index as well. 
+                        this.primaryIndex.Del(key);
+                    }
+                    return updateindex;
+                }
+                else
+                {
+                    return false;
+                }
+
+            }
+        }
 
         /// <summary>
         /// delete a record
@@ -688,7 +721,17 @@ namespace Kooboo.IndexedDB
             return new WhereFilter<TKey, TValue>(this);
         }
 
-        public int Count()
+        public WhereFilter2<TKey, TValue> Where2(Expression<Predicate<TValue>> query)
+        {
+            return new WhereFilter2<TKey, TValue>(this, query);
+        }
+
+        public WhereFilter2<TKey, TValue> Where2()
+        {
+            return new WhereFilter2<TKey, TValue>(this);
+        }
+
+        public override int Count()
         {
             return this.primaryIndex.Count(false);
         }
@@ -702,7 +745,7 @@ namespace Kooboo.IndexedDB
         /// Update the content to the record before that log. 
         /// </summary>
         /// <param name="log"></param>
-        public void RollBack(LogEntry log)
+        public override void RollBack(LogEntry log)
         {
             TKey key = this.KeyConverter.FromByte(log.KeyBytes);
 
@@ -727,7 +770,7 @@ namespace Kooboo.IndexedDB
         /// roll back all the log entries. 
         /// </summary>
         /// <param name="loglist"></param>
-        public void RollBack(List<LogEntry> loglist)
+        public override void RollBack(List<LogEntry> loglist)
         {
             HashSet<byte[]> finished = new HashSet<byte[]>();
 
@@ -748,7 +791,7 @@ namespace Kooboo.IndexedDB
         /// </summary>
         /// <param name="LastVersionId"></param>
         /// <param name="SelfIncluded"></param>
-        public void RollBack(Int64 LastVersionId, bool SelfIncluded = true)
+        public override void RollBack(Int64 LastVersionId, bool SelfIncluded = true)
         {
             List<LogEntry> logs;
             int namehash = this.Name.GetHashCode32();
@@ -772,7 +815,7 @@ namespace Kooboo.IndexedDB
         /// </summary>
         /// <param name="TimeTick"></param>
         /// <param name="SelfIncluded"></param>
-        public void RollBackTimeTick(Int64 TimeTick, bool SelfIncluded = true)
+        public override void RollBackTimeTick(Int64 TimeTick, bool SelfIncluded = true)
         {
             List<LogEntry> logs;
             int namehash = this.Name.GetHashCode32();
@@ -955,18 +998,23 @@ namespace Kooboo.IndexedDB
         {
             lock (_Locker)
             {
-                byte[] contentbytes = this.BlockFile.Get(blockposition);
-                if (contentbytes == null)
-                {
-                    return default(TValue);
-                }
-                else
-                {
-                    return this.ValueConverter.FromByte(contentbytes);
-                }
+                return InternalGetValue(blockposition);
             }
         }
-        
+
+        internal TValue InternalGetValue(Int64 blockposition)
+        {
+            byte[] contentbytes = this.BlockFile.Get(blockposition);
+            if (contentbytes == null)
+            {
+                return default(TValue);
+            }
+            else
+            {
+                return this.ValueConverter.FromByte(contentbytes);
+            }
+        }
+
         public async Task<TValue> getValueAsync(Int64 blockposition)
         {
             byte[] contentbytes = await this.BlockFile.GetAsync(blockposition);
@@ -980,7 +1028,7 @@ namespace Kooboo.IndexedDB
             }
         }
 
-        public int getLength(long blockposition)
+        public override int getLength(long blockposition)
         {
             return this.BlockFile.GetLength(blockposition);
         }
@@ -1013,17 +1061,28 @@ namespace Kooboo.IndexedDB
         {
             lock (_Locker)
             {
-                var converter = this.ValueConverter as KoobooSimpleConverter<TValue>;
-
-                if (converter != null)
-                {
-                    byte[] allcolumns = this.GetColumnBytes(blockposition);
-
-                    return converter.FromByte(allcolumns);
-                }
-
-                return default(TValue);
+                return InternalGetValueFromColumns(blockposition);
             }
+        }
+
+        internal TValue InternalGetValueFromColumns(Int64 blockposition)
+        {
+            var converter = this.ValueConverter as KoobooSimpleConverter<TValue>;
+
+            if (converter != null)
+            {
+                byte[] allcolumns = this.GetColumnBytes(blockposition);
+
+                return converter.FromByte(allcolumns);
+            }
+
+            return default(TValue);
+        }
+
+
+        internal override ItemCollection GetColloction(bool ascending)
+        {
+            return this.primaryIndex.allItemCollection(ascending);
         }
 
         /// <summary>
@@ -1050,6 +1109,11 @@ namespace Kooboo.IndexedDB
             ValueCollection<TKey, TValue> collection = new ValueCollection<TKey, TValue>(this, index.AllItems(ascending).GetEnumerator());
 
             return collection;
+        }
+
+        internal override byte[] GetColumnsBytes(long blockposition, int relativePosition, int length)
+        {
+            return getColumnsBytes(blockposition, relativePosition, length);
         }
 
 
@@ -1096,7 +1160,7 @@ namespace Kooboo.IndexedDB
             }
         }
 
-        public void Close()
+        public override void Close()
         {
             lock (_Locker)
             {
@@ -1118,7 +1182,7 @@ namespace Kooboo.IndexedDB
             }
         }
 
-        public void Flush()
+        public override void Flush()
         {
             lock (_Locker)
             {
@@ -1143,7 +1207,7 @@ namespace Kooboo.IndexedDB
         /// <summary>
         /// delete this store object. Does not update the database config with the changes. 
         /// </summary>
-        public void DelSelf()
+        public override void DelSelf()
         {
             //Additional indexes should be closed as well. 
             lock (_Locker)
@@ -1172,7 +1236,7 @@ namespace Kooboo.IndexedDB
             }
         }
 
-        public bool add(object key, object value)
+        public override bool add(object key, object value)
         {
             TValue tvalue = (TValue)value;
             TKey tkey = (TKey)key;
@@ -1185,7 +1249,7 @@ namespace Kooboo.IndexedDB
 
 
 
-        public bool update(object key, object value)
+        public override bool update(object key, object value)
         {
             TValue tvalue = (TValue)value;
             TKey tkey = (TKey)key;
@@ -1198,7 +1262,7 @@ namespace Kooboo.IndexedDB
             return false;
         }
 
-        public void delete(object id)
+        public override void delete(object id)
         {
             TKey tkey = (TKey)id;
             if (tkey != null)
@@ -1207,7 +1271,7 @@ namespace Kooboo.IndexedDB
             }
         }
 
-        public object get(object key)
+        public override object get(object key)
         {
             TKey tkey = (TKey)key;
             if (tkey != null)
@@ -1217,7 +1281,7 @@ namespace Kooboo.IndexedDB
             return null;
         }
 
-        public void CheckOut(long VersionId, IObjectStore DestinationStore, bool SelfIncluded = true)
+        public override void CheckOut(long VersionId, IObjectStore DestinationStore, bool SelfIncluded = true)
         {
             List<LogEntry> logs;
             int namehash = this.Name.GetHashCode32();
@@ -1235,7 +1299,7 @@ namespace Kooboo.IndexedDB
             }
         }
 
-        public void CheckOut(List<LogEntry> logs, IObjectStore DestinationStore)
+        public override void CheckOut(List<LogEntry> logs, IObjectStore DestinationStore)
         {
             HashSet<TKey> tkeysdone = new HashSet<TKey>();
 
@@ -1261,7 +1325,7 @@ namespace Kooboo.IndexedDB
             }
         }
 
-        public List<object> List(int count = 9999, int skip = 0)
+        public override List<object> List(int count = 9999, int skip = 0)
         {
             List<object> result = new List<object>();
 
@@ -1271,6 +1335,16 @@ namespace Kooboo.IndexedDB
                 result.Add(item);
             }
             return result;
+        }
+
+        internal override IColumn GetIColumn(string ColumnName)
+        {
+            return this.GetColumn(ColumnName);
+        }
+
+        internal override IIndex GetIIndex(string IndexName)
+        {
+            return this.GetIIndex(IndexName);
         }
     }
 }

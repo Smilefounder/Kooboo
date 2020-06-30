@@ -1,5 +1,7 @@
 //Copyright (c) 2018 Yardi Technology Limited. Http://www.kooboo.com 
 //All rights reserved.
+using Kooboo.IndexedDB.Btree;
+using Kooboo.IndexedDB.Indexs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1139,8 +1141,6 @@ namespace Kooboo.IndexedDB.Dynamic
             Update(tkey, newvalue);
         }
 
-
-
         public List<IDictionary<string, object>> All()
         {
             List<IDictionary<string, object>> result = new List<IDictionary<string, object>>();
@@ -1153,6 +1153,18 @@ namespace Kooboo.IndexedDB.Dynamic
                 result.Add(value);
             }
             return result;
+        }
+
+        internal ItemCollection GetCollection(bool ascending)
+        {
+            var primary = this.Indexs.Find(o => o.IsSystem);
+            return primary.AllItems(ascending);
+        }
+
+        internal IIndex GetIndex(string IndexName)
+        {
+            ITableIndex primary = this.Indexs.Find(o => o.FieldName==IndexName);
+            return primary;
         }
 
         public List<T> All<T>()
