@@ -38,13 +38,13 @@ namespace Kooboo.IndexedDB
 
         internal abstract IColumn GetIColumn(string ColumnName);
         internal abstract IIndex GetIIndex(string IndexName);
-        internal abstract ItemCollection GetColloction(bool ascending);
+        internal abstract ItemCollection GetCollection(bool ascending);
         internal abstract byte[] GetColumnsBytes(long blockposition, int relativePosition, int length);
     }
 
     public class ObjectStore<TKey, TValue> : ObjectStore
     {
-        public  Guid CurrentUserId { get; set; }
+        public Guid CurrentUserId { get; set; }
 
         public StoreSetting StoreSetting { get; set; }
 
@@ -233,7 +233,7 @@ namespace Kooboo.IndexedDB
 
         private Dictionary<string, int> _settingColumns;
 
-        public  IColumn<TValue> GetColumn(string ColumnName)
+        public IColumn<TValue> GetColumn(string ColumnName)
         {
             var koobooconverter = this.ValueConverter as KoobooSimpleConverter<TValue>;
             if (koobooconverter != null)
@@ -721,15 +721,15 @@ namespace Kooboo.IndexedDB
             return new WhereFilter<TKey, TValue>(this);
         }
 
-        public WhereFilter2<TKey, TValue> Where2(Expression<Predicate<TValue>> query)
-        {
-            return new WhereFilter2<TKey, TValue>(this, query);
-        }
+        //public WhereFilter2<TKey, TValue> Where2(Expression<Predicate<TValue>> query)
+        //{
+        //    return new WhereFilter2<TKey, TValue>(this, query);
+        //}
 
-        public WhereFilter2<TKey, TValue> Where2()
-        {
-            return new WhereFilter2<TKey, TValue>(this);
-        }
+        //public WhereFilter2<TKey, TValue> Where2()
+        //{
+        //    return new WhereFilter2<TKey, TValue>(this);
+        //}
 
         public override int Count()
         {
@@ -1080,7 +1080,7 @@ namespace Kooboo.IndexedDB
         }
 
 
-        internal override ItemCollection GetColloction(bool ascending)
+        internal override ItemCollection GetCollection(bool ascending)
         {
             return this.primaryIndex.allItemCollection(ascending);
         }
@@ -1344,7 +1344,7 @@ namespace Kooboo.IndexedDB
 
         internal override IIndex GetIIndex(string IndexName)
         {
-            return this.GetIIndex(IndexName);
+            return Indexes.getIndex(IndexName);
         }
     }
 }

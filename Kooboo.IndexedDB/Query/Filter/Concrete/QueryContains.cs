@@ -16,7 +16,7 @@ namespace Kooboo.IndexedDB.Query
 
         public override IEnumerable<long> Execute(IEnumerable<long> collection)
         {
-            if (base.hasColumn)
+            if (base.isColumn)
             {
                 if (collection == null)
                     collection = DefaultColloction;

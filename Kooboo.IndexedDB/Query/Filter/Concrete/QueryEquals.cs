@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace Kooboo.IndexedDB.Query
 {
+    //a==3(decimal)
     internal class QueryEquals : FieldRelationalQuery
     {
         private object _value;
@@ -11,12 +12,12 @@ namespace Kooboo.IndexedDB.Query
         public QueryEquals(string field, object value, ITableVisitor store)
             : base(field, store)
         {
-            _value = value;
+            _value = RealValue(value);
         }
 
         public override IEnumerable<long> Execute(IEnumerable<long> collection)
         {
-            if (base.hasColumn)//对column的 equal操作
+            if (base.isColumn)//对column的 equal操作
             {
                 if (collection == null)
                     collection = DefaultColloction;

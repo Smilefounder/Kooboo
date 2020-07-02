@@ -4,8 +4,8 @@ namespace Kooboo.IndexedDB.Query
 {
     public class QueryAnd : IQuery
     {
-        private IQuery _left;
-        private IQuery _right;
+        private IQuery _left;//a==3
+        private IQuery _right;//b==4
 
         internal QueryAnd(IQuery left, IQuery right)
         {

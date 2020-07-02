@@ -3,7 +3,9 @@ using Kooboo.IndexedDB.Columns;
 using Kooboo.IndexedDB.Dynamic;
 using Kooboo.IndexedDB.Indexs;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace Kooboo.IndexedDB.Query
 {
@@ -120,19 +122,22 @@ namespace Kooboo.IndexedDB.Query
 
     internal abstract class FieldRelationalQuery : IQuery
     {
+        internal ITableVisitor store;
+
+        //IColumn
         internal Type columnType;
         internal int columnLength;
         internal Func<object, byte[]> columnToBytes;
         internal int columnRelativePosition;
-        internal bool hasColumn => columnType != null;
-
-
+        //IIndex
         internal IIndex index;
-        internal ITableVisitor store;
+
+        internal bool isColumn => columnType != null;
+        internal Type fieldType => isColumn ? columnType : index.keyType;
 
         internal FieldRelationalQuery(string memName, ITableVisitor objectStore)
         {
-            if (objectStore.TryGetColumn(memName,out columnType,out columnLength, out columnToBytes, out columnRelativePosition))
+            if (!objectStore.TryGetColumn(memName, out columnType, out columnLength, out columnToBytes, out columnRelativePosition))
             {
                 index = objectStore.GetIndex(memName);
                 if (index == null)
@@ -144,5 +149,34 @@ namespace Kooboo.IndexedDB.Query
         public abstract IEnumerable<long> Execute(IEnumerable<long> collection);
 
         internal ItemCollection DefaultColloction => store.GetCollection(true);
+
+        internal object RealValue(object val)
+        {
+            if (val is decimal)//dmlValue: string, decimal, datetime
+            {
+                return DecimalConvertHelper.Get(fieldType)(val);
+            }
+            return val;
+        }
+    }
+
+    internal static class DecimalConvertHelper
+    {
+        private static ConcurrentDictionary<Type, Func<object, object>> containers = new ConcurrentDictionary<Type, Func<object, object>>();
+
+        public static Func<object, object> Get(Type convertToType)
+        {
+            return containers.GetOrAdd(convertToType, e => Build(e));
+        }
+
+        private static Func<object, object> Build(Type convertToType)
+        {
+            //object val = (decimal)num;
+            //return (object)((convertToType)((decimal)val));
+
+            ParameterExpression par = Expression.Parameter(typeof(object));
+            var body = Expression.Convert(Expression.Convert(par, typeof(decimal)), convertToType);
+            return Expression.Lambda<Func<object, object>>(Expression.Convert(body, typeof(object)), par).Compile();
+        }
     }
 }

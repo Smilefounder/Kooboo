@@ -11,12 +11,12 @@ namespace Kooboo.IndexedDB.Query
         public QueryLessThanOrEqual(string field, object value, ITableVisitor store)
             : base(field, store)
         {
-            _value = value;
+            _value = RealValue(value);
         }
 
         public override IEnumerable<long> Execute(IEnumerable<long> collection)
         {
-            if (base.hasColumn)
+            if (base.isColumn)
             {
                 if (collection == null)
                     collection = DefaultColloction;

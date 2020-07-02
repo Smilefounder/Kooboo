@@ -36,7 +36,7 @@ namespace Kooboo.IndexedDB.Query
         }
     }
 
-    internal class QueryOrderPrimaryKey<TKey, TValue> : IQuery
+    internal class QueryOrderPrimaryKey : IQuery
     {
         private ITableVisitor _store;
         private bool ascending;

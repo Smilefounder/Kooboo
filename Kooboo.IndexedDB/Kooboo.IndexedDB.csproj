@@ -9,8 +9,14 @@
 
   <ItemGroup>
     <Compile Remove="JumpTable\**" />
+    <Compile Remove="Query\DmlParse\**" />
+    <Compile Remove="Query\Filter\**" />
     <EmbeddedResource Remove="JumpTable\**" />
+    <EmbeddedResource Remove="Query\DmlParse\**" />
+    <EmbeddedResource Remove="Query\Filter\**" />
     <None Remove="JumpTable\**" />
+    <None Remove="Query\DmlParse\**" />
+    <None Remove="Query\Filter\**" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,5 @@
-﻿using ConditionParser.Expressions;
+﻿using ConditionParser;
+using ConditionParser.Expressions;
 using Kooboo.IndexedDB.Dynamic;
 using System;
 using System.Collections.Generic;
@@ -9,36 +10,31 @@ using System.Threading.Tasks;
 
 namespace Kooboo.IndexedDB.Query
 {
-    public class DmlFilter
-    {
-        private IQuery query;
-        private Table _store;
-
-        
-    }
-
-
     public class WhereFilter2<TKey, TValue>
     {
+        private ObjectStore<TKey, TValue> _store;
+
         private AbstractQueryVisitor<TKey, TValue> handler;
         private IQuery query;
+        private int skip;
 
-        private ObjectStore<TKey, TValue> _store;
         //private ReadLock readLock => store.readLock;
 
         public WhereFilter2(ObjectStore<TKey, TValue> store)
         {
-            this._store = store;
+            _store = store;
             handler = new AbstractQueryVisitor<TKey, TValue>(store);
         }
 
-        public WhereFilter2(ObjectStore<TKey, TValue> store, Expression<Predicate<TValue>> func):this(store)
+        public WhereFilter2(ObjectStore<TKey, TValue> store, Expression<Predicate<TValue>> func) : this(store)
         {
             handler = new AbstractQueryVisitor<TKey, TValue>(store);
             //using (readLock.EnterSearchLock())
-                query = handler.Decompose(func);
+            query = handler.Decompose(func);
         }
 
+        //Where(a==3).Where(b==4)
+        //where( a==3 and b==4 )
         public WhereFilter2<TKey, TValue> Where(Expression<Predicate<TValue>> predicate)
         {
             //using (readLock.EnterSearchLock())
@@ -114,14 +110,8 @@ namespace Kooboo.IndexedDB.Query
 
         public WhereFilter2<TKey, TValue> Skip(int num)
         {
-            //using (readLock.EnterSearchLock())
-            {
-                if (query == null)
-                    query = handler.Skip(num);
-                else
-                    query = new QueryAnd(query, handler.Skip(num));
-                return this;
-            }
+            skip = num;
+            return this;
         }
 
         public int Count()
@@ -141,38 +131,35 @@ namespace Kooboo.IndexedDB.Query
             return default(TValue);
         }
 
-        public IEnumerable<TValue> GetValues(bool columnDataOnly = false)
+        public IEnumerable<TValue> GetValues(int take = int.MaxValue, bool columnDataOnly = false)
         {
-    
-            //using (readLock.EnterSearchLock())
-            {
-                if (query == null)
-                    query = new QueryAll((ObjectStoreVisitor)_store);
-                if (columnDataOnly)
-                {
-                    foreach (var item in query.Execute(null))
-                    {
-                        yield return this._store.InternalGetValueFromColumns(item);
-                    }
-                }
-                else
-                {
-                    foreach (var item in query.Execute(null))
-                    {
-                        yield return this._store.InternalGetValue(item);
-                    }
-                }
-            }
+            return Execute(columnDataOnly).Skip(skip).Take(take);
         }
 
-        public IList<TValue> GetList(bool columnDataOnly = false)
+        public IList<TValue> GetList(int take = int.MaxValue, bool columnDataOnly = false)
         {
-            List<TValue> list = new List<TValue>();
-            foreach (var item in GetValues(columnDataOnly))
+            return GetValues(take, columnDataOnly).ToList();
+        }
+
+        private IEnumerable<TValue> Execute(bool columnDataOnly = false)
+        {
+            var local = query;
+            if (local == null)
+                local = new QueryAll((ObjectStoreVisitor)_store);
+            if (columnDataOnly)
             {
-                list.Add(item);
+                foreach (var item in local.Execute(null))
+                {
+                    yield return this._store.InternalGetValueFromColumns(item);
+                }
             }
-            return list;
+            else
+            {
+                foreach (var item in local.Execute(null))
+                {
+                    yield return this._store.InternalGetValue(item);
+                }
+            }
         }
     }
 }

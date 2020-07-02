@@ -189,25 +189,5 @@ namespace Kooboo.IndexedDB.Query
             return new ColumnEvaluator(datatype, comparetype, compare, fixedbytes, columnLength, orginalLength);
         }
 
-        private int columnRelativePosition;
-        public static ColumnEvaluator GetEvaluator( Type dataType,  int columnLen,  Func<object, byte[]> toBytes,  int relativePosition, Comparer comparetype, object columnValue)
-        {
-            ColumnEvaluator c = GetEvaluator(dataType, comparetype, toBytes(columnValue), columnLen);
-            c.columnRelativePosition = relativePosition;
-            return c;
-        }
-
-        internal IEnumerable<long> Execute(IEnumerable<long> collection, ITableVisitor store)
-        {
-            foreach (var item in collection)
-            {
-                byte[] columnbytes = store.GetColumnsBytes(item, columnRelativePosition, columnLength);
-
-                if (isMatch(columnbytes))
-                {
-                    yield return item;
-                }
-            }
-        }
     }
 }

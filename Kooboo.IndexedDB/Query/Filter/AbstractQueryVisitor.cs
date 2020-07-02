@@ -32,7 +32,7 @@ namespace Kooboo.IndexedDB.Query
 
         public IQuery OrderPrimaryKey(bool ascending)
         {
-            return new QueryOrderPrimaryKey<TKey, TValue>(ascending, store);
+            return new QueryOrderPrimaryKey(ascending, store);
         }
 
         public IQuery Order(Expression<Func<TValue, object>> expression, bool ascending)
