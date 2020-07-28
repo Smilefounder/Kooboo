@@ -11,6 +11,9 @@ namespace Kooboo.App.CrossPlatform
     {
         static void Main(string[] args)
         {
+            new Kooboo.Sms.Test().Run();
+
+
             Kooboo.Lib.Compatible.CompatibleManager.Instance.Framework.RegisterEncoding(); 
             GlobalSettings.RootPath = Kooboo.Data.AppSettings.DatabasePath;
 

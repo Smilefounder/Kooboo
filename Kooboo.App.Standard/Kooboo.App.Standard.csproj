@@ -22,6 +22,7 @@
     <ProjectReference Include="..\Kooboo.Mail\Kooboo.Mail.csproj" />
     <ProjectReference Include="..\Kooboo.Render\Kooboo.Render.csproj" />
     <ProjectReference Include="..\Kooboo.Sites\Kooboo.Sites.csproj" />
+    <ProjectReference Include="..\Kooboo.Sms\Kooboo.Sms.csproj" />
     <ProjectReference Include="..\Kooboo.Web\Kooboo.Web.csproj" />
   </ItemGroup>
 

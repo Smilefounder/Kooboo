@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyName>Kooboo.Sms</AssemblyName>
+    <RootNamespace>Kooboo.Sms</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="TencentCloud\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kooboo.Lib\Kooboo.Lib.csproj" />
+  </ItemGroup>
+
+</Project>
