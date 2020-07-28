@@ -11,7 +11,7 @@ namespace Kooboo.App.CrossPlatform
     {
         static void Main(string[] args)
         {
-            new Kooboo.Sms.Test().Run();
+            new Kooboo.Sms.Aliyun.Sample().Run();
 
 
             Kooboo.Lib.Compatible.CompatibleManager.Instance.Framework.RegisterEncoding(); 
