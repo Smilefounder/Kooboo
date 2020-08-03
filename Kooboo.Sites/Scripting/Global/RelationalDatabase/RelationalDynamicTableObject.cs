@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Kooboo.Sites.Scripting.Global.RelationalDatabase
 {
@@ -14,12 +15,25 @@ namespace Kooboo.Sites.Scripting.Global.RelationalDatabase
         where TConnection : IDbConnection
     {
         readonly RelationalTable<TExecuter, TSchema, TConnection> _table;
+        readonly static Dictionary<string, RelationModel> _relationCache = new Dictionary<string, RelationModel>();
+
+        static RelationalDynamicTableObject()
+        {
+            Task.Run(() =>
+            {
+                var expireds = _relationCache.Where(w => DateTime.Now - w.Value.CreateTime > new TimeSpan(5, 0, 0));
+                foreach (var item in expireds)
+                {
+                    _relationCache.Remove(item.Key);
+                }
+            });
+        }
 
         public override string Source => _table.Database.Source;
 
         RelationalDynamicTableObject(IDictionary<string, object> orgObj, RelationalTable<TExecuter, TSchema, TConnection> table)
         {
-            this.obj = orgObj;
+            this.obj = orgObj.ToDictionary(k => k.Key, v => v.Value);
             _table = table;
         }
 
@@ -30,9 +44,18 @@ namespace Kooboo.Sites.Scripting.Global.RelationalDatabase
                 return obj[key];
             }
 
-            var relation = _table.Database.SqlExecuter.GetRelation(key, _table.Name);
+            if (_table == null) return null;
+            var cacheKey = $"{_table.Database.ConnectionString}_{_table.Name}_{key}";
+            _relationCache.TryGetValue(cacheKey, out var relation);
 
-            if (relation != null && _table.Name != null && obj.ContainsKey(relation.To))
+            if (relation == null || DateTime.Now - relation.CreateTime > new TimeSpan(0, 5, 0))
+            {
+                relation = _table.Database.SqlExecuter.GetRelation(key, _table.Name);
+                _relationCache[cacheKey] = relation ?? new RelationModel();
+            }
+
+
+            if (relation != null && relation.To != null && _table.Name != null && obj.ContainsKey(relation.To))
             {
                 var data = _table.Database.SqlExecuter.QueryData(relation.TableA, $"{relation.From} == {obj[relation.To]}").Take(999);
                 return CreateList(data.Select(s => s as IDictionary<string, object>).ToArray(), _table.Database.GetTable(relation.TableA) as RelationalTable<TExecuter, TSchema, TConnection>);

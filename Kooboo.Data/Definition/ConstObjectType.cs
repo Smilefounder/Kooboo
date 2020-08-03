@@ -90,8 +90,10 @@ namespace Kooboo
         public const byte TableRelation = 82;
 
         public const byte DatabaseTable = 83;
+        public const byte TableSchemaMapping = 84;
+        
+        public const byte LogisticsRequest = 85;
+        public const byte  LogisticsCallback = 86;
 
-        public const byte LogisticsRequest = 84;
-        public const byte  LogisticsCallback = 85;
     }
 }

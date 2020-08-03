@@ -128,12 +128,12 @@ namespace Kooboo.Data.Cache
                         .ToObject<Dictionary<string, string>>()
                         .Where(w => !string.IsNullOrEmpty(w.Value));
                     if (dic == null || dic.Count() == 0) continue;
-                    var properties = string.Join(",", dic.Select(s => $"['{s.Key}']:'{s.Value}'"));
+                    var properties = string.Join(",", dic.Select(s => $"'{s.Key}':'{s.Value}'"));
 
                     sb.AppendLine($@"
 (function(){{
     Kooboo.text[""{moduleName}""]={{{properties}}}
-}})()
+}})();
 ");
                 }
                 catch (Exception)

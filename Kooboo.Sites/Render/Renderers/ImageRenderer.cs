@@ -43,11 +43,24 @@ namespace Kooboo.Sites.Render
 
             RenderImage(context, image);
 
+            context.RenderContext.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            context.RenderContext.Response.Headers.Add("Access-Control-Allow-Headers", "*");
+
             if (context.RenderContext.WebSite.EnableImageBrowserCache)
             {
-                if (context.RenderContext.WebSite.ImageCacheDays >= 0)
+
+                if (context.RenderContext.WebSite.ImageCacheDays > 0)
                 {
                     context.RenderContext.Response.Headers["Expires"] = DateTime.UtcNow.AddDays(context.RenderContext.WebSite.ImageCacheDays).ToString("r");
+                }
+                else
+                {
+                    // double verify...
+                    var version = context.RenderContext.Request.GetValue("version"); 
+                    if (!string.IsNullOrWhiteSpace(version))
+                    {
+                        context.RenderContext.Response.Headers["Expires"] = DateTime.UtcNow.AddYears(1).ToString("r");
+                    } 
                 }
             }
         }
@@ -105,7 +118,39 @@ namespace Kooboo.Sites.Render
                 context.RenderContext.Response.ContentType += "+xml";
             }
 
-            context.RenderContext.Response.Body = image.ContentBytes;
+            var bytes = image.ContentBytes;
+             
+            var width = context.RenderContext.Request.Get("width"); 
+            if (!string.IsNullOrEmpty(width))
+            {
+                var height = context.RenderContext.Request.Get("height"); 
+                 
+                 if (!string.IsNullOrWhiteSpace(height))
+                {
+                    int intwidth = 0;
+                    int intheight = 0; 
+                    if (int.TryParse(width, out intwidth) && int.TryParse(height, out intheight))
+                    {
+                     bytes = Kooboo.Lib.Compatible.CompatibleManager.Instance.Framework.GetThumbnailImage(bytes, intwidth, intheight);
+                    }
+                }
+                 else
+                {
+                    int intwidth = 0;
+         
+                    if (int.TryParse(width, out intwidth))
+                    {
+                        if (image.Height>0 && image.Width >0)
+                        {  
+                            int intheight =   (int)intwidth * image.Height / image.Width;  
+                            bytes = Kooboo.Lib.Compatible.CompatibleManager.Instance.Framework.GetThumbnailImage(bytes, intwidth, intheight);
+                        } 
+                    }
+                }
+            }
+             
+
+            context.RenderContext.Response.Body = bytes;
         }
 
 

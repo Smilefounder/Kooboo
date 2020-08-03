@@ -65,21 +65,20 @@ namespace Kooboo.Sites.Scripting.Global.RelationalDatabase
         }
 
         /// <summary>
-        /// because we can't know null field type
+        /// clear null field  and repeat field
         /// </summary>
         /// <param name="value"></param>
-        void ClearNullField(IDictionary<string, object> value)
+        IDictionary<string, object> StandardizingField(IDictionary<string, object> value)
         {
-            foreach (var item in value.Where(w => w.Value == null).Select(s => s.Key).ToArray())
-            {
-                value.Remove(item);
-            }
+            return value.Where(w => w.Value != null)
+                        .GroupBy(g => g.Key.ToLower())
+                        .ToDictionary(k => k.Key, v => v.Last().Value);
         }
 
         public object add(object value)
         {
             var dic = kHelper.CleanDynamicObject(value);
-            ClearNullField(dic);
+            dic = StandardizingField(dic);
             EnsureTableCreated();
             TryUpgradeSchema(dic);
             object newId = null;
@@ -189,6 +188,7 @@ namespace Kooboo.Sites.Scripting.Global.RelationalDatabase
         public void update(object newvalue)
         {
             var dic = kHelper.CleanDynamicObject(newvalue);
+            EnsureTableCreated();
             if (_schema.PrimaryKey != null && dic.ContainsKey(_schema.PrimaryKey)) update(dic[_schema.PrimaryKey], dic);
             else add(dic);
         }
@@ -196,9 +196,9 @@ namespace Kooboo.Sites.Scripting.Global.RelationalDatabase
         public void update(object id, object newvalue)
         {
             var dic = kHelper.CleanDynamicObject(newvalue);
-            ClearNullField(dic);
-            if (_schema.PrimaryKey != null && dic.ContainsKey(_schema.PrimaryKey)) dic.Remove(_schema.PrimaryKey);
+            dic = StandardizingField(dic);
             EnsureTableCreated();
+            if (_schema.PrimaryKey != null && dic.ContainsKey(_schema.PrimaryKey)) dic.Remove(_schema.PrimaryKey);
             TryUpgradeSchema(dic);
             if (_schema.PrimaryKey == "_id") id = kHelper.GetId(id.ToString());
             Database.SqlExecuter.UpdateData(Name, _schema.PrimaryKey, id, dic);
@@ -212,6 +212,11 @@ namespace Kooboo.Sites.Scripting.Global.RelationalDatabase
         public IDynamicTableObject GetByLog(long LogId)
         {
             return null;
+        }
+
+        public long Count(string query)
+        {
+          return  this.Query(query).count();  
         }
     }
 }

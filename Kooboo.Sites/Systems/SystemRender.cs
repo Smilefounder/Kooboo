@@ -8,9 +8,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Kooboo.Extensions;
 using Kooboo.Sites.Models;
-using Kooboo.Data.Interface; 
+using Kooboo.Data.Interface;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Render.Renderers;
+using Kooboo.Data.Context;
 
 namespace Kooboo.Sites.Systems
 {
@@ -34,7 +35,7 @@ namespace Kooboo.Sites.Systems
                     ResourceGroupRender(context, id);
                     return;
                 case ConstObjectType.View:
-                   await ViewRender(context, id, paras);
+                    await ViewRender(context, id, paras);
                     return;
                 case ConstObjectType.Image:
                     {
@@ -111,7 +112,7 @@ namespace Kooboo.Sites.Systems
 
             StringBuilder sb = new StringBuilder();
 
-            long totalversion = 0; 
+            long totalversion = 0;
 
             foreach (var item in group.Children.OrderBy(o => o.Value))
             {
@@ -131,9 +132,9 @@ namespace Kooboo.Sites.Systems
                         if (siteobject is ICoreObject)
                         {
                             var core = siteobject as ICoreObject;
-                            totalversion += core.Version; 
-                        } 
-                    } 
+                            totalversion += core.Version;
+                        }
+                    }
 
                 }
             }
@@ -146,19 +147,19 @@ namespace Kooboo.Sites.Systems
                 if (!string.IsNullOrWhiteSpace(result))
                 {
                     if (group.Type == ConstObjectType.Style)
-                    { 
-                        result = CompressCache.Get(group.Id, totalversion, result, CompressType.css); 
+                    {
+                        result = CompressCache.Get(group.Id, totalversion, result, CompressType.css);
                     }
                     else if (group.Type == ConstObjectType.Script)
                     {
                         result = CompressCache.Get(group.Id, totalversion, result, CompressType.js);
-                    } 
-                }  
+                    }
+                }
             }
 
 
             TextBodyRender.SetBody(context, result);
- 
+
             var version = context.RenderContext.Request.GetValue("version");
 
             if (!string.IsNullOrWhiteSpace(version))
@@ -182,7 +183,7 @@ namespace Kooboo.Sites.Systems
                 }
                 context.Route.DestinationConstType = ConstObjectType.View;
                 context.Route.objectId = viewid;
-               await ViewRenderer.Render(context);
+                await ViewRenderer.Render(context);
             }
             else
             {
@@ -256,7 +257,7 @@ namespace Kooboo.Sites.Systems
             var modeltype = Service.ConstTypeService.GetModelType(ConstType);
             if (modeltype == null)
             {
-                  SpecialRender(context, ConstType, objectType, NameOrId, Parameters);
+                SpecialRender(context, ConstType, objectType, NameOrId, Parameters);
             }
             else
             {
@@ -321,13 +322,11 @@ namespace Kooboo.Sites.Systems
 
             string relative = context.RenderContext.Request.RelativeUrl;
 
-            relative = Lib.Helper.StringHelper.ReplaceIgnoreCase(relative, "__kb/kfile/", "");
+            string fullpath;
 
-            var root = Kooboo.Data.AppSettings.GetFileIORoot(context.RenderContext.WebSite);
+            fullpath = GetFileFullPath(context.RenderContext, relative);
 
-            string fullpath = Kooboo.Lib.Helper.IOHelper.CombinePath(root, relative);
-
-            if (System.IO.File.Exists(fullpath))
+            if (!string.IsNullOrWhiteSpace(fullpath))
             {
                 string contentType = IOHelper.MimeType(relative);
 
@@ -335,12 +334,97 @@ namespace Kooboo.Sites.Systems
                 {
                     contentType = "application/octet-stream";
                 }
+
                 context.RenderContext.Response.ContentType = contentType;
                 var allbytes = Lib.Helper.IOHelper.ReadAllBytes(fullpath);
-                context.RenderContext.Response.Body = allbytes;
+
+                if (contentType.ToLower().Contains("image"))
+                {
+                    allbytes = setImageBytes(context, allbytes);
+                    SetImageCache(context.RenderContext); 
+                } 
+                context.RenderContext.Response.Body = allbytes; 
             }
         }
 
+        public static string GetFileFullPath(RenderContext context, string relative)
+        {
+            string fullpath;
+            relative = Lib.Helper.StringHelper.ReplaceIgnoreCase(relative, "__kb/kfile/", "");
 
+            var root = Kooboo.Data.AppSettings.GetFileIORoot(context.WebSite);
+
+            fullpath = Kooboo.Lib.Helper.IOHelper.CombinePath(root, relative);
+
+            if (!System.IO.File.Exists(fullpath))
+            {
+                if (fullpath.Contains("?"))
+                {
+                    var markpos = fullpath.IndexOf("?");
+                    fullpath = fullpath.Substring(0, markpos);
+                }
+            }
+
+            if (System.IO.File.Exists(fullpath))
+            {
+                return fullpath; 
+            }
+
+            return null;  
+        }
+
+        public static byte[] setImageBytes(FrontContext context, byte[] currentbyes)
+        { 
+            var width = context.RenderContext.Request.Get("width");
+            if (!string.IsNullOrEmpty(width))
+            {
+                var height = context.RenderContext.Request.Get("height");
+
+                if (!string.IsNullOrWhiteSpace(height))
+                {
+                    int intwidth = 0;
+                    int intheight = 0;
+                    if (int.TryParse(width, out intwidth) && int.TryParse(height, out intheight))
+                    {
+                      return  Kooboo.Lib.Compatible.CompatibleManager.Instance.Framework.GetThumbnailImage(currentbyes, intwidth, intheight);
+                    }
+                } 
+                else
+                {
+                    int intwidth = 0;
+
+                    if (int.TryParse(width, out intwidth))
+                    {
+                        return Kooboo.Lib.Compatible.CompatibleManager.Instance.Framework.GetThumbnailImage(currentbyes, intwidth, intwidth);
+                    }
+                }
+            }
+
+            return currentbyes; 
+        }
+
+        public static void SetImageCache(RenderContext context)
+        {
+            context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            context.Response.Headers.Add("Access-Control-Allow-Headers", "*");
+
+            if (context.WebSite.EnableImageBrowserCache)
+            {
+                if (context.WebSite.ImageCacheDays > 0)
+                {
+                    context.Response.Headers["Expires"] = DateTime.UtcNow.AddDays(context.WebSite.ImageCacheDays).ToString("r");
+                }
+                else
+                {
+                    // double verify...
+                    var version = context.Request.GetValue("version");
+                    if (!string.IsNullOrWhiteSpace(version))
+                    {
+                        context.Response.Headers["Expires"] = DateTime.UtcNow.AddYears(1).ToString("r");
+                    }
+                }
+            }
+
+        }
     }
 }

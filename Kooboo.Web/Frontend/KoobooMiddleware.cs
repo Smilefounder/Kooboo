@@ -9,6 +9,7 @@ using Kooboo.Sites.Extensions;
 using Kooboo.Sites.Service;
 using Kooboo.Data.Context;
 using Kooboo.Data.Server;
+using Kooboo.Sites.Scripting.Global;
 
 namespace Kooboo.Web.FrontRequest
 {
@@ -20,9 +21,7 @@ namespace Kooboo.Web.FrontRequest
         }
         public async Task Invoke(RenderContext context)
         {
-            FrontContext kooboocontext = new FrontContext();
-            context.SetItem<FrontContext>(kooboocontext);
-            kooboocontext.RenderContext = context;
+            FrontContext kooboocontext = new FrontContext(context); 
 
             if (context.WebSite != null)
             {
@@ -190,7 +189,11 @@ namespace Kooboo.Web.FrontRequest
             {
                 if (string.IsNullOrEmpty(frontContext.RenderContext.Response.RedirectLocation))
                 {
-                    frontContext.RenderContext.Response.RedirectLocation = WebSiteService.GetCustomErrorUrl(frontContext.WebSite, frontContext.RenderContext.Response.StatusCode);
+                    var custom = frontContext.RenderContext.GetItem<CustomStatusCode>();  
+                    if (custom == null)
+                    { 
+                        frontContext.RenderContext.Response.RedirectLocation = WebSiteService.GetCustomErrorUrl(frontContext.WebSite, frontContext.RenderContext.Response.StatusCode);
+                    } 
                 }
             }
 

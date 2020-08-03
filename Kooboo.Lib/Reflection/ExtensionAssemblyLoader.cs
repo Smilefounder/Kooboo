@@ -6,6 +6,8 @@ using System.Linq;
 using VirtualFile;
 using Kooboo.Lib.Utilities;
 using VirtualFile.Zip;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace Kooboo.Lib.Reflection
 {
@@ -59,6 +61,7 @@ namespace Kooboo.Lib.Reflection
         private List<Assembly> LoadDlls()
         {
             var dlls = new List<Assembly>();
+            var isNetFramework = RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework");
 
             foreach (var folder in extensionFolders)
             {
@@ -68,6 +71,23 @@ namespace Kooboo.Lib.Reflection
 
                 foreach (var filename in allsubdlls)
                 {
+#if DEBUG
+
+                    if (isNetFramework && File.Exists("ignoremodules.txt"))
+                    {
+                        var modules = File.ReadAllText("ignoremodules.txt")
+                            .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(s =>
+                            {
+                                var module = s.ToUpper().Trim();
+                                if (module.EndsWith(".ZIP")) module = module.Substring(0, module.Length - 4);
+                                return module;
+                            });
+
+                        if (modules.Any(a => filename.Contains(a))) continue;
+                    }
+#endif
+
                     try
                     {
                         var otherAssembly = Assembly.Load(VirtualResources.ReadAllBytes(filename));

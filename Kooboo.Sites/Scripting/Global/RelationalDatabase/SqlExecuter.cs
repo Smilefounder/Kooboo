@@ -90,7 +90,7 @@ namespace Kooboo.Sites.Scripting.Global.RelationalDatabase
 
         public virtual void CreateIndex(string name, string fieldname)
         {
-            var sql = $@"CREATE INDEX {fieldname} on {WarpField(name)}({WarpField(fieldname)})";
+            var sql = $@"CREATE INDEX {name}_{fieldname} on {WarpField(name)}({WarpField(fieldname)})";
 
             using (var connection = CreateConnection())
             {
@@ -163,7 +163,7 @@ namespace Kooboo.Sites.Scripting.Global.RelationalDatabase
 
         internal string ConditionsToSql(List<ConditionItem> conditions)
         {
-            return string.Join(" and ", conditions.Select(s => $@" {WarpField(s.Field)} {ComparerToString(s.Comparer)} {ConventValue(s.Comparer, s.Value)} "));
+            return string.Join(" and ", conditions.Select(s => $@" {WarpField(s.Field)} {ComparerToString(s.Comparer)} {ConventValue(s)} "));
         }
 
         internal string WarpField(string field)
@@ -196,30 +196,26 @@ namespace Kooboo.Sites.Scripting.Global.RelationalDatabase
             }
         }
 
-        static string ConventValue(Comparer comparer, string value)
+        static string ConventValue(ConditionItem condition)
         {
-            switch (comparer)
+            switch (condition.Comparer)
             {
                 case Comparer.EqualTo:
                 case Comparer.NotEqualTo:
-
-                    if (!decimal.TryParse(value, out var _) && !bool.TryParse(value, out var _))
+                    if (condition.IsString)
                     {
-                        value = $"'{value}'";
+                        return $"'{condition.Value}'";
                     }
-
                     break;
                 case Comparer.StartWith:
-                    value = $"'{value}%'";
-                    break;
+                    return $"'{condition.Value}%'";
                 case Comparer.Contains:
-                    value = $"'%{value}%'";
-                    break;
+                    return $"'%{condition.Value}%'";
                 default:
                     break;
             }
 
-            return value;
+            return condition.Value;
         }
     }
 }

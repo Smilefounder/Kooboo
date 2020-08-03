@@ -242,7 +242,6 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="app.Release.config" />
-    <None Include="app.Server.config" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -331,6 +330,11 @@
   <ItemGroup>
     <Resource Include="Resources\Images\upgrade-active.png" />
     <Resource Include="Resources\Images\upgrade-normal.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ignoremodules.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterResolveReferences" Condition="'$(Configuration)' == 'Release'">
