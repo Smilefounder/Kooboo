@@ -15,6 +15,7 @@ namespace Kooboo.Sites.Ecommerce.Repository
             {
                 ObjectStoreParameters para = new ObjectStoreParameters(); 
                 para.AddIndex<Cart>(o => o.CustomerId);
+                para.AddIndex<Cart>(o => o.CreationDate);
                 para.SetPrimaryKeyField<Cart>(o => o.Id); 
                 return para;
             }

@@ -3,8 +3,8 @@ using System;
 
 namespace Kooboo.Sites.Ecommerce.Models
 {
-  public   class CustomerAddress : CoreObject
-    { 
+    public class CustomerAddress : CoreObject
+    {
         public Guid CustomerId { get; set; }
 
         public string Address { get; set; }
@@ -17,6 +17,10 @@ namespace Kooboo.Sites.Ecommerce.Models
 
         public string City { get; set; }
 
-        public string Country { get; set; } 
+        public string Country { get; set; }
+
+        public string Consignee { get; set; }
+
+        public string ContactNumber { get; set; }
     }
 }

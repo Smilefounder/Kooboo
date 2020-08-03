@@ -36,7 +36,9 @@ namespace Kooboo.Sites.Ecommerce.Models
 
         public DateTime CreateDate { get; set; }
 
-        public bool IsPaid { get; set; }
+        public OrderStatus Status { get; set; }
+
+        public bool DeleteByCustomer { get; set; } = false;
 
         public decimal ItemTotal
         {

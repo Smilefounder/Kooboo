@@ -1,15 +1,16 @@
 import { TEXT } from "@/common/lang";
 import context from "@/common/context";
 import { createStyleEditor } from "@/components/styleEditor";
-import { setGuid, isDirty, clearKoobooInfo, getCleanParent } from "@/kooboo/utils";
+import { setGuid, clearKoobooInfo, getWarpContent } from "@/kooboo/utils";
 import { AttributeUnit } from "@/operation/recordUnits/attributeUnit";
 import { operationRecord } from "@/operation/Record";
-import { getMenuComment, getHtmlBlockComment, getViewComment } from "../utils";
-import { KoobooComment } from "@/kooboo/KoobooComment";
-import { DomLog } from "@/operation/recordLogs/DomLog";
+import { ElementAnalyze } from "../utils";
 import { isImg } from "@/dom/utils";
 import BaseMenuItem from "./BaseMenuItem";
 import { Menu } from "../menu";
+import { Log } from "@/operation/Log";
+import { kvInfo } from "@/common/kvInfo";
+import { KOOBOO_ID } from "@/common/constants";
 
 export default class EditStyleItem extends BaseMenuItem {
   constructor(parentMenu: Menu) {
@@ -25,36 +26,38 @@ export default class EditStyleItem extends BaseMenuItem {
 
   setVisiable: (visiable: boolean) => void;
 
-  update(comments: KoobooComment[]): void {
+  update(): void {
     this.setVisiable(true);
-    let args = context.lastSelectedDomEventArgs;
-    if (isImg(args.element)) return this.setVisiable(false);
-    if (getMenuComment(comments)) return this.setVisiable(false);
-    if (getHtmlBlockComment(comments)) return this.setVisiable(false);
-    if (!getViewComment(comments)) return this.setVisiable(false);
-    if (!args.koobooId) return this.setVisiable(false);
+    let { element } = context.lastSelectedDomEventArgs;
+    let { operability, kooobooIdEl, fieldComment } = ElementAnalyze(element);
+    if (isImg(element) || !operability) return this.setVisiable(false);
+    if (!kooobooIdEl && !fieldComment) return this.setVisiable(false);
   }
 
   async click() {
-    let args = context.lastSelectedDomEventArgs;
+    let { element } = context.lastSelectedDomEventArgs;
     this.parentMenu.hidden();
+    let { kooobooIdEl, fieldComment, koobooId, scopeComment } = ElementAnalyze(element);
 
-    let comments = KoobooComment.getComments(args.element);
-    let { koobooId, parent } = getCleanParent(args.element);
-    const startContent = args.element.getAttribute("style");
-    let comment = getViewComment(comments)!;
+    const startContent = element.getAttribute("style");
     try {
-      let logs = await createStyleEditor(args.element, comment.nameorid!, comment.objecttype!, args.koobooId!);
-      let guid = setGuid(args.element);
+      let logs = await createStyleEditor(element);
+      let guid = setGuid(element);
       let unit = new AttributeUnit(startContent!, "style");
       if (logs.length == 0) return;
-      if (isDirty(args.element)) {
-        logs = [DomLog.createUpdate(comment.nameorid!, clearKoobooInfo(parent!.innerHTML), koobooId!, comment.objecttype!)];
+
+      if (element != kooobooIdEl || (!kooobooIdEl && fieldComment)) {
+        koobooId = kooobooIdEl ? kooobooIdEl!.getAttribute(KOOBOO_ID) : koobooId;
+        let content = kooobooIdEl ? kooobooIdEl.innerHTML : getWarpContent(element!);
+        let comment = fieldComment ? fieldComment : scopeComment;
+        let infos = [...comment!.infos, kvInfo.value(clearKoobooInfo(content)), kvInfo.koobooId(koobooId)];
+        logs = [new Log(infos)];
       }
+
       let record = new operationRecord([unit], logs, guid);
       context.operationManager.add(record);
     } catch (error) {
-      args.element.setAttribute("style", startContent!);
+      element.setAttribute("style", startContent!);
     }
   }
 }

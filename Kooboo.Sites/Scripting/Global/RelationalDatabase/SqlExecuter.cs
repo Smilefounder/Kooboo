@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Kooboo.IndexedDB.Dynamic;
 using Kooboo.IndexedDB.Query;
+using Kooboo.Sites.Scripting.Interfaces;
 using KScript;
 using System;
 using System.Collections.Generic;
@@ -10,19 +11,20 @@ using System.Text;
 
 namespace Kooboo.Sites.Scripting.Global.RelationalDatabase
 {
-    public abstract class SqlExecuter<T> where T : IDbConnection
+    public abstract class SqlExecuter<T> : ISqlExecuter
+        where T : IDbConnection
     {
         readonly string _connectionString;
 
         public abstract char QuotationLeft { get; }
         public abstract char QuotationRight { get; }
 
-        public SqlExecuter(string connectionSring)
+        protected SqlExecuter(string connectionSring)
         {
             _connectionString = connectionSring;
         }
 
-        internal IDbConnection CreateConnection() => (T)Activator.CreateInstance(typeof(T), _connectionString);
+        public IDbConnection CreateConnection() => (T)Activator.CreateInstance(typeof(T), _connectionString);
 
         public abstract RelationalSchema GetSchema(string name);
 
@@ -32,7 +34,9 @@ namespace Kooboo.Sites.Scripting.Global.RelationalDatabase
 
             foreach (var item in items)
             {
-                sb.AppendLine($@"ALTER TABLE {WarpField(name)} ADD COLUMN {WarpField(item.Name)} {item.Type.ToString()};");
+                var type = item.Type;
+                var length = item.Length > 0 && type.ToLower() != "text" ? $"({item.Length})" : string.Empty;
+                sb.AppendLine($@"ALTER TABLE {WarpField(name)} ADD COLUMN {WarpField(item.Name)} {type}{length};");
             }
 
             using (var connection = CreateConnection())
@@ -108,8 +112,8 @@ namespace Kooboo.Sites.Scripting.Global.RelationalDatabase
         {
             var dic = data as IDictionary<string, object>;
             var keyValues = string.Join(",", dic.Select(s => $@"{WarpField(s.Key)}=@{s.Key}"));
-            dic.Add("__id", id);
-            var sql = $@"UPDATE {WarpField(name)} SET {keyValues} WHERE {primaryKey} = @__id";
+            dic.Add(primaryKey, id);
+            var sql = $@"UPDATE {WarpField(name)} SET {keyValues} WHERE {primaryKey} = @{primaryKey}";
 
             using (var connection = CreateConnection())
             {

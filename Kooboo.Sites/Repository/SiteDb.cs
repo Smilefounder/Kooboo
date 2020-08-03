@@ -1036,6 +1036,16 @@ namespace Kooboo.Sites.Repository
             }
         }
 
+        private OrderRepository _order;
+
+        public OrderRepository Order
+        {
+            get
+            {
+                return GetSiteRepository<OrderRepository, Order>();
+            }
+        }
+
         public ProductCategoryRepository _productcategory;
         public ProductCategoryRepository ProductCategory
         {

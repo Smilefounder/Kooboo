@@ -1,20 +1,17 @@
 import { TEXT } from "@/common/lang";
 import context from "@/common/context";
-import { isDynamicContent, clearKoobooInfo, getCleanParent, isDirty, markDirty, setGuid } from "@/kooboo/utils";
+import { clearKoobooInfo, markDirty, setGuid, getUnpollutedEl, isDynamicContent, getWarpContent } from "@/kooboo/utils";
 import { isBody } from "@/dom/utils";
 import { setInlineEditor } from "@/components/richEditor";
-import { getMenuComment, getEditComment, clearContent, isEditable } from "../utils";
+import { clearContent, getEditableComment, isEditable, ElementAnalyze } from "../utils";
 import { KoobooComment } from "@/kooboo/KoobooComment";
 import { InnerHtmlUnit } from "@/operation/recordUnits/InnerHtmlUnit";
-import { Log } from "@/operation/recordLogs/Log";
-import { OBJECT_TYPE } from "@/common/constants";
-import { ContentLog } from "@/operation/recordLogs/ContentLog";
-import { LabelLog } from "@/operation/recordLogs/LabelLog";
-import { DomLog } from "@/operation/recordLogs/DomLog";
 import { operationRecord } from "@/operation/Record";
 import BaseMenuItem from "./BaseMenuItem";
 import { Menu } from "../menu";
-import { htmlModeCheck } from "@/common/utils";
+import { kvInfo } from "@/common/kvInfo";
+import { KOOBOO_ID } from "@/common/constants";
+import { Log } from "@/operation/Log";
 
 export default class EditItem extends BaseMenuItem {
   constructor(parentMenu: Menu) {
@@ -30,53 +27,36 @@ export default class EditItem extends BaseMenuItem {
 
   setVisiable: (visiable: boolean) => void;
 
-  update(comments: KoobooComment[]): void {
+  update(): void {
     this.setVisiable(true);
-    let args = context.lastSelectedDomEventArgs;
-    if (isBody(args.element)) return this.setVisiable(false);
-    if (getMenuComment(comments)) return this.setVisiable(false);
-    if (!getEditComment(comments)) return this.setVisiable(false);
-    if (!args.koobooId) return this.setVisiable(false);
-    if (!isEditable(args.element)) return this.setVisiable(false);
-    let { parent } = getCleanParent(args.element);
-    if (isDirty(args.element) && parent && isDynamicContent(parent)) return this.setVisiable(false);
-    if (isDynamicContent(args.element)) return this.setVisiable(false);
+    let { element } = context.lastSelectedDomEventArgs;
+    let { operability, comments, kooobooIdEl, fieldComment } = ElementAnalyze(element);
+    if (!operability || !comments || !isEditable(element)) return this.setVisiable(false);
+    if (!kooobooIdEl && !fieldComment) return this.setVisiable(false);
   }
 
   click() {
-    let { element, koobooId } = context.lastSelectedDomEventArgs;
+    let { element } = context.lastSelectedDomEventArgs;
+    let { kooobooIdEl, fieldComment, koobooId, scopeComment } = ElementAnalyze(element);
     this.parentMenu.hidden();
-
-    if (!htmlModeCheck()) return;
-
     let startContent = element.innerHTML;
     const onSave = () => {
       if (clearContent(startContent) == clearContent(element.innerHTML)) return;
-      let { koobooId: parentKoobooId, parent } = getCleanParent(element);
-      let comments = KoobooComment.getComments(element);
-      let dirtyEl = parent && isDirty(element) ? parent : element;
-      markDirty(dirtyEl);
-      koobooId = parentKoobooId && isDirty(element) ? parentKoobooId : koobooId;
+      if (kooobooIdEl) markDirty(kooobooIdEl);
       let guid = setGuid(element);
       let units = [new InnerHtmlUnit(startContent)];
-      let comment = getEditComment(comments)!;
-      let log: Log;
-
-      if (comment.objecttype == OBJECT_TYPE.content) {
-        log = ContentLog.createUpdate(comment.nameorid!, comment.fieldname!, clearKoobooInfo(element.innerHTML));
-      } else if (comment.objecttype == OBJECT_TYPE.Label) {
-        log = LabelLog.createUpdate(comment.bindingvalue!, clearKoobooInfo(element.innerHTML));
-      } else {
-        log = DomLog.createUpdate(comment.nameorid!, clearKoobooInfo(dirtyEl.innerHTML), koobooId!, comment.objecttype!);
-      }
-
-      let operation = new operationRecord(units, [log], guid);
+      koobooId = kooobooIdEl ? kooobooIdEl!.getAttribute(KOOBOO_ID) : koobooId;
+      let content = kooobooIdEl ? kooobooIdEl.innerHTML : getWarpContent(element!);
+      let comment = fieldComment ? fieldComment : scopeComment;
+      let log = [...comment!.infos, kvInfo.koobooId(koobooId), kvInfo.value(clearKoobooInfo(content))];
+      let operation = new operationRecord(units, [new Log(log)], guid);
       context.operationManager.add(operation);
     };
 
     const onCancel = () => {
       element.innerHTML = startContent;
     };
+
     setInlineEditor({ selector: element, onSave, onCancel });
   }
 }

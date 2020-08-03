@@ -140,7 +140,7 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
                 // check cateogry? 
                 else if (lower == "categories")
                 {
-                    return this.Categories; 
+                    return this.Categories;
                 }
             }
 
@@ -172,7 +172,7 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
             {
                 var variants = ServiceProvider.ProductVariants(this.context).ListByProduct(this.Id);
 
-                return variants.Select(o => new ProductVariantsViewModel(o)).ToArray();
+                return variants.Where(o => o.Online).Select(o => new ProductVariantsViewModel(o)).ToArray();
             }
         }
 

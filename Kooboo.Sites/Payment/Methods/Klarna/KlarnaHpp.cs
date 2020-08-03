@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using Kooboo.Data.Attributes;
 using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Payment.Methods.Klarna.lib;
@@ -20,7 +19,7 @@ namespace Kooboo.Sites.Payment.Methods.Klarna
 
         public string IconType => "img";
 
-        public List<string> supportedCurrency => new List<string> { "USD", "EUR", "GBP", "DKK", "NOK", "SEK" };
+        public List<string> supportedCurrency => new List<string> { "AUD", "CAD", "CHF", "DKK", "EUR", "GBP", "NOK", "SEK", "USD" };
 
         public RenderContext Context { get; set; }
 
@@ -28,59 +27,49 @@ namespace Kooboo.Sites.Payment.Methods.Klarna
 
         [Description(@"<script engine='kscript'>
     var charge = {};
-    charge.total = 1.50; 
+    charge.total = 1.50;
     charge.currency='USD';
     charge.country='US';
-    charge.name = 'green tea order'; 
+    charge.name = 'green tea order';
     charge.description = 'The best tea from Xiamen';  
+    charge.back='http://example.com/backUrl';
+    charge.cancel='http://example.com/cancelUrl';
+    charge.error='http://example.com/errorUrl';
+    charge.failure='http://example.com/failureUrl';
+    charge.success='http://example.com/successUrl';
     var res = k.payment.klarnaHpp.charge(charge);  
     k.response.redirect(res.redirectUrl);
     // var hppSessionId = res.paymemtMethodReferenceId;
 </script>")]
         public IPaymentResponse Charge(PaymentRequest request)
         {
-            try
+            var amount = CurrencyDecimalPlaceConverter.ToMinorUnit(request.Currency, request.TotalAmount);
+            var req = new KpSessionRequest
             {
-                request.Additional.TryGetValue("country", out var country);
-                var req = new KpSessionRequest
+                PurchaseCurrency = request.Currency,
+                PurchaseCountry = request.Country,
+                OrderAmount = amount,
+                OrderLines = new[]
                 {
-                    PurchaseCurrency = request.Currency,
-                    PurchaseCountry = (string)country,
-                    OrderAmount = request.TotalAmount,
-                    OrderLines = new[]
+                    new KpSessionRequest.OrderLine
                     {
-                        new KpSessionRequest.OrderLine
-                        {
-                            Name = request.Name,
-                            Quantity = 1,
-                            UnitPrice = request.TotalAmount,
-                            TotalAmount = request.TotalAmount
-                        }
-                    },
-                };
+                        Name = request.Name,
+                        Quantity = 1,
+                        UnitPrice = amount,
+                        TotalAmount = amount
+                    }
+                },
+            };
 
-                var callbackUrl = PaymentHelper.GetCallbackUrl(this, nameof(Notify), Context);
-                var requestId = Guid.NewGuid();
-                var endpoint = Setting.GetEndpoint((string)country);
+            var apiClient = new KlarnaApi(Setting, request.Country);
+            var kpSession = apiClient.CreateKpSession(req);
+            var urls = GetGetMerchantUrls(request);
+            var hppSession = apiClient.CreateHppSession(kpSession.SessionId, urls);
 
-                var kpSession = KlarnaApi.CreateKpSession(endpoint, req, Setting.UserName, Setting.Password);
-                var hppSession = KlarnaApi.CreateHppSession(endpoint, kpSession.SessionId, Setting.UserName,
-                    Setting.Password, Setting.GetGetMerchantUrls(callbackUrl, requestId));
-
-                return new RedirectResponse(hppSession.RedirectUrl, requestId)
-                {
-                    paymemtMethodReferenceId = hppSession.SessionId
-                };
-            }
-            catch (AggregateException ex)
+            return new RedirectResponse(hppSession.RedirectUrl, request.Id)
             {
-                if (ex.InnerException != null)
-                {
-                    throw ex.InnerException;
-                }
-
-                throw;
-            }
+                paymemtMethodReferenceId = hppSession.SessionId
+            };
         }
 
         public PaymentStatusResponse checkStatus(PaymentRequest request)
@@ -88,15 +77,14 @@ namespace Kooboo.Sites.Payment.Methods.Klarna
             var result = new PaymentStatusResponse { HasResult = true };
             try
             {
-                request.Additional.TryGetValue("country", out var country);
                 var hppSessionId = request.ReferenceId;
-                var statusResponse = KlarnaApi.CheckStatus(Setting.GetEndpoint((string)country), hppSessionId);
+                var statusResponse = new KlarnaApi(Setting, request.Country).CheckStatus(hppSessionId);
 
                 result.Status = ConvertStatus(statusResponse.Status);
             }
-            catch (AggregateException ex)
+            catch (Exception ex)
             {
-                Kooboo.Data.Log.Instance.Exception.WriteException(ex.InnerException);
+                Kooboo.Data.Log.Instance.Exception.WriteException(ex);
             }
 
             return result;
@@ -106,10 +94,7 @@ namespace Kooboo.Sites.Payment.Methods.Klarna
         {
             var body = context.Request.Body;
             var requestId = context.Request.Get("secretToken");
-            if (!Guid.TryParse(requestId, out var id) || PaymentManager.GetRequest(id, context) == null)
-            {
-                return null;
-            }
+            Guid.TryParse(requestId, out var id);
 
             var data = JsonHelper.Deserialize<CallbackRequest>(body);
             var result = new PaymentCallback
@@ -142,6 +127,36 @@ namespace Kooboo.Sites.Payment.Methods.Klarna
                 default:
                     return PaymentStatus.NotAvailable;
             }
+        }
+        
+        // https://developers.klarna.com/documentation/hpp/api/create-session/#merchants-urls
+        private MerchantUrls GetGetMerchantUrls(PaymentRequest request)
+        {
+            var additional = new Dictionary<string, object>(request.Additional, StringComparer.OrdinalIgnoreCase);
+            var callbackUrl = PaymentHelper.GetCallbackUrl(this, nameof(Notify), Context);
+            return new MerchantUrls
+            {
+                Back = GetValue(additional, "back", Setting.Back),
+                Cancel = GetValue(additional, "cancel", Setting.Cancel),
+                Error = GetValue(additional, "error", Setting.Error),
+                Failure = GetValue(additional, "failure", Setting.Failure),
+                StatusUpdate = UrlHelper.AppendQueryString(callbackUrl, "secretToken", request.Id.ToString()),
+                Success = GetValue(additional, "success", Setting.Success)
+            };
+        }
+
+        private string GetValue(Dictionary<string, object> additional, string key, string fallbackValue)
+        {
+            if (additional.TryGetValue(key, out var o) && o != null)
+            {
+                var value = o.ToString();
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    return value;
+                }
+            }
+
+            return fallbackValue;
         }
     }
 }

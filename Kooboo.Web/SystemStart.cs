@@ -3,6 +3,7 @@
 using Kooboo.Api;
 using Kooboo.Data;
 using Kooboo.Data.Context;
+using Kooboo.Data.Helper;
 using Kooboo.Data.Server;
 using Kooboo.Data.SSL;
 using Kooboo.Jobs;
@@ -10,11 +11,13 @@ using Kooboo.Render;
 using Kooboo.Sites.Extensions;
 using Kooboo.Web.Api;
 using Kooboo.Web.Frontend;
-using Kooboo.Web.Frontend.KScriptDefine;
 using Kooboo.Web.JsTest;
 using Kooboo.Web.Spa;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using VirtualFile;
+using VirtualFile.Zip;
 
 namespace Kooboo.Web
 {
@@ -26,13 +29,12 @@ namespace Kooboo.Web
 
         public static void Start(int port)
         {
-
             AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
             {
                 System.IO.File.AppendAllText("log.txt", "Unhandled exception: " + args.ExceptionObject);
             };
 
-            Kooboo.Data.AppSettings.SetCustomSslCheck(); 
+            Kooboo.Data.AppSettings.SetCustomSslCheck();
 
             Sites.DataSources.DataSourceHelper.InitIDataSource();
 
@@ -50,7 +52,7 @@ namespace Kooboo.Web
                 }
             }
 
-            var sslport = Data.AppSettings.SslPort; 
+            var sslport = Data.AppSettings.SslPort;
 
             if (!WebServers.ContainsKey(sslport))
             {
@@ -67,9 +69,8 @@ namespace Kooboo.Web
 
             JobWorker.Instance.Start();
 
-            Service.UpGradeService.UpgradeFix();
+            Service.UpGradeService.UpgradeFix();  
         }
-
 
         public static void StartNewWebServer(int port)
         {
@@ -109,7 +110,7 @@ namespace Kooboo.Web
 
                             _middlewares.Add(new DefaultStartMiddleWare(KoobooBackEndViewOption()));
 
-                            _middlewares.Add(new SslCertMiddleWare()); 
+                            _middlewares.Add(new SslCertMiddleWare());
 
                             _middlewares.Add(new EndMiddleWare());
                         }

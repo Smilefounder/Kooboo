@@ -2,9 +2,11 @@
 //All rights reserved.
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VirtualFile;
 
 namespace Kooboo.Render.Controller
 {
@@ -13,8 +15,18 @@ namespace Kooboo.Render.Controller
     {
         static ModuleFile()
         {
-            ModuleRoots.Add(System.IO.Path.Combine(Data.AppSettings.RootPath, "modules"));
-            ModuleRoots.Add(System.IO.Path.Combine(Data.AppSettings.RootPath, "view"));
+            AddModuleRoot(Path.Combine(Data.AppSettings.RootPath, "view"));
+            AddModuleRoot(Path.Combine(Data.AppSettings.RootPath, "modules"));
+            AddModuleRoot(Path.Combine(AppContext.BaseDirectory, "modules"));
+        }
+
+        private static void AddModuleRoot(string path)
+        {
+            if (Directory.Exists(path)) ModuleRoots.Add(path);
+            foreach (var item in VirtualResources.GetDirectories(path))
+            {
+                ModuleRoots.Add(item);
+            }
         }
 
         public static List<string> ModuleRoots { get; set; } = new List<string>();
@@ -31,7 +43,7 @@ namespace Kooboo.Render.Controller
                 string relative = FullFilePath.Substring(root.Length);
                 if (string.IsNullOrWhiteSpace(relative))
                 {
-                    return null; 
+                    return null;
                 }
 
                 if (relative.StartsWith("/") || relative.StartsWith("\\"))
@@ -41,7 +53,7 @@ namespace Kooboo.Render.Controller
 
                 if (string.IsNullOrWhiteSpace(relative))
                 {
-                    return null; 
+                    return null;
                 }
 
                 if (relative.ToLower().StartsWith(AdminPath))
@@ -51,25 +63,25 @@ namespace Kooboo.Render.Controller
 
                 if (string.IsNullOrWhiteSpace(relative))
                 {
-                    return null; 
+                    return null;
                 }
 
                 var paths = relative.Split(seps, StringSplitOptions.RemoveEmptyEntries).ToList();
-                foreach(var moduleRoot in ModuleRoots)
+                foreach (var moduleRoot in ModuleRoots)
                 {
                     paths.Insert(0, moduleRoot);
 
-                    var fullpath = System.IO.Path.Combine(paths.ToArray());
+                    var fullpath = Path.Combine(paths.ToArray());
 
-                    if (System.IO.File.Exists(fullpath))
+                    if (VirtualResources.FileExists(fullpath))
                     {
                         return fullpath;
                     }
                     paths.RemoveAt(0);
-                }  
+                }
             }
 
-            return null; 
+            return null;
         }
     }
 }

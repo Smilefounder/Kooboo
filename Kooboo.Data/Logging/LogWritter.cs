@@ -17,11 +17,14 @@ namespace Kooboo.Data.Log
         private StreamWriter _writer;
         private DateTime _date;
         private object _createLock = new object();
-
+        private object _writeLock = new object();
 
         public void Write(string line)
         {
-            Writer.WriteLine(line);
+            lock (_writeLock)
+            {
+                Writer.WriteLine(line);
+            }
         }
 
         public void WriteObj(object JsonObject)
@@ -32,17 +35,26 @@ namespace Kooboo.Data.Log
 
         public void WriteException(Exception ex)
         {
-            string text = ex.Message + ex.Source + ex.StackTrace;
+            // Output UTC event time
+            var builder = new System.Text.StringBuilder()
+                .Append(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff")).Append("Z");
 
+            // Output exception
+            builder.Append("  ").Append(ex.ToString());
+             
             var st = new StackTrace(ex, true);
             // Get the top stack frame
             var frame = st.GetFrame(0);
             // Get the line number from the stack frame
             var line = frame.GetFileLineNumber();
 
-            text += " line number: " + line.ToString();
+            // Output line number
+            builder.Append(" line number: ").Append(line.ToString());
 
-            Write(text);
+            // Exception all has a big stack trace, add a line for easier human reading
+            builder.AppendLine();
+             
+            Write(builder.ToString());
         }
 
         private StreamWriter Writer

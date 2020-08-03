@@ -12,7 +12,7 @@ namespace Kooboo.Sites.Ecommerce.KScript
     public class KCart
     {
         private Cart ShoppingCart { get; set; }
-         
+
         private RenderContext context { get; set; }
 
         private ICartService service { get; set; }
@@ -24,10 +24,20 @@ namespace Kooboo.Sites.Ecommerce.KScript
             this.ShoppingCart = this.service.GetOrCreateCart();
         }
 
-        public void AddITem(object ProductVariantId, int quantity = 1)
+        public bool AddITem(object ProductVariantId, int quantity = 1)
         {
-            Guid id = Lib.Helper.IDHelper.GetGuid(ProductVariantId);
-            this.service.AddITem(id, quantity);
+            try
+            {
+                Guid id = Lib.Helper.IDHelper.GetGuid(ProductVariantId);
+                this.service.AddITem(id, quantity);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+
         }
 
         public void RemoveItem(object variantId)
@@ -36,12 +46,26 @@ namespace Kooboo.Sites.Ecommerce.KScript
             this.service.RemoveItem(id);
         }
 
-        public void ChangeQuantity(object ProductVariantId, int newQuantity)
+        public void RemoveAll()
         {
-            Guid id = Lib.Helper.IDHelper.GetGuid(ProductVariantId);
-            this.service.ChangeQuantity(id, newQuantity);
+            this.service.RemoveAll();
         }
-         
+
+        public bool ChangeQuantity(object ProductVariantId, int newQuantity)
+        {
+            try
+            {
+                Guid id = Lib.Helper.IDHelper.GetGuid(ProductVariantId);
+                this.service.ChangeQuantity(id, newQuantity);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public CartItemViewModel[] Items
         {
             get
@@ -83,7 +107,7 @@ namespace Kooboo.Sites.Ecommerce.KScript
 
         public decimal TotalAmount => this.ShoppingCart.TotalAmount;
 
-        public Discount Discount => this.ShoppingCart.Discount; 
+        public Discount Discount => this.ShoppingCart.Discount;
     }
 
 

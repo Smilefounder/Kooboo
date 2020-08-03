@@ -33,8 +33,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
 
         }
 
-
-        public PagedListViewModel<ShoppingCartWebViewModel> All(ApiCall call)
+        public PagedListViewModel<ShoppingCartWebViewModel> GetShoppingCart(ApiCall call)
         {
             var pager = ApiHelper.GetPager(call, 50);
 
@@ -51,8 +50,28 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
 
             result.List = items.Select(o => new ViewModel.ShoppingCartWebViewModel(o, call.Context)).ToList();
 
-            return result; 
-        } 
+            return result;
+        }
 
+
+        public PagedListViewModel<ShoppingCartWebViewModel> All(ApiCall call)
+        {
+            var pager = ApiHelper.GetPager(call, 50);
+
+            var service = Sites.Ecommerce.ServiceProvider.Cart(call.Context);
+
+            var items = service.List(skip:pager.SkipCount, start:DateTime.UtcNow.AddYears(-3),productMsg:"小碎花",categaryId:"1111");
+
+            PagedListViewModel<ShoppingCartWebViewModel> result = new PagedListViewModel<ShoppingCartWebViewModel>();
+
+            result.TotalCount = service.Count();
+            result.PageNr = pager.PageNr;
+            result.PageSize = pager.PageSize;
+            result.TotalPages = ApiHelper.GetPageCount(result.TotalCount, pager.PageSize);
+
+            result.List = items.Select(o => new ViewModel.ShoppingCartWebViewModel(o, call.Context)).ToList();
+
+            return result;
+        }
     }
 }

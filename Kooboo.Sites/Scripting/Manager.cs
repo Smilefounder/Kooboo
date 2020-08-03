@@ -11,8 +11,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Kooboo.Lib.Reflection;
-using Jint.Runtime; 
+using Jint.Runtime;
 using KScript;
+using Kooboo.Data.Extensions;
 
 namespace Kooboo.Sites.Scripting
 {
@@ -100,20 +101,45 @@ namespace Kooboo.Sites.Scripting
             var k = engine.GetValue("k");
 
             kcontext.ReturnValues.Clear();
+
             try
             {
-                engine.Execute(code.Config);
+                engine.ExecuteWithErrorHandle(code.Config, new Jint.Parser.ParserOptions() { Tolerant = true });
             }
             catch (System.Exception ex)
             {
+                Kooboo.Data.Log.Instance.Exception.WriteException(ex);
             }
 
             if (kcontext.ReturnValues.Count() > 0)
             {
                 return kcontext.ReturnValues.Last();
             }
+            else
+            {
+                var obj = EngineConfigReturnObject(engine);
+                return obj;
+            }
+        }
+
+        private static object EngineConfigReturnObject(Jint.Engine engine)
+        {
+            var returnitem = engine.GetCompletionValue();
+            if (returnitem != null && !returnitem.IsNull())
+            {
+                var jsvalue = returnitem as JsValue;
+                if (jsvalue != null)
+                {
+                    if (jsvalue.Type == Types.Object)
+                    {
+                        var obj = jsvalue.ToObject();
+                        return obj;
+                    }
+                }
+            }
             return null;
         }
+
 
         public static List<Data.Models.SimpleSetting> GetSetting(WebSite website, Models.Code code)
         {
@@ -145,7 +171,7 @@ namespace Kooboo.Sites.Scripting
                             }
                             else if (lowerkey == "tooltip")
                             {
-                                setting.ToolTip = keyvalue.Value.ToString(); 
+                                setting.ToolTip = keyvalue.Value.ToString();
                             }
                             else if (lowerkey == "controltype")
                             {
@@ -223,7 +249,6 @@ namespace Kooboo.Sites.Scripting
                 return null;
             }
 
-
             Jint.Engine engine = null;
 
             var debugsession = Kooboo.Sites.ScriptDebugger.SessionManager.GetDebugSession(context, CodeId);
@@ -250,11 +275,12 @@ namespace Kooboo.Sites.Scripting
             }
             try
             {
-                engine.Execute(JsCode);
-               
+                engine.ExecuteWithErrorHandle(JsCode, new Jint.Parser.ParserOptions() { Tolerant = true });
             }
             catch (Exception ex)
             {
+                Kooboo.Data.Log.Instance.Exception.WriteException(ex);
+
                 if (debugsession != null)
                 {
                     var info = new ScriptDebugger.DebugInfo
@@ -282,7 +308,7 @@ namespace Kooboo.Sites.Scripting
                     debugsession.DebugInfo = info;
                 }
 
-                return ex.Message + " " + ex.Source;
+                return ex.Message;
 
             }
 
@@ -305,14 +331,9 @@ namespace Kooboo.Sites.Scripting
                 }
             }
 
-            string output = context.GetItem<string>(Constants.OutputName);
-            if (!string.IsNullOrWhiteSpace(output))
-            {
-                context.SetItem<string>(null, Constants.OutputName);
-            }
-            return output;
+            return ReturnValue(context, engine);
         }
-         
+
 
         public static string ExecuteInnerScript(RenderContext context, string InnerJsCode)
         {
@@ -347,10 +368,11 @@ namespace Kooboo.Sites.Scripting
             }
             try
             {
-                engine.Execute(InnerJsCode);
+                engine.ExecuteWithErrorHandle(InnerJsCode, new Jint.Parser.ParserOptions() { Tolerant = true });
             }
             catch (Exception ex)
             {
+                Kooboo.Data.Log.Instance.Exception.WriteException(ex);
                 return ex.Message;
             }
 
@@ -366,13 +388,55 @@ namespace Kooboo.Sites.Scripting
                 debugsession.DebugInfo = info;
             }
 
-            string output = context.GetItem<string>(Kooboo.Sites.Scripting.Constants.OutputName);
+            return ReturnValue(context, engine);
+        }
+
+        private static string ReturnValue(RenderContext context, Jint.Engine engine)
+        {
+            // string writeout = EngineReturnValue(engine);
+
+            string output = context.GetItem<string>(Constants.OutputName);
             if (!string.IsNullOrWhiteSpace(output))
             {
-                context.SetItem<string>(null, Kooboo.Sites.Scripting.Constants.OutputName);
-            }
-            return output;
+                context.SetItem<string>(null, Constants.OutputName);
+
+                return output; 
+            } 
+    
+           return null;
+         
         }
+
+        private static string EngineReturnValue(Jint.Engine engine)
+        {
+            var returnitem = engine.GetCompletionValue();
+            if (returnitem != null && !returnitem.IsNull())
+            {
+                var jsvalue = returnitem as JsValue;
+                if (jsvalue != null)
+                {
+                    if (jsvalue.Type == Types.Null || jsvalue.Type == Types.None)
+                    {
+                        return null;
+                    }
+                    else if (jsvalue.Type == Types.Object)
+                    {
+                        var obj = jsvalue.ToObject();
+                        if (obj != null)
+                        {
+                            return Lib.Helper.JsonHelper.Serialize(obj);
+                        }
+                    }
+                    else
+                    {
+                        return jsvalue.ToString();
+                    }
+                }
+            }
+            return null;
+        }
+
+
 
         public static object ExecuteDataSource(RenderContext context, Guid CodeId, Dictionary<string, object> parameters)
         {
@@ -435,14 +499,14 @@ namespace Kooboo.Sites.Scripting
                 kcontext.config = new KDictionary(config);
                 kcontext.ReturnValues.Clear();
 
-                engine.Execute(code.Body);
+                engine.ExecuteWithErrorHandle(code.Body, new Jint.Parser.ParserOptions() { Tolerant = true });
 
                 kcontext.config = null;
 
                 if (kcontext.ReturnValues.Count > 0)
                 {
                     result = kcontext.ReturnValues.Last();
-                } 
+                }
             }
             catch (Exception ex)
             {
@@ -789,7 +853,7 @@ namespace Kooboo.Sites.Scripting
                     {
 
                     }
-                } 
+                }
                 // TODO: also get the methods... 
             }
 

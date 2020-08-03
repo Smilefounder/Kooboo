@@ -16,20 +16,20 @@ namespace Kooboo.Sites.Ecommerce
             return (T)obj;
         }
 
-        private static object _locker = new object(); 
+        private static object _locker = new object();
 
         public static CommerceContext GetCommerceContext(RenderContext context)
         {
             if (!context.HasItem<CommerceContext>())
             {
-                lock(_locker)
+                lock (_locker)
                 {
                     if (!context.HasItem<CommerceContext>())
-                    { 
+                    {
                         CommerceContext commerceContext = new CommerceContext(context);
-                        context.SetItem<CommerceContext>(commerceContext); 
-                    } 
-                } 
+                        context.SetItem<CommerceContext>(commerceContext);
+                    }
+                }
             }
             return context.GetItem<CommerceContext>();
         }
@@ -69,9 +69,19 @@ namespace Kooboo.Sites.Ecommerce
             return GetService<ICartService>(context);
         }
 
+        public static OrderService Order(RenderContext context)
+        {
+            return GetService<OrderService>(context);
+        }
+
         public static ShippingService Shipping(RenderContext context)
         {
             return GetService<ShippingService>(context);
+        }
+
+        public static GeographicalRegionService GeographicalRegion(RenderContext context)
+        {
+            return GetService<GeographicalRegionService>(context);
         }
     }
 }

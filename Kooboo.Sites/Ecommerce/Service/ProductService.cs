@@ -9,6 +9,7 @@ namespace Kooboo.Sites.Ecommerce.Service
     {
         public List<Product> ByCategory(string CategorykeyIdOrPath, int skip = 0, int count = 50)
         {
+            var a = ServiceProvider.Category(this.Context).Repo.All();
             //TODO: sort product here...
             var category = ServiceProvider.Category(this.Context).Get(CategorykeyIdOrPath);
             if (category != null)
@@ -22,7 +23,7 @@ namespace Kooboo.Sites.Ecommerce.Service
         public List<Product> Top(int count = 10)
         {
             // TODO: add sort product here. 
-            return this.Repo.Query.OrderByDescending(o => o.Order).Take(count);
+            return this.Repo.Store.Where().OrderByDescending(o => o.Order).Take(count);
         }
 
         public List<Category> CategoryList(Guid ProductId)
