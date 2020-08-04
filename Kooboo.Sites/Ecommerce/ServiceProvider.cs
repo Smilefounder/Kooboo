@@ -83,5 +83,9 @@ namespace Kooboo.Sites.Ecommerce
         {
             return GetService<GeographicalRegionService>(context);
         }
+        public static CustomerAddressService CustomerAddress(RenderContext context)
+        {
+            return GetService<CustomerAddressService>(context);
+        }
     }
 }

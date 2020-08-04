@@ -97,5 +97,7 @@ namespace Kooboo.Sites.Ecommerce.Models
         }
 
         public decimal ShippingCost { get; set; }
+
+        public OrderAddress OrderAddress { get; set; }
     }
 }

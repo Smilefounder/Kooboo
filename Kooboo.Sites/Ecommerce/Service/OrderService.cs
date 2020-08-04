@@ -28,8 +28,10 @@ namespace Kooboo.Sites.Ecommerce.Service
             neworder.Discount = cart.Discount;
             neworder.ShippingCost = shipping;
             neworder.AddressId = addressId;
+            var address = ServiceProvider.CustomerAddress(Context).Get(addressId);
+            neworder.OrderAddress = new OrderAddress(address, neworder.Id);
             neworder.CustomerId = this.CommerceContext.customer.Id;
-
+            neworder.CreateDate = neworder.CreationDate = DateTime.UtcNow;
             this.Repo.AddOrUpdate(neworder);
             return neworder;
         }
@@ -59,7 +61,7 @@ namespace Kooboo.Sites.Ecommerce.Service
 
         public List<Order> ListByCustomerId(int skip, int take)
         {
-            var list = this.Repo.Store.Where(it=>it.CustomerId == this.CommerceContext.customer.Id).OrderByDescending().Skip(skip).Take(take);
+            var list = this.Repo.Store.Where(it => it.CustomerId == this.CommerceContext.customer.Id).OrderByDescending().Skip(skip).Take(take);
             return list;
         }
 
@@ -67,6 +69,11 @@ namespace Kooboo.Sites.Ecommerce.Service
         {
             var list = this.Repo.Store.Where().OrderByDescending().Skip(skip).Take(take);
             return list;
+        }
+
+        public int Count()
+        {
+            return this.Repo.Store.Count();
         }
     }
 }

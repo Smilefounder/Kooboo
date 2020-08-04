@@ -61,20 +61,8 @@ $(function() {
       },
       dataMapping: function(data) {
         return data.map(function(item) {
-          var ob = {};
-          ob.id = {
-            text: item.id,
-            url: Kooboo.Route.Get(Kooboo.Route.Order.DetailPage, {
-              id: item.id
-            })
-          };
+          var ob = { ...item };
           ob.createDate = new Date(item.createDate).toDefaultLangString();
-          ob.isPaid = {
-            text: item.isPaid ? Kooboo.text.paid.yes : Kooboo.text.paid.no,
-            class: item.isPaid
-              ? "label-sm label-success"
-              : "label-sm label-default"
-          };
           ob.Edit = {
             text: Kooboo.text.common.edit,
             url: Kooboo.Route.Get(Kooboo.Route.Order.DetailPage, {
