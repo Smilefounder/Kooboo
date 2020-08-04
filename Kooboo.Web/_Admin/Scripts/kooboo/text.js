@@ -154,6 +154,7 @@
       ProductTypes: "Product types",
       ProductType: "Product type",
       ProductCategories: "Product categories",
+      PromotionsManagement: "Promotions management",
 
       unitPrice: "Unit price",
       totalPrice: "Total price",

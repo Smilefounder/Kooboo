@@ -160,7 +160,8 @@
                 ListPage: GetRoute("ECommerce/Product/Types"),
                 DetailPage: GetRoute("ECommerce/Product/Type")
             },
-            CategoriesPage: GetRoute("ECommerce/Product/Categories")
+            CategoriesPage: GetRoute("ECommerce/Product/Categories"),
+            PromotionsPage: GetRoute("ECommerce/Product/Promotions")
         },
         Market: {
             IndexPage: GetRoute("Market/Index", true)
