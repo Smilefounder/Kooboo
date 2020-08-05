@@ -3,7 +3,7 @@
   <div class="col-md-8 col-md-offset-2">
     <fieldset class="margin-bottom-15 clearfix">
       <legend>
-        <div class="pull-left"></div>
+        <div class="pull-left">Basic info</div>
         <kb-multilang-selector
           v-if="siteLangs"
           class="clearfix margin-bottom-5"
@@ -12,13 +12,164 @@
         >
         </kb-multilang-selector>
       </legend>
-      <kb-field-panel
-        class="clearfix"
-        ref="fieldPanel"
-        :fields="fields"
-        :values.sync="contentValues"
-        :site-langs="siteLangs"
-      ></kb-field-panel>
+    </fieldset>
+    <fieldset class="fieldrow basic-info">
+      <div class="row">
+        <div class="col-sm-6">
+          <label class="control-label pull-left">Order id</label>
+          <div class="control-value">{{ model.id }}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="control-label pull-left">Total amount</label>
+          <div class="control-value">{{ model.totalAmount }}</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-6">
+          <label class="control-label pull-left">Status</label>
+          <div class="control-value">{{ model.status }}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="control-label pull-left">Create Date</label>
+          <div class="control-value">{{ model.createDate }}</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-6">
+          <label class="control-label pull-left">Item total</label>
+          <div class="control-value">{{ model.itemTotal }}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="control-label pull-left">Shipping cost</label>
+          <div class="control-value">{{ model.shippingCost }}</div>
+        </div>
+      </div>
+    </fieldset>
+    <fieldset class="margin-bottom-15 clearfix">
+      <legend>
+        <div class="pull-left">Order items</div>
+      </legend>
+    </fieldset>
+    <fieldset class="fieldrow">
+      <table class="table table-striped table-hover table-bordered">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Variant</th>
+            <th>Unit price</th>
+            <th>Quantity</th>
+            <th>Discount</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in model.items" :key="item.productId">
+            <td>{{ item.productId }}</td>
+            <td>{{ item.productVariantId }}</td>
+            <td>{{ item.unitPrice }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.discount }}</td>
+            <td>{{ item.itemTotal }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </fieldset>
+    <fieldset class="margin-bottom-15 clearfix">
+      <legend>
+        <div class="pull-left">Delivery info</div>
+      </legend>
+    </fieldset>
+    <fieldset class="fieldrow delivery-info" v-if="model.orderAddress">
+      <kb-form
+        :model="model.orderAddress"
+        :rules="addressRules"
+        ref="addressForm"
+      >
+        <div class="row">
+          <kb-form-item prop="consignee" class="col-sm-6">
+            <label class="control-label pull-left">Consignee</label>
+            <div class="control-value">
+              <input
+                type="text"
+                class="form-control"
+                v-model="model.orderAddress.consignee"
+              />
+            </div>
+          </kb-form-item>
+          <kb-form-item prop="contactNumber" class="col-sm-6">
+            <label class="control-label pull-left">Contact number</label>
+            <div class="control-value">
+              <input
+                type="text"
+                class="form-control"
+                v-model="model.orderAddress.contactNumber"
+              /> </div
+          ></kb-form-item>
+        </div>
+        <div class="row">
+          <kb-form-item prop="country" class="col-sm-6">
+            <label class="control-label pull-left">Country</label>
+            <div class="control-value">
+              <input
+                type="text"
+                class="form-control"
+                v-model="model.orderAddress.country"
+              /> </div
+          ></kb-form-item>
+          <kb-form-item prop="city" class="col-sm-6"
+            ><label class="control-label pull-left">City</label>
+            <div class="control-value">
+              <input
+                type="text"
+                class="form-control"
+                v-model="model.orderAddress.city"
+              /> </div
+          ></kb-form-item>
+        </div>
+        <div class="row">
+          <kb-form-item prop="postCode" class="col-sm-6">
+            <label class="control-label pull-left">Postcode</label>
+            <div class="control-value">
+              <input
+                type="text"
+                class="form-control"
+                v-model="model.orderAddress.postCode"
+              /> </div
+          ></kb-form-item>
+          <kb-form-item prop="houseNumber" class="col-sm-6">
+            <label class="control-label pull-left">House number</label>
+            <div class="control-value">
+              <input
+                type="text"
+                class="form-control"
+                v-model="model.orderAddress.houseNumber"
+              /> </div
+          ></kb-form-item>
+        </div>
+
+        <div class="row">
+          <kb-form-item prop="address" class="col-sm-6"
+            ><label class="control-label pull-left">Address</label>
+            <div class="control-value">
+              <input
+                type="text"
+                class="form-control"
+                v-model="model.orderAddress.address"
+              /> </div
+          ></kb-form-item>
+          <kb-form-item prop="address2" class="col-sm-6"
+            ><label class="control-label pull-left">Address2</label>
+            <div class="control-value">
+              <input
+                type="text"
+                class="form-control"
+                v-model="model.orderAddress.address2"
+              /> </div
+          ></kb-form-item>
+        </div>
+      </kb-form>
     </fieldset>
   </div>
 
@@ -41,13 +192,30 @@
   </div>
   <kb-media-dialog :data.sync="mediaDialogData"></kb-media-dialog>
 </div>
+<style>
+  .control-label {
+    width: 120px;
+    text-align: right;
+    margin-right: 20px;
+  }
+  .control-value {
+    overflow: hidden;
+  }
+  .fieldrow,
+  .fieldrow .row {
+    margin-bottom: 10px;
+  }
+  .form-group .control-label {
+    padding-top: 5px;
+  }
+</style>
 <script>
-  (function() {
+  (function () {
     Kooboo.loadJS([
       "/_Admin/Scripts/components/kbMultilangSelector.js",
       "/_Admin/Scripts/components/kbFieldPanel.js",
       "/_Admin/Scripts/lib/jquery-ui-customized.js",
-      "/_Admin/Scripts/kooboo/Guid.js"
+      "/_Admin/Scripts/kooboo/Guid.js",
     ]);
   })();
 </script>

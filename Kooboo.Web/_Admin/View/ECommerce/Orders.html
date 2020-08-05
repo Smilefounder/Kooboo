@@ -29,7 +29,7 @@
         href="javascript:;"
         >Search result</a
       >
-      <a :href="newOrder" v-else class="btn green navbar-btn">Add order</a>
+      <!-- <a :href="newOrder" v-else class="btn green navbar-btn">Add order</a> -->
       <a v-if="selected.length > 0" @click="onDelete" class="btn red navbar-btn"
         >Delete</a
       >
@@ -70,6 +70,12 @@
         <a class="btn btn-sm blue" :href="row.Edit.url" @click.stop>
           {{ row.Edit.text }}
         </a>
+        <a class="btn btn-sm red" @click.stop="cancelOrder(row)" v-if="row.status === 'Created'"
+          >Cancel</a
+        >
+        <a class="btn btn-sm green" @click.stop v-if="row.status === 'Paid'"
+          >Ship</a
+        >
       </template>
     </kb-table-column>
   </kb-table>
@@ -90,3 +96,12 @@
   })();
 </script>
 <script src="/_Admin/View/ECommerce/Orders.js"></script>
+<style>
+  .table .table-action {
+    width: 140px;
+  }
+  .table .table-action .btn {
+    display: inline-block;
+    margin: 0 2px;
+  }
+</style>

@@ -76,6 +76,18 @@ $(function() {
         self.pager = data;
         self.tableData = self.dataMapping(data.list);
       },
+      cancelOrder: function(data) {
+        if (confirm(Kooboo.text.confirm.cancelOrder)) {
+          Kooboo.Order.cancel({
+            id: data.id
+          }).then(function(res) {
+            if (res.success) {
+              data.status = 'Cancel';
+              window.info.show(Kooboo.text.info.cancelOrder.success, true);
+            }
+          });
+        }
+      },
       onDelete: function() {
         if (confirm(Kooboo.text.confirm.deleteItems)) {
           var ids = self.selected.map(function(row) {

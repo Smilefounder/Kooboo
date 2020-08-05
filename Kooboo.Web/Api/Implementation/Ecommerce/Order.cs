@@ -13,11 +13,12 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
 {
     public class OrderApi : SiteObjectApi<Order>
     {
+
         public PagedListViewModel<OrderViewModel> GetOrders(ApiCall call)
         {
             var pager = ApiHelper.GetPager(call, 50);
 
-            var service = Sites.Ecommerce.ServiceProvider.Order(call.Context);
+            var service = ServiceProvider.Order(call.Context);
 
             var items = service.List(pager.SkipCount, pager.PageSize);
 
@@ -34,14 +35,26 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
         }
 
 
-        public OrderViewModel GetOrder(ApiCall call, Guid id)
+        public Order GetOrder(ApiCall call, Guid id)
         {
-            var service = Sites.Ecommerce.ServiceProvider.Order(call.Context);
+            var service = ServiceProvider.Order(call.Context);
             var order = service.Get(id);
 
-            var view = new OrderViewModel(order, call.Context);
+            return order;
+        }
 
-            return view;
+        public Order EditOrder(ApiCall call, Order newOrder)
+        {
+            var service = ServiceProvider.Order(call.Context);
+            var order = service.EditOrder(newOrder);
+            return order;
+        }
+
+        public bool Cancel(ApiCall call, Guid id)
+        {
+            var service = ServiceProvider.Order(call.Context);
+            var success = service.Cancel(id);
+            return success;
         }
 
         public bool ChangeOrderAddress(ApiCall call, Guid orderId, Guid addressId)
@@ -95,7 +108,8 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
                 ContactNumber = "17859520990",
                 Address = "福建省",
                 Address2 = "厦门市集美区",
-                City = "厦门市"
+                City = "厦门市",
+                Consignee = "吴收货"
             };
             ServiceProvider.CustomerAddress(call.Context).AddOrUpdate(address);
             return address;
@@ -113,7 +127,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
                 UnitPrice = 100
             });
 
-            return service.CreateOrder(cartItems, new Guid("b71b0b64-f0c7-4893-a347-7b8fcb0eacfe"));
+            return service.CreateOrder(cartItems, new Guid("5dce97a2-80f2-4cf9-9fd8-fc363de4d866"));
         }
     }
 #endif

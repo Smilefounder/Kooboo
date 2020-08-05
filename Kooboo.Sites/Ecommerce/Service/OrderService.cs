@@ -35,6 +35,26 @@ namespace Kooboo.Sites.Ecommerce.Service
             this.Repo.AddOrUpdate(neworder);
             return neworder;
         }
+        public Order EditOrder(Order neworder)
+        {
+            var order = this.Repo.Get(neworder.Id);
+            if (order != null)
+            {
+                if (order.OrderAddress != null)
+                {
+                    order.OrderAddress.Consignee = neworder.OrderAddress.Consignee;
+                    order.OrderAddress.ContactNumber = neworder.OrderAddress.ContactNumber;
+                    order.OrderAddress.Country = neworder.OrderAddress.Country;
+                    order.OrderAddress.City = neworder.OrderAddress.City;
+                    order.OrderAddress.PostCode = neworder.OrderAddress.PostCode;
+                    order.OrderAddress.HouseNumber = neworder.OrderAddress.HouseNumber;
+                    order.OrderAddress.Address = neworder.OrderAddress.Address;
+                    order.OrderAddress.Address2 = neworder.OrderAddress.Address2;
+                    this.Repo.AddOrUpdate(neworder);
+                }
+            }
+            return neworder;
+        }
 
         public bool AddAddress(Guid OrderId, Guid AddressId)
         {
@@ -47,16 +67,15 @@ namespace Kooboo.Sites.Ecommerce.Service
             return false;
         }
 
-        public bool Paid(Guid OrderId)
+        public bool Paid(Guid orderId)
         {
             // update an order status to paid.
-            var order = this.Repo.Get(OrderId);
-            if (order != null)
-            {
-                this.Repo.Store.UpdateColumn<bool>(order.Id, o => o.Status == OrderStatus.Paid, true);
-                return true;
-            }
-            return false;
+            return UpdateStatus(orderId, OrderStatus.Paid);
+        }
+
+        public bool Cancel(Guid orderId)
+        {
+            return UpdateStatus(orderId, OrderStatus.Cancel);
         }
 
         public List<Order> ListByCustomerId(int skip, int take)
@@ -74,6 +93,18 @@ namespace Kooboo.Sites.Ecommerce.Service
         public int Count()
         {
             return this.Repo.Store.Count();
+        }
+
+        public bool UpdateStatus(Guid orderId, OrderStatus status)
+        {
+            var order = this.Repo.Get(orderId);
+            if (order != null)
+            {
+                order.Status = status;
+                this.Repo.AddOrUpdate(order);
+                return true;
+            }
+            return false;
         }
     }
 }

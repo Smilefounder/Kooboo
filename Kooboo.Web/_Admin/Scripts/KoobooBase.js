@@ -1763,6 +1763,14 @@
     this.search = function(para) {
       return this.executePost("Search", para);
     };
+
+    this.cancel = function(para) {
+      return this.executeGet("Cancel", para);
+    };
+
+    this.editOrder = function(para) {
+      return this.executePost("EditOrder", para);
+    };
   }
   extend(Order, BaseModel);
 

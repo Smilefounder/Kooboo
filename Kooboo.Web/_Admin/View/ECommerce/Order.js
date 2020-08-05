@@ -1,9 +1,9 @@
-$(function() {
+$(function () {
   var CONTENT_ID = Kooboo.getQueryString("id");
   var self;
   new Vue({
     el: "#main",
-    data: function() {
+    data: function () {
       self = this;
       return {
         id: CONTENT_ID || Kooboo.Guid.Empty,
@@ -11,22 +11,55 @@ $(function() {
         mediaDialogData: {},
         fields: [],
         siteLangs: null,
-        contentValues: {}
+        contentValues: {},
+        model: {},
+        addressRules: {
+          consignee: [
+            {
+              required: true,
+              message: Kooboo.text.validation.required,
+            },
+          ],
+          contactNumber: [
+            {
+              required: true,
+              message: Kooboo.text.validation.required,
+            },
+          ],
+          country: [
+            {
+              required: true,
+              message: Kooboo.text.validation.required,
+            },
+          ],
+          city: [
+            {
+              required: true,
+              message: Kooboo.text.validation.required,
+            },
+          ],
+          address: [
+            {
+              required: true,
+              message: Kooboo.text.validation.required,
+            },
+          ],
+        },
       };
     },
-    mounted: function() {
-      Kooboo.Site.Langs().then(function(langRes) {
+    mounted: function () {
+      Kooboo.Site.Langs().then(function (langRes) {
         if (langRes.success) {
           self.siteLangs = langRes.model;
         }
         self.getContentFields();
       });
-      Kooboo.EventBus.subscribe("ko/style/list/pickimage/show", function(ctx) {
-        Kooboo.Media.getList().then(function(res) {
+      Kooboo.EventBus.subscribe("ko/style/list/pickimage/show", function (ctx) {
+        Kooboo.Media.getList().then(function (res) {
           if (res.success) {
             res.model["show"] = true;
             res.model["context"] = ctx;
-            res.model["onAdd"] = function(selected) {
+            res.model["onAdd"] = function (selected) {
               ctx.settings.file_browser_callback(
                 ctx.field_name,
                 selected.url + "?SiteId=" + Kooboo.getQueryString("SiteId"),
@@ -41,29 +74,34 @@ $(function() {
       });
     },
     methods: {
-      getContentFields: function() {
+      getContentFields: function () {
         var params = {};
         if (CONTENT_ID) {
           params.id = self.id;
         }
-        Kooboo.Order.getEdit(params).then(function(res) {
+        Kooboo.Order.getEdit(params).then(function (res) {
           if (res.success) {
-            self.fields = res.model.properties;
+            res.model.createDate = new Date(
+              res.model.createDate
+            ).toDefaultLangString();
+            self.model = res.model;
           }
         });
       },
-      getSaveOrder: function() {
+      getSaveOrder: function () {
         return {
-          id: self.contentId,
-          values: self.contentValues.fieldsValue || {}
+          ...self.model,
         };
       },
-      isAbleToSaveOrder: function() {
-        return this.$refs.fieldPanel.validate();
+      isAbleToSaveOrder: function () {
+        if (!this.$refs.addressForm) {
+          return true;
+        }
+        return this.$refs.addressForm.validate();
       },
-      onSubmit: function(cb) {
+      onSubmit: function (cb) {
         if (self.isAbleToSaveOrder()) {
-          Kooboo.Order.post(self.getSaveOrder()).then(function(res) {
+          Kooboo.Order.editOrder(self.getSaveOrder()).then(function (res) {
             if (res.success) {
               if (cb && typeof cb == "function") {
                 cb(res.model);
@@ -72,29 +110,29 @@ $(function() {
           });
         }
       },
-      onContentSave: function() {
-        self.onSubmit(function(id) {
+      onContentSave: function () {
+        self.onSubmit(function (order) {
           location.href = Kooboo.Route.Get(Kooboo.Route.Order.DetailPage, {
-            id: id
+            id: order.id,
           });
         });
       },
-      onContentSaveAndCreate: function() {
-        self.onSubmit(function() {
+      onContentSaveAndCreate: function () {
+        self.onSubmit(function () {
           window.info.done(Kooboo.text.info.save.success);
-          setTimeout(function() {
+          setTimeout(function () {
             location.href = Kooboo.Route.Get(Kooboo.Route.Order.DetailPage);
           }, 300);
         });
       },
-      onContentSaveAndReturn: function() {
-        self.onSubmit(function() {
+      onContentSaveAndReturn: function () {
+        self.onSubmit(function () {
           location.href = Kooboo.Route.Get(Kooboo.Route.Order.ListPage);
         });
       },
-      userCancel: function() {
+      userCancel: function () {
         location.href = Kooboo.Route.Get(Kooboo.Route.Order.ListPage);
-      }
-    }
+      },
+    },
   });
 });
