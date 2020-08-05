@@ -61,7 +61,7 @@ $(function() {
       },
       dataMapping: function(data) {
         return data.map(function(item) {
-          var ob = { ...item };
+          var ob = item;
           ob.createDate = new Date(item.createDate).toDefaultLangString();
           ob.Edit = {
             text: Kooboo.text.common.edit,

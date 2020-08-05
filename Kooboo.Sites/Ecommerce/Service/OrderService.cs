@@ -35,26 +35,6 @@ namespace Kooboo.Sites.Ecommerce.Service
             this.Repo.AddOrUpdate(neworder);
             return neworder;
         }
-        public Order EditOrder(Order neworder)
-        {
-            var order = this.Repo.Get(neworder.Id);
-            if (order != null)
-            {
-                if (order.OrderAddress != null)
-                {
-                    order.OrderAddress.Consignee = neworder.OrderAddress.Consignee;
-                    order.OrderAddress.ContactNumber = neworder.OrderAddress.ContactNumber;
-                    order.OrderAddress.Country = neworder.OrderAddress.Country;
-                    order.OrderAddress.City = neworder.OrderAddress.City;
-                    order.OrderAddress.PostCode = neworder.OrderAddress.PostCode;
-                    order.OrderAddress.HouseNumber = neworder.OrderAddress.HouseNumber;
-                    order.OrderAddress.Address = neworder.OrderAddress.Address;
-                    order.OrderAddress.Address2 = neworder.OrderAddress.Address2;
-                    this.Repo.AddOrUpdate(neworder);
-                }
-            }
-            return neworder;
-        }
 
         public bool AddAddress(Guid OrderId, Guid AddressId)
         {

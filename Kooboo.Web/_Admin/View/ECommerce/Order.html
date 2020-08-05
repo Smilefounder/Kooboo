@@ -4,13 +4,13 @@
     <fieldset class="margin-bottom-15 clearfix">
       <legend>
         <div class="pull-left">Basic info</div>
-        <kb-multilang-selector
+        <!-- <kb-multilang-selector
           v-if="siteLangs"
           class="clearfix margin-bottom-5"
           :cultures="siteLangs.cultures"
           :default-culture="siteLangs.default"
         >
-        </kb-multilang-selector>
+        </kb-multilang-selector> -->
       </legend>
     </fieldset>
     <fieldset class="fieldrow basic-info">
@@ -57,7 +57,8 @@
         <thead>
           <tr>
             <th>Product</th>
-            <th>Variant</th>
+            <th>Specification</th>
+            <th>SKU</th>
             <th>Unit price</th>
             <th>Quantity</th>
             <th>Discount</th>
@@ -66,8 +67,9 @@
         </thead>
         <tbody>
           <tr v-for="item in model.items" :key="item.productId">
-            <td>{{ item.productId }}</td>
-            <td>{{ item.productVariantId }}</td>
+            <td><a :href="item.url" target="_blank">{{ item.name || item.productId }}</a></td>
+            <td>{{ item.variants.spec }}</td>
+            <td>{{ item.variants.sku }}</td>
             <td>{{ item.unitPrice }}</td>
             <td>{{ item.quantity }}</td>
             <td>{{ item.discount }}</td>
@@ -76,7 +78,7 @@
         </tbody>
       </table>
     </fieldset>
-    <fieldset class="margin-bottom-15 clearfix">
+    <fieldset class="margin-bottom-15 clearfix" v-if="model.orderAddress">
       <legend>
         <div class="pull-left">Delivery info</div>
       </legend>
@@ -170,6 +172,34 @@
           ></kb-form-item>
         </div>
       </kb-form>
+    </fieldset>
+
+    <fieldset class="margin-bottom-15 clearfix">
+      <legend>
+        <div class="pull-left">Customer info</div>
+      </legend>
+    </fieldset>
+    <fieldset class="fieldrow basic-info" v-if="model.customer">
+      <div class="row">
+        <div class="col-sm-6">
+          <label class="control-label pull-left">Email address</label>
+          <div class="control-value">{{ model.customer.emailAddress }}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="control-label pull-left">Telephone</label>
+          <div class="control-value">{{ model.customer.telephone }}</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-6">
+          <label class="control-label pull-left">First name</label>
+          <div class="control-value">{{ model.customer.firstName }}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="control-label pull-left">Last name</label>
+          <div class="control-value">{{ model.customer.lastName }}</div>
+        </div>
+      </div>
     </fieldset>
   </div>
 

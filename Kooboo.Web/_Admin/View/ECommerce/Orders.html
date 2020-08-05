@@ -48,17 +48,23 @@
         <a :href="row.Edit.url" @click.stop>{{ row.id }}</a>
       </template>
     </kb-table-column>
-    <kb-table-column
-      label="email address"
-      prop="emailAddress"
-    ></kb-table-column>
-    <kb-table-column label="telephone" prop="telephone"></kb-table-column>
+    <kb-table-column label="email address">
+      <template v-slot="row">
+        {{ row.customer && row.customer.emailAddress }}
+      </template>
+    </kb-table-column>
+    <kb-table-column label="telephone">
+      <template v-slot="row">
+        {{ row.customer && row.customer.telephone }}
+      </template>
+    </kb-table-column>
     <kb-table-column label="status" prop="status"></kb-table-column>
     <kb-table-column label="totalAmount" prop="totalAmount"></kb-table-column>
-    <kb-table-column
-      label="contact number"
-      prop="contactNumber"
-    ></kb-table-column>
+    <kb-table-column label="contact number">
+      <template v-slot="row">
+        {{ row.orderAddress && row.orderAddress.contactNumber }}
+      </template>
+    </kb-table-column>
     <!-- <kb-table-column label="itemTotal" prop="itemTotal"></kb-table-column>
     <kb-table-column label="shippingCost" prop="shippingCost"></kb-table-column> -->
     <kb-table-column
@@ -70,7 +76,10 @@
         <a class="btn btn-sm blue" :href="row.Edit.url" @click.stop>
           {{ row.Edit.text }}
         </a>
-        <a class="btn btn-sm red" @click.stop="cancelOrder(row)" v-if="row.status === 'Created'"
+        <a
+          class="btn btn-sm red"
+          @click.stop="cancelOrder(row)"
+          v-if="row.status === 'Created'"
           >Cancel</a
         >
         <a class="btn btn-sm green" @click.stop v-if="row.status === 'Paid'"

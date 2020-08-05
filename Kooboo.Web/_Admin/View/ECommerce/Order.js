@@ -84,6 +84,12 @@ $(function () {
             res.model.createDate = new Date(
               res.model.createDate
             ).toDefaultLangString();
+            res.model.items.forEach(function (item) {
+              item.url = Kooboo.Route.Get(Kooboo.Route.Product.DetailPage, {
+                id: item.product.id,
+                type: item.product.productTypeId,
+              });
+            });
             self.model = res.model;
           }
         });

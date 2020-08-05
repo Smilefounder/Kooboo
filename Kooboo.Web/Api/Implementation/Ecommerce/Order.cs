@@ -35,19 +35,33 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
         }
 
 
-        public Order GetOrder(ApiCall call, Guid id)
+        public OrderViewModel GetOrder(ApiCall call, Guid id)
         {
             var service = ServiceProvider.Order(call.Context);
             var order = service.Get(id);
+            var view = new OrderViewModel(order, call.Context);
 
-            return order;
+            return view;
         }
 
-        public Order EditOrder(ApiCall call, Order newOrder)
+        public OrderViewModel EditOrder(ApiCall call, OrderEditRequestModel neworder)
         {
             var service = ServiceProvider.Order(call.Context);
-            var order = service.EditOrder(newOrder);
-            return order;
+            var order = service.Get(neworder.Id);
+            if (order.OrderAddress != null)
+            {
+                order.OrderAddress.Consignee = neworder.OrderAddress.Consignee;
+                order.OrderAddress.ContactNumber = neworder.OrderAddress.ContactNumber;
+                order.OrderAddress.Country = neworder.OrderAddress.Country;
+                order.OrderAddress.City = neworder.OrderAddress.City;
+                order.OrderAddress.PostCode = neworder.OrderAddress.PostCode;
+                order.OrderAddress.HouseNumber = neworder.OrderAddress.HouseNumber;
+                order.OrderAddress.Address = neworder.OrderAddress.Address;
+                order.OrderAddress.Address2 = neworder.OrderAddress.Address2;
+                service.AddOrUpdate(order);
+            }
+            var view = new OrderViewModel(order, call.Context);
+            return view;
         }
 
         public bool Cancel(ApiCall call, Guid id)
@@ -122,7 +136,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             {
                 ProductId = new Guid("f34a7a66-3474-ae7a-bc6d-04d8572fbb85"),
                 Discount = null,
-                ProductVariantId = new Guid("1a651a3e-9479-a29c-e20e-045689a2cad9"),
+                ProductVariantId = new Guid("d2d63a39-762c-93b0-932b-f79b745aab03"),
                 Quantity = 1,
                 UnitPrice = 100
             });

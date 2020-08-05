@@ -49,13 +49,22 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
             }
         }
 
+        public CustomerViewModel Customer
+        {
+            get
+            {
+                var customer = ServiceProvider.Customer(this.context).Get(this.CustomerId);
+                if (customer != null)
+                {
+                    return new CustomerViewModel(customer, context);
+                }
+                return null;
+            }
+        }
+
         public decimal ShippingCost => order.ShippingCost;
 
-        public string ContactNumber => order.OrderAddress?.ContactNumber;
-
-        public string EmailAddress => "todo@kooboo.com";
-
-        public string Telephone => "todo123456";
+        public OrderAddress OrderAddress => order.OrderAddress;
     }
 
     public class OrderLineViewModel
@@ -97,7 +106,7 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
             get
             {
                 var varants = ServiceProvider.ProductVariants(this.context).Get(this.ProductVariantId);
-                if(varants != null)
+                if (varants != null)
                 {
                     return new ProductVariantsViewModel(varants);
                 }
