@@ -48,15 +48,21 @@ $(function () {
     mounted: function () {
       $.when(
         Kooboo.Site.Langs(),
-        Kooboo.PromotionRule.getEdit()
-      ).then(function (r1, r2) {
+        Kooboo.PromotionRule.getEdit(),
+        Kooboo.ProductCategory.getList()
+      ).then(function (r1, r2, r3) {
         var langRes = r1[0];
         promotionRules = r2[0];
-        if (langRes.success && promotionRules.success) {
+        cateRes = r3[0];
+
+        if (langRes.success && promotionRules.success && cateRes.success) {
           self.siteLangs = langRes.model;
           self.ruleTypes = promotionRules.model.promotionRuleTypes || [];
           self.promotionMethods = promotionRules.model.promotionMethods || [];
           self.promotionTargets = promotionRules.model.promotionTargets || [];
+
+          self.categories = self.getCategories(cateRes.model, []);
+          self.selectedCategories = getSelected(self.categories);
         }
       });
     },
