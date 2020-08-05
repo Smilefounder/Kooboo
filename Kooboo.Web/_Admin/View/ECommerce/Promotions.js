@@ -27,8 +27,7 @@ $(function() {
         categories: [],
         cacheData: null,
         isSearching: false,
-        week: "",
-        weeks: [1, 2],
+        newPromotionUrl: Kooboo.Route.Promotion.DetailPage,
       };
     },
     mounted: function() {

@@ -1,4 +1,5 @@
 ﻿using Kooboo.Api;
+using Kooboo.Data.Language;
 using Kooboo.Sites.Ecommerce.Models;
 using Kooboo.Sites.Ecommerce.Promotion;
 using Kooboo.Sites.Ecommerce.ViewModel;
@@ -16,13 +17,6 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
     {
         public PagedListViewModel<ProductViewModel> PromotionList(ApiCall call)
         {
-            var list = Kooboo.Lib.IOC.Service.GetInstances<IPromotionCondition>();
-
-            //this.Post(call);
-
-
-            //Kooboo.Sites.Ecommerce.Promotion.ConditionImplementation.ByTotalAmount
-
             var sitedb = call.WebSite.SiteDb();
 
             int pagesize = ApiHelper.GetPageSize(call, 50);
@@ -57,11 +51,6 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             return model;
         }
 
-        public List<string> GetPromotionConditions()
-        {
-            return null;
-        }
-
         public override Guid Post(ApiCall call)
         {
             var sitedb = call.WebSite.SiteDb();
@@ -75,6 +64,43 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             sitedb.PromotionRule.AddOrUpdate(newPromotionRule, call.Context.User.Id);
 
             return newPromotionRule.Id;
+        }
+
+        public PromotionEditViewModel GetEdit(ApiCall call)
+        {
+            var model = new PromotionEditViewModel();
+
+            var promotionRuleTypes = Lib.IOC.Service.GetInstances<IPromotionCondition>();
+            model.PromotionRuleTypes = promotionRuleTypes.Select(it => new ItemList
+            {
+                Text = it.DisplayName(call.Context),
+                Value = it.Name
+            }).ToList();
+
+            model.PromotionMethods = new List<ItemList>
+            {
+                new ItemList{ Text =  Hardcoded.GetValue("PromitionByAmount", call.Context), Value = "Amount" },
+                new ItemList{ Text =  Hardcoded.GetValue("PromitionByPercent", call.Context), Value = "Percent" }
+            };
+
+            var promotionTargetDic = new Dictionary<int, string>();
+            GetEnumAllNameAndValue<EnumPromotionTarget>(ref promotionTargetDic);
+            model.PromotionTargets = promotionTargetDic.Select(it => new ItemList
+            {
+                Text = Hardcoded.GetValue(it.Value, call.Context),
+                Value = it.Key.ToString()
+            }).ToList();
+
+            return model;
+        }
+
+
+        public void GetEnumAllNameAndValue<T>(ref Dictionary<int, string> dic)
+        {
+            foreach (var value in Enum.GetValues(typeof(T)))
+            {
+                dic.Add(Convert.ToInt32(value), value.ToString());
+            }
         }
     }
 }

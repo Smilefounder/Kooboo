@@ -92,55 +92,12 @@
   <kb-breadcrumb :breads="breads"></kb-breadcrumb>
   <div class="navbar navbar-default">
     <div class="container-fluid">
-      <a
-        v-if="isSearching"
-        class="btn btn-link disabled navbar-btn"
-        href="javascript:;"
-        >Search result</a
+      <a href="javascript:;" class="btn navbar-btn green" :href="newPromotionUrl"
+        >Add promotion rule</a
       >
-      <div v-else class="btn-group navbar-btn">
-        <div class="btn-group">
-          <button class="btn green dropdown-toggle" data-toggle="dropdown"
-            ><span>Add product</span>&nbsp;<i class="fa fa-angle-down"></i
-          ></button>
-          <ul class="dropdown-menu">
-            <template v-if="productTypes.length">
-              <li v-for="($data, index) in productTypes" :key="index">
-                <a
-                  :href="Kooboo.Route.Get(Kooboo.Route.Product.DetailPage, { type: $data.id })"
-                  >{{ $data.name }}</a
-                >
-              </li>
-            </template>
-            <li v-else>
-              <a
-                href="javascript:;"
-                :href="Kooboo.Route.Product.Type.DetailPage"
-                >Create a new type first</a
-              >
-            </li>
-          </ul>
-        </div>
-      </div>
-      <a class="btn red navbar-btn" v-show="selected.length>0" @click="onDelete"
+      <a v-if="selected.length > 0" @click="onDelete" class="btn red navbar-btn"
         >Delete</a
       >
-      <a
-        v-if="isSearching"
-        href="javascript:;"
-        class="btn btn-default navbar-btn pull-right"
-        @click="clearSearching"
-        ><i class="fa fa-close"></i
-      ></a>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-md-6">
-          <select class="pull-right" v-model="week">
-            <option v-for="item in weeks" :key="item" :value="item">{{
-              item
-            }}</option>
-          </select>
     </div>
   </div>
   <kb-table
