@@ -35,6 +35,55 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
         }
 
 
+        public PagedListViewModel<OrderViewModel> Search(ApiCall call, string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                return GetOrders(call);
+            }
+            var pager = ApiHelper.GetPager(call, 50);
+            var sitedb = call.WebSite.SiteDb();
+
+            var items = new List<Order>();
+            if (Guid.TryParse(keyword, out var orderId))
+            {
+                // search by orderid
+                items = sitedb.Order.Query.Where(o => o.Id == orderId).SelectAll();
+            }
+            else if (Enum.TryParse<OrderStatus>(keyword, out var status))
+            {
+                // search by status
+                items = sitedb.Order.Query.Where(o => o.Status == status).SelectAll();
+            }
+            else if (keyword.Contains("@"))
+            {
+                // search by user email
+                var emailHash = Lib.Security.Hash.ComputeGuidIgnoreCase(keyword);
+                var customer = sitedb.Customer.Query.Where(o => o.EmailHash == emailHash).FirstOrDefault();
+                if (customer != null)
+                {
+                    items = sitedb.Order.Query.Where(o => o.CustomerId == customer.Id).SelectAll();
+                }
+            }
+            else
+            {
+                // serach by others
+            }
+
+            PagedListViewModel<OrderViewModel> model = new PagedListViewModel<OrderViewModel>();
+            model.TotalCount = items.Count();
+            model.PageNr = pager.PageNr;
+            model.PageSize = pager.PageSize;
+            model.TotalPages = ApiHelper.GetPageCount(model.TotalCount, pager.PageSize);
+            model.List = items.OrderByDescending(o => o.CreateDate)
+                .Skip(model.PageNr * model.PageSize - model.PageSize)
+                .Take(model.PageSize)
+                .Select(o => new OrderViewModel(o, call.Context)).ToList();
+
+            return model;
+        }
+
+
         public OrderViewModel GetOrder(ApiCall call, Guid id)
         {
             var service = ServiceProvider.Order(call.Context);

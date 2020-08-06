@@ -1,5 +1,6 @@
 $(function () {
   var CONTENT_ID = Kooboo.getQueryString("id");
+  var SITE_ID_QUERY_STRING = "?SiteId=" + Kooboo.getQueryString("SiteId");
   var self;
   new Vue({
     el: "#main",
@@ -89,6 +90,12 @@ $(function () {
                 id: item.product.id,
                 type: item.product.productTypeId,
               });
+              if (item.variants && item.variants.thumbnail) {
+                item.variants.thumbnail =
+                  "/_thumbnail/80/80" +
+                  item.variants.thumbnail +
+                  SITE_ID_QUERY_STRING;
+              }
             });
             self.model = res.model;
           }
@@ -96,7 +103,8 @@ $(function () {
       },
       getSaveOrder: function () {
         return {
-          ...self.model,
+          id: self.model.id,
+          orderAddress: self.model.orderAddress
         };
       },
       isAbleToSaveOrder: function () {

@@ -12,11 +12,11 @@ using System.Text;
 namespace Kooboo.Sites.Ecommerce.Models
 {
     [Kooboo.Attributes.Diskable(Kooboo.Attributes.DiskType.Json)]
-    public   class Product: CoreObject
+    public class Product : CoreObject
     {
         public Product()
         {
-            this.ConstType = ConstObjectType.Product; 
+            this.ConstType = ConstObjectType.Product;
         }
 
         private Guid _id;
@@ -37,8 +37,9 @@ namespace Kooboo.Sites.Ecommerce.Models
             }
         }
 
-        private string _userkey; 
-        public string UserKey {
+        private string _userkey;
+        public string UserKey
+        {
             get
             {
                 return _userkey;
@@ -46,7 +47,7 @@ namespace Kooboo.Sites.Ecommerce.Models
             set
             {
                 _userkey = value;
-                _id = default(Guid); 
+                _id = default(Guid);
             }
         }
 
@@ -61,12 +62,13 @@ namespace Kooboo.Sites.Ecommerce.Models
 
                 if (content != null && content.FieldValues.Count() > 0)
                 {
-                    return content.FieldValues.First().Value;
+                    var firstValidContent = content.FieldValues.FirstOrDefault(item => !string.IsNullOrWhiteSpace(item.Value));
+                    return firstValidContent.Value;
                 }
                 return null;
             }
         }
-                                               
+
         public List<MultilingualContent> Contents { get; set; } = new List<MultilingualContent>();
 
         private Document _dom;
@@ -202,14 +204,14 @@ namespace Kooboo.Sites.Ecommerce.Models
                 return this.Id;
             }
 
-      
+
             MultilingualContent content = GetContentStore(Lang);
             if (content != null && content.FieldValues.ContainsKey(FieldName))
             {
                 return content.FieldValues[FieldName];
             }
-  
-          
+
+
             else if (lower == "ProductTypeId")
             {
                 return this.ProductTypeId;
@@ -244,7 +246,7 @@ namespace Kooboo.Sites.Ecommerce.Models
                 this.UserKey = Value;
                 return;
             }
-        
+
             else if (lower == "id")
             {
                 Guid id;
@@ -254,7 +256,7 @@ namespace Kooboo.Sites.Ecommerce.Models
                     return;
                 }
             }
-  
+
             else if (lower == "ProductTypeId")
             {
                 Guid contenttypeid;
@@ -264,7 +266,7 @@ namespace Kooboo.Sites.Ecommerce.Models
                     return;
                 }
             }
-        
+
             else if (lower == "online")
             {
                 bool online = false;
@@ -288,12 +290,12 @@ namespace Kooboo.Sites.Ecommerce.Models
         }
 
         public int Order { get; set; }
-          
+
         public override int GetHashCode()
         {
             string unique = this.Name + this.UserKey;
-            unique += this.ProductTypeId.ToString()  + this.Online.ToString() + this.Order.ToString();
-        
+            unique += this.ProductTypeId.ToString() + this.Online.ToString() + this.Order.ToString();
+
             foreach (var item in this.Contents)
             {
                 unique += item.Lang;
@@ -308,6 +310,6 @@ namespace Kooboo.Sites.Ecommerce.Models
 
             return Lib.Security.Hash.ComputeIntCaseSensitive(unique);
         }
-            
+
     }
 }

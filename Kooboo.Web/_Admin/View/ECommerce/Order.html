@@ -67,9 +67,16 @@
         </thead>
         <tbody>
           <tr v-for="item in model.items" :key="item.productId">
-            <td><a :href="item.url" target="_blank">{{ item.name || item.productId }}</a></td>
-            <td>{{ item.variants.spec }}</td>
-            <td>{{ item.variants.sku }}</td>
+            <td
+              ><a :href="item.url" target="_blank">
+                <img
+                  :src="item.variants && item.variants.thumbnail"
+                  class="variants-img"
+                  :title="item.product.summary || item.productId"
+                /> </a
+            ></td>
+            <td>{{ item.variants && item.variants.spec }}</td>
+            <td>{{ item.variants && item.variants.sku }}</td>
             <td>{{ item.unitPrice }}</td>
             <td>{{ item.quantity }}</td>
             <td>{{ item.discount }}</td>
@@ -237,6 +244,10 @@
   }
   .form-group .control-label {
     padding-top: 5px;
+  }
+  .variants-img {
+    width: 80px;
+    height: 80px;
   }
 </style>
 <script>

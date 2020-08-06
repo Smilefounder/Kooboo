@@ -1080,6 +1080,13 @@ namespace Kooboo.Sites.Repository
             }
         }
 
+        public CustomerRepository Customer
+        {
+            get
+            {
+                return GetSiteRepository<CustomerRepository, Customer>();
+            }
+        }
 
 
         #endregion
