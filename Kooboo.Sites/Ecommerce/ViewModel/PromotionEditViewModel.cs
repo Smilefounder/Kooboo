@@ -11,6 +11,8 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
         public List<ItemList> PromotionMethods { get; set; }
 
         public List<ItemList> PromotionTargets { get; set; }
+
+        public PromotionViewModel promotionViewModel { get; set; }
     }
 
     public class ItemList

@@ -129,11 +129,12 @@ namespace Kooboo.Sites.Ecommerce.Promotion
 
             DiscountItem result = new DiscountItem();
 
-            var reasonobj = rule.GetValue(context.Culture);
-            if (reasonobj != null)
-            {
-                result.Reason = reasonobj.ToString();
-            }
+            // 暂时改为不用多语言，这个需要处理
+            //var reasonobj = rule.GetValue(context.Culture);
+            //if (reasonobj != null)
+            //{
+            //    result.Reason = reasonobj.ToString();
+            //}
 
             result.Discount = offprice;
 
@@ -153,11 +154,12 @@ namespace Kooboo.Sites.Ecommerce.Promotion
 
             DiscountItem result = new DiscountItem();
 
-            var reasonobj = rule.GetValue(context.Culture);
-            if (reasonobj != null)
-            {
-                result.Reason = reasonobj.ToString();
-            }
+            // 暂时改为不用多语言，这个需要处理
+            //var reasonobj = rule.GetValue(context.Culture);
+            //if (reasonobj != null)
+            //{
+            //    result.Reason = reasonobj.ToString();
+            //}
 
             decimal offprice = 0;
             if (rule.Percent > 0 && rule.Percent <= 1)

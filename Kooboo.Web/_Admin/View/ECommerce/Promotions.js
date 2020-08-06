@@ -1,20 +1,20 @@
-$(function() {
+$(function () {
   var self;
   new Vue({
     el: "#app",
-    data: function() {
+    data: function () {
       self = this;
       return {
         breads: [
           {
-            name: "SITES"
+            name: "SITES",
           },
           {
-            name: "DASHBOARD"
+            name: "DASHBOARD",
           },
           {
-            name: Kooboo.text.common.PromotionsManagement
-          }
+            name: Kooboo.text.promotion.management,
+          },
         ],
         productTypes: [],
         pager: {},
@@ -28,83 +28,89 @@ $(function() {
         cacheData: null,
         isSearching: false,
         newPromotionUrl: Kooboo.Route.Promotion.DetailPage,
+        PromotionRules: [],
       };
     },
-    mounted: function() {
-      Kooboo.ProductType.getList().then(function(res) {
+    mounted: function () {
+      Kooboo.PromotionRule.getList().then(function (res) {
         if (res.success) {
-          self.productTypes = res.model.map(function(t) {
-            return {
-              id: t.id,
-              name: t.name
-            };
-          });
+          console.log(res);
+          // self.PromotionRules = res.model.list.map(function(t) {
+          //   return {
+          //     id: t.id,
+          //     name: t.name,
+          //     ruleType: t.ruleType
+          //   };
+          // });
           self.getListByPage();
         }
       });
-      Kooboo.ProductCategory.getList().then(function(res) {
+      Kooboo.ProductCategory.getList().then(function (res) {
         if (res.success) {
           self.categories = res.model;
         }
       });
     },
     methods: {
-      getListByPage: function(page) {
+      getListByPage: function (page) {
         Kooboo.PromotionRule.getList({
-          page: page || 1
-        }).then(function(res) {
+          page: page || 1,
+        }).then(function (res) {
           if (res.success) {
             self.handleData(res.model);
             self.cacheData = res.model;
           }
         });
       },
-      changePage: function(page) {
+      changePage: function (page) {
         self.getListByPage(page);
       },
-      handleData: function(data) {
+      handleData: function (data) {
         self.pager = data;
-        self.tableData = data.list.map(function(d) {
+        self.tableData = data.list.map(function (d) {
           var date = new Date(d.lastModified);
-          var type = _.find(self.productTypes, function(t) {
-            return t.id == d.productTypeId;
-          });
+          // var type = _.find(self.productTypes, function(t) {
+          //   return t.id == d.productTypeId;
+          // });
 
           return _.assign(
             {
               id: d.id,
+              name: d.name,
+              ruleType: d.ruleType,
+              ruleTypeDisplay: d.ruleTypeDisplay,
               lastModified: date.toDefaultLangString(),
               online: d.online,
-              productType: {
-                text: type ? type.name : "",
-                class: "label-sm " + (type ? "blue" : "label-default")
-              },
+              // productType: {
+              //   text: type ? type.name : "",
+              //   class: "label-sm " + (type ? "blue" : "label-default"),
+              // },
               edit: {
                 text: Kooboo.text.common.edit,
-                url: Kooboo.Route.Get(Kooboo.Route.Product.DetailPage, {
+                url: Kooboo.Route.Get(Kooboo.Route.Promotion.DetailPage, {
                   id: d.id,
-                  type: d.productTypeId
-                })
-              }
+                  // type: d.productTypeId,
+                }),
+              },
             },
             d.values
           );
         });
 
-        if (data.list.length) {
-          self.defaultColumns = Object.keys(data.list[0].values);
-        }
+        // if (data.list.length) {
+        //   self.defaultColumns = Object.keys(data.list[0].values);
+        // }
       },
-      onDelete: function() {
+      onDelete: function () {
         if (confirm(Kooboo.text.confirm.deleteItems)) {
-          var ids = self.selected.map(function(row) {
+          var ids = self.selected.map(function (row) {
             return row.id;
           });
-          Kooboo.Product.Deletes({
-            ids: JSON.stringify(ids)
-          }).then(function(res) {
+          Kooboo.PromotionRule.Deletes({
+            ids: JSON.stringify(ids),
+          }).then(function (res) {
             if (res.success) {
-              self.tableData = _.filter(self.tableData, function(row) {
+              self.tableData = _.filter(self.tableData, function (row) {
                 return ids.indexOf(row.id) === -1;
               });
               self.selected = [];
@@ -113,15 +119,15 @@ $(function() {
           });
         }
       },
-      searchStart: function() {
+      searchStart: function () {
         if (this.searchKey || this.selectedCategories.length) {
           self.isSearching = true;
           Kooboo.Product.search({
-            categories: self.selectedCategories.map(function(item) {
+            categories: self.selectedCategories.map(function (item) {
               return item.id;
             }),
-            keyword: self.searchKey
-          }).then(function(res) {
+            keyword: self.searchKey,
+          }).then(function (res) {
             if (res.success) {
               self.handleData(res.model);
               self.isSearching = true;
@@ -132,27 +138,27 @@ $(function() {
           self.handleData(this.cacheData);
         }
       },
-      clearSearching: function() {
+      clearSearching: function () {
         this.searchKey = "";
         this.selectedCategories = [];
         this.isSearching = false;
         self.handleData(this.cacheData);
       },
-      onShowCategoriesModal: function() {
+      onShowCategoriesModal: function () {
         self.showCategoriesModal = true;
       },
-      onHideCategoriesModal: function() {
+      onHideCategoriesModal: function () {
         self.showCategoriesModal = false;
       },
-      onSaveCategoriesModal: function() {
+      onSaveCategoriesModal: function () {
         self.selectedCategories = getSelected(self.categories);
         self.onHideCategoriesModal();
-      }
-    }
+      },
+    },
   });
   function getSelected(cates) {
     var temp = [];
-    cates.forEach(function(c) {
+    cates.forEach(function (c) {
       if (c.selected) {
         temp.push(c);
       }
@@ -166,7 +172,7 @@ $(function() {
   Vue.component("product-category", {
     template: "#category-template",
     props: {
-      category: Object
-    }
+      category: Object,
+    },
   });
 });

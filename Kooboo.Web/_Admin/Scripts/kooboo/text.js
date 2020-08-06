@@ -154,7 +154,6 @@
       ProductTypes: "Product types",
       ProductType: "Product type",
       ProductCategories: "Product categories",
-      PromotionsManagement: "Promotions management",
 
       unitPrice: "Unit price",
       totalPrice: "Total price",
@@ -176,6 +175,11 @@
       chooseAction: "Choose action",
 
       Orders: "Orders"
+    },
+
+    promotion: {
+      management: "Promotions management",
+      ruleType: "promotion rule types",
     },
 
     system: {

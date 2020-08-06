@@ -1,5 +1,6 @@
 ﻿using Kooboo.Api;
 using Kooboo.Data.Language;
+using Kooboo.Lib.Helper;
 using Kooboo.Sites.Ecommerce.Models;
 using Kooboo.Sites.Ecommerce.Promotion;
 using Kooboo.Sites.Ecommerce.ViewModel;
@@ -15,7 +16,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
 {
     public class PromotionRuleApi : SiteObjectApi<PromotionRule>
     {
-        public PagedListViewModel<ProductViewModel> PromotionList(ApiCall call)
+        public PagedListViewModel<PromotionViewModel> PromotionList(ApiCall call)
         {
             var sitedb = call.WebSite.SiteDb();
 
@@ -24,41 +25,50 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
 
             string language = string.IsNullOrEmpty(call.Context.Culture) ? call.WebSite.DefaultCulture : call.Context.Culture;
 
-            PagedListViewModel<ProductViewModel> model = new PagedListViewModel<ProductViewModel>();
+            PagedListViewModel<PromotionViewModel> model = new PagedListViewModel<PromotionViewModel>();
             model.PageNr = pagenr;
             model.PageSize = pagesize;
 
-            var products = sitedb.Product.All();
-
             var promotionRules = sitedb.PromotionRule.All();
 
-            model.TotalCount = products.Count();
+            model.TotalCount = promotionRules.Count();
             model.TotalPages = ApiHelper.GetPageCount(model.TotalCount, model.PageSize);
 
-            var productlist = products.OrderByDescending(o => o.LastModified).Skip(model.PageNr * model.PageSize - model.PageSize).Take(model.PageSize).ToList();
+            var promotionRuleList = promotionRules.OrderByDescending(o => o.LastModified).Skip(model.PageNr * model.PageSize - model.PageSize).Take(model.PageSize).ToList();
 
-            model.List = new List<ProductViewModel>();
+            model.List = new List<PromotionViewModel>();
 
-            foreach (var item in productlist)
-            {
-                var type = sitedb.ProductType.Get(item.ProductTypeId);
+            model.List = promotionRuleList.Select(it => MapPromotionRule(call, it)).ToList();
 
-                if (type != null)
-                {
-                    model.List.Add(new ProductViewModel(item, call.Context, type.Properties));
-                }
-            }
             return model;
         }
 
-        public override Guid Post(ApiCall call)
+        public Guid Post(PromotionUpdateViewModel model, ApiCall call)
         {
+            model.PromotionModel = model.PromotionModel ?? new PromotionModel();
+
             var sitedb = call.WebSite.SiteDb();
+            var promotionRuleType = Lib.IOC.Service.GetInstances<IPromotionCondition>().FirstOrDefault(it => it.Name == model.PromotionModel.RuleType);
+
+            var targetValue = new List<string>();
+            if (model.PromotionModel.RuleType == "ByTotalAmount")
+            {
+                targetValue.Add(model.PromotionModel.PriceAmountReached.ToString());
+            }
+            else if (model.PromotionModel.RuleType == "ByProductCategory")
+            {
+                targetValue = model.Categories.Select(it => it.ToString()).ToList();
+            }
 
             PromotionRule newPromotionRule = sitedb.PromotionRule.Get(call.ObjectId);
             if (newPromotionRule == null)
             {
-                newPromotionRule = new PromotionRule { Amount = 10, CanCombine = false, ConditionName = "测试ConditionName2", StartDate = DateTime.Now, EndDate = DateTime.Now.AddDays(10), IsActive = true, Name = "优惠2" };
+                newPromotionRule = new PromotionRule();
+                newPromotionRule = AddOrUpdateMapping(newPromotionRule, model, promotionRuleType, targetValue);
+            }
+            else
+            {
+                newPromotionRule = AddOrUpdateMapping(newPromotionRule, model, promotionRuleType, targetValue);
             }
 
             sitedb.PromotionRule.AddOrUpdate(newPromotionRule, call.Context.User.Id);
@@ -68,7 +78,20 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
 
         public PromotionEditViewModel GetEdit(ApiCall call)
         {
+            var sitedb = call.Context.WebSite.SiteDb();
+
+            PromotionRule promotionRule = null;
+            var promotionViewModel = new PromotionViewModel();
+
+            var promotionId = call.GetValue<Guid>("id");
+            if (promotionId != default(Guid))
+            {
+                promotionRule = sitedb.PromotionRule.Get(promotionId);
+                promotionViewModel = MapPromotionRule(call, promotionRule);
+            }
+
             var model = new PromotionEditViewModel();
+            model.promotionViewModel = promotionViewModel;
 
             var promotionRuleTypes = Lib.IOC.Service.GetInstances<IPromotionCondition>();
             model.PromotionRuleTypes = promotionRuleTypes.Select(it => new ItemList
@@ -83,8 +106,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
                 new ItemList{ Text =  Hardcoded.GetValue("PromitionByPercent", call.Context), Value = "Percent" }
             };
 
-            var promotionTargetDic = new Dictionary<int, string>();
-            GetEnumAllNameAndValue<EnumPromotionTarget>(ref promotionTargetDic);
+            var promotionTargetDic = EnumHelper.GetEnumAllNameAndValue<EnumPromotionTarget>();
             model.PromotionTargets = promotionTargetDic.Select(it => new ItemList
             {
                 Text = Hardcoded.GetValue(it.Value, call.Context),
@@ -94,13 +116,48 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             return model;
         }
 
-
-        public void GetEnumAllNameAndValue<T>(ref Dictionary<int, string> dic)
+        protected static PromotionViewModel MapPromotionRule(ApiCall call, PromotionRule promotionRule)
         {
-            foreach (var value in Enum.GetValues(typeof(T)))
+            return new PromotionViewModel
             {
-                dic.Add(Convert.ToInt32(value), value.ToString());
-            }
+                RuleTypeDisplay = Hardcoded.GetValue(promotionRule.ConditionName ?? "", call.Context),
+                RuleType = promotionRule.ConditionName,
+                Operator = promotionRule.Operator,
+                TargetValue = promotionRule.TargetValue,
+                Id = promotionRule.Id,
+                Name = promotionRule.Name,
+                ForObject = promotionRule.ForObject,
+                CanCombine = promotionRule.CanCombine,
+                PromotionMethod = promotionRule.PromotionMethod,
+                Amount = promotionRule.Amount,
+                Percent = promotionRule.Percent,
+                StartDate = promotionRule.StartDate,
+                EndDate = promotionRule.EndDate,
+                IsActive = promotionRule.IsActive,
+                ActiveBasedOnDates = promotionRule.IsActive,
+                Categories = promotionRule.ConditionName == "ByProductCategory" ? promotionRule.TargetValue : new List<string>(),
+                PriceAmountReached = promotionRule.ConditionName == "ByTotalAmount" ? promotionRule.TargetValue.FirstOrDefault() : "0"
+            };
+        }
+
+        protected static PromotionRule AddOrUpdateMapping(PromotionRule promotionRule, PromotionUpdateViewModel model, IPromotionCondition promotionRuleType, List<string> targetValue)
+        {
+
+            promotionRule.Name = model.PromotionModel.Name;
+            promotionRule.ConditionName = model.PromotionModel.RuleType;
+            promotionRule.Operator = promotionRuleType != null ? promotionRuleType.AvailableOperators.FirstOrDefault() : "";
+            promotionRule.TargetValue = targetValue;
+            promotionRule.ForObject = model.PromotionModel.PromotionTarget;
+            promotionRule.CanCombine = model.PromotionModel.CanCombine;
+            promotionRule.PromotionMethod = model.PromotionModel.PromotionMethod;
+            promotionRule.Amount = model.PromotionModel.Amount;
+            promotionRule.Percent = model.PromotionModel.Percent;
+            promotionRule.StartDate = model.PromotionModel.StartDate ?? DateTime.Now;
+            promotionRule.EndDate = model.PromotionModel.EndDate ?? DateTime.Now;
+            promotionRule.IsActive = model.PromotionModel.IsActive;
+            promotionRule.ByDate = model.PromotionModel.ActiveBasedOnDates;
+
+            return promotionRule;
         }
     }
 }

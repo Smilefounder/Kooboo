@@ -8,7 +8,7 @@ $(function () {
     data: function () {
       self = this;
       return {
-        productId: Kooboo.getQueryString("id") || Kooboo.Guid.Empty,
+        promotionId: Kooboo.getQueryString("id") || Kooboo.Guid.Empty,
         fields: [],
         startValidating: false,
         validationPassed: false,
@@ -35,10 +35,11 @@ $(function () {
           endDate: moment().format("YYYY-MM-DD HH:mm"),
           ruleType: "",
           promotionMethod: "",
-          promotionTarget: "",
+          // -1 不让传给后台
+          promotionTarget: -1,
           priceAmountReached: "",
-          amount: "",
-          percent: "",
+          amount: 0,
+          percent: 0,
         },
         ruleTypes: [],
         promotionMethods: [],
@@ -48,7 +49,9 @@ $(function () {
     mounted: function () {
       $.when(
         Kooboo.Site.Langs(),
-        Kooboo.PromotionRule.getEdit(),
+        Kooboo.PromotionRule.getEdit({
+          id: self.promotionId,
+        }),
         Kooboo.ProductCategory.getList()
       ).then(function (r1, r2, r3) {
         var langRes = r1[0];
@@ -60,6 +63,24 @@ $(function () {
           self.ruleTypes = promotionRules.model.promotionRuleTypes || [];
           self.promotionMethods = promotionRules.model.promotionMethods || [];
           self.promotionTargets = promotionRules.model.promotionTargets || [];
+
+          var promotionViewModel = promotionRules.model.promotionViewModel;
+          if (promotionViewModel) {
+            self.model.name = promotionViewModel.name;
+            self.model.isActive = promotionViewModel.isActive;
+            self.model.canCombine = promotionViewModel.canCombine;
+            self.model.activeBasedOnDates =
+              promotionViewModel.activeBasedOnDates;
+            self.model.startDate = promotionViewModel.startDate;
+            self.model.endDate = promotionViewModel.endDate;
+            self.model.ruleType = promotionViewModel.ruleType;
+            self.model.promotionMethod = promotionViewModel.promotionMethod;
+            self.model.promotionTarget = promotionViewModel.forObject;
+            self.model.priceAmountReached =
+              promotionViewModel.priceAmountReached;
+            self.model.amount = promotionViewModel.amount;
+            self.model.percent = promotionViewModel.percent;
+          }
 
           self.categories = self.getCategories(cateRes.model, []);
           self.selectedCategories = getSelected(self.categories);
@@ -233,68 +254,74 @@ $(function () {
       },
       onSaveAndReturn: function () {
         self.onSave(function () {
-          location.href = Kooboo.Route.Product.ListPage;
+          location.href = Kooboo.Route.Promotion.ListPage;
         });
       },
       onSave: function (cb) {
         if (self.isValid()) {
-          var variants = self.typesMatrix.map(function (row) {
-              var specs = {};
-              if (row.types && row.types.length) {
-                row.types.forEach(function (t) {
-                  specs[t.name] = t.value;
-                });
-              }
-              return {
-                variants: specs,
-                stock: row.stock,
-                price: row.price,
-                sku: row.sku,
-                thumbnail: row.skuImage,
-                images: row.images.map(function (img) {
-                  return img.url;
-                }),
-                online: row.online,
-              };
-            }),
-            categories = self.selectedCategories.map(function (cate) {
-              return cate.id;
-            });
-          Kooboo.Product.post({
-            id: self.productId,
-            type: typeId,
-            values: self.contentValues.fieldsValue,
-            variants: variants,
+          // var variants = self.typesMatrix.map(function (row) {
+          //     var specs = {};
+          //     if (row.types && row.types.length) {
+          //       row.types.forEach(function (t) {
+          //         specs[t.name] = t.value;
+          //       });
+          //     }
+          //     return {
+          //       variants: specs,
+          //       stock: row.stock,
+          //       price: row.price,
+          //       sku: row.sku,
+          //       thumbnail: row.skuImage,
+          //       images: row.images.map(function (img) {
+          //         return img.url;
+          //       }),
+          //       online: row.online,
+          //     };
+          //   }),
+          //   categories = self.selectedCategories.map(function (cate) {
+          //     return cate.id;
+          //   });
+
+          var categories = self.selectedCategories.map(function (cate) {
+            return cate.id;
+          });
+          Kooboo.PromotionRule.post({
+            id: self.promotionId,
+            promotionModel: self.model,
             categories: categories,
           }).then(function (res) {
             if (res.success) {
-              if (cb && typeof cb == "function") {
-                cb();
-              } else {
-                location.href = Kooboo.Route.Get(
-                  Kooboo.Route.Product.DetailPage,
-                  {
-                    id: res.model,
-                    type: typeId,
-                  }
-                );
-              }
+              location.href = Kooboo.Route.Promotion.ListPage;
+              // console.log(cb)
+              // console.log(typeof cb)
+              // if (cb && typeof cb == "function") {
+              //   cb();
+              // } else {
+              //   location.href = Kooboo.Route.Get(
+              //     Kooboo.Route.Promotion.DetailPage,
+              //     {
+              //       id: res.model,
+              //       type: typeId,
+              //     }
+              //   );
+              // }
             }
           });
         }
       },
       isValid: function () {
-        var valid = self.$refs.fieldPanel.validate();
-        if (!valid) return;
+        // var valid = self.$refs.fieldPanel.validate();
+        // if (!valid) return;
 
-        self.typesMatrix.forEach(function (row) {
-          if (
-            self.validateInput(row, "price") ||
-            self.validateInput(row, "stock")
-          ) {
-            valid = false;
-          }
-        });
+        // self.typesMatrix.forEach(function (row) {
+        //   if (
+        //     self.validateInput(row, "price") ||
+        //     self.validateInput(row, "stock")
+        //   ) {
+        //     valid = false;
+        //   }
+        // });
+        var valid = true;
 
         return valid;
       },
@@ -329,7 +356,17 @@ $(function () {
     },
     computed: {
       isNew: function () {
-        return self.productId == Kooboo.Guid.Empty;
+        return self.promotionId == Kooboo.Guid.Empty;
+      },
+    },
+    watch: {
+      "model.promotionMethod": function (newValue, oldValue) {
+        if(newValue && newValue === "Amount"){
+          self.model.percent = 0;
+        }
+        if(newValue && newValue === "Percent"){
+          self.model.amount = 0;
+        }
       },
     },
   });

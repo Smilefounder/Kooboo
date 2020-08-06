@@ -344,12 +344,13 @@
   <key id="Add promotion rule">添加促销规则</key>
   <key id="Promotion rule name">促销规则名称</key>
   <key id="select promotion rule types">选择促销规则</key>
+  <key id="promotion rule types">促销规则</key>
   <key id="select promotion method">选择促销优惠方式</key>
   <key id="select promotion Target">选择使用目标</key>
   <key id="Active based on dates">根据日期有效</key>
   <key id="ForProduct">适用于商品</key>
   <key id="ForShoppingCart">适用于购物车</key>
-  <key id="PromitionByAmount">通过满减金额方式</key>
+  <key id="PromitionByAmount">通过减金额方式</key>
   <key id="PromitionByPercent">通过打折方式</key>
   <key id="Promotion info">促销信息</key>
   <key id="origin price * 80% = promotion price">原价*打折百分比=折后价格</key>
