@@ -68,7 +68,8 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             else
             {
                 // serach by telphone
-                var customer = sitedb.Customer.Query.Where(o => o.Telephone == keyword).FirstOrDefault();
+                var telhash = Lib.Security.Hash.ComputeGuidIgnoreCase(keyword);
+                var customer = sitedb.Customer.Query.Where(o => o.TelHash == telhash).FirstOrDefault();
                 if (customer != null)
                 {
                     items = sitedb.Order.Query.Where(o => o.CustomerId == customer.Id).SelectAll();

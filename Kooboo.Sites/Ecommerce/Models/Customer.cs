@@ -55,7 +55,26 @@ namespace Kooboo.Sites.Ecommerce.Models
 
         public string Telephone { get; set; }
 
-        public Guid TelHash { get; set; }
+        private Guid _telhash;
+
+        public Guid TelHash 
+        {
+            get
+            {
+                if (_telhash == default)
+                {
+                    if (!string.IsNullOrWhiteSpace(Telephone))
+                    {
+                        _telhash = Lib.Security.Hash.ComputeGuidIgnoreCase(Telephone);
+                    }
+                }
+                return _telhash;
+            }
+            set
+            {
+                _telhash = value;
+            }
+        }
 
         public Guid DefaultShippingAddress { get; set; }
 
