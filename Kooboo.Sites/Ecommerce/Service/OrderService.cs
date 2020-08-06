@@ -29,7 +29,7 @@ namespace Kooboo.Sites.Ecommerce.Service
             neworder.ShippingCost = shipping;
             neworder.AddressId = addressId;
             var address = ServiceProvider.CustomerAddress(Context).Get(addressId);
-            neworder.OrderAddress = new OrderAddress(address, neworder.Id);
+            neworder.OrderAddress = new OrderAddress(address);
             neworder.CustomerId = this.CommerceContext.customer.Id;
             neworder.CreateDate = neworder.CreationDate = DateTime.UtcNow;
             this.Repo.AddOrUpdate(neworder);

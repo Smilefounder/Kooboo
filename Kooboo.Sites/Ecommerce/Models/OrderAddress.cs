@@ -3,15 +3,14 @@ using System;
 
 namespace Kooboo.Sites.Ecommerce.Models
 {
-    public class OrderAddress : CustomerAddress
+    public class OrderAddress
     {
         public OrderAddress()
         {
 
         }
-        public OrderAddress(CustomerAddress address, Guid orderId)
+        public OrderAddress(CustomerAddress address)
         {
-            CustomerId = address.CustomerId;
             Address = address.Address;
             PostCode = address.PostCode;
             Address2 = address.Address2;
@@ -20,11 +19,22 @@ namespace Kooboo.Sites.Ecommerce.Models
             Country = address.Country;
             Consignee = address.Consignee;
             ContactNumber = address.ContactNumber;
-            OrderId = orderId;
         }
-        /// <summary>
-        /// For redundancy
-        /// </summary>
-        public Guid OrderId { get; set; }
+
+        public string Address { get; set; }
+
+        public string PostCode { get; set; }
+
+        public string Address2 { get; set; }
+
+        public string HouseNumber { get; set; }
+
+        public string City { get; set; }
+
+        public string Country { get; set; }
+
+        public string Consignee { get; set; }
+
+        public string ContactNumber { get; set; }
     }
 }

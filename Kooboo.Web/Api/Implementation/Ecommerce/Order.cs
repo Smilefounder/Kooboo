@@ -67,7 +67,12 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             }
             else
             {
-                // serach by others
+                // serach by telphone
+                var customer = sitedb.Customer.Query.Where(o => o.Telephone == keyword).FirstOrDefault();
+                if (customer != null)
+                {
+                    items = sitedb.Order.Query.Where(o => o.CustomerId == customer.Id).SelectAll();
+                }
             }
 
             PagedListViewModel<OrderViewModel> model = new PagedListViewModel<OrderViewModel>();
