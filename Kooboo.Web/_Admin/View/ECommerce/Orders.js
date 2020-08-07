@@ -13,7 +13,7 @@ $(function () {
             name: "DASHBOARD",
           },
           {
-            name: Kooboo.text.common.Orders,
+            name: Kooboo.text.common.OrdersManagement,
           },
         ],
         tableData: [],
@@ -44,6 +44,7 @@ $(function () {
             },
           ],
         },
+        currentPageNr: 1,
       };
     },
     mounted: function () {
@@ -51,6 +52,7 @@ $(function () {
     },
     methods: {
       getList: function (page) {
+        this.currentPageNr = page;
         Kooboo.Order.getList({
           pageNr: page,
         }).then(function (res) {
@@ -84,6 +86,17 @@ $(function () {
         return data.map(function (item) {
           var ob = item;
           ob.createDate = new Date(item.createDate).toDefaultLangString();
+          switch (ob.status) {
+            case "Paid":
+              ob.statusTheme = "green";
+              break;
+            case "Shipping":
+              ob.statusTheme = "orange";
+              break;
+            default:
+              ob.statusTheme = "gray";
+              break;
+          }
           ob.Edit = {
             text: Kooboo.text.common.edit,
             url: Kooboo.Route.Get(Kooboo.Route.Order.DetailPage, {
@@ -103,7 +116,7 @@ $(function () {
             id: data.id,
           }).then(function (res) {
             if (res.success) {
-              self.getList();
+              self.getList(self.currentPageNr);
               window.info.show(
                 Kooboo.text.info.eCommerce.cancelOrder.success,
                 true
@@ -189,7 +202,7 @@ $(function () {
                 Kooboo.text.info.eCommerce.shipOrder.success,
                 true
               );
-              self.getList();
+              self.getList(self.currentPageNr);
               self.visibleShipModal = false;
             } else {
               window.info.show(
@@ -210,7 +223,7 @@ $(function () {
                 Kooboo.text.info.eCommerce.finishOrder.success,
                 true
               );
-              self.getList();
+              self.getList(self.currentPageNr);
             } else {
               window.info.show(
                 Kooboo.text.info.eCommerce.finishOrder.success,

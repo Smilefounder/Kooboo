@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Web.Backend.Menus.SideBarMenu.Commerce
+namespace Kooboo.Web.Menus.SideBarMenu.Commerce
 {
    
     public class ShoppingCart : ISideBarMenu
@@ -18,7 +18,7 @@ namespace Kooboo.Web.Backend.Menus.SideBarMenu.Commerce
 
         public string Url => "ECommerce/shoppingcart";
 
-        public int Order => 0;
+        public int Order => 3;
 
         public List<ICmsMenu> SubItems { get; set; }
 

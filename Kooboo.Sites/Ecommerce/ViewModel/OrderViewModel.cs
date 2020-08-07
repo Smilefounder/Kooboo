@@ -27,7 +27,7 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
 
         public Guid AddressId => order.AddressId;
 
-        public DateTime CreateDate => order.CreateDate;
+        public DateTime CreateDate => DateTime.SpecifyKind(order.CreateDate, DateTimeKind.Utc);
 
         public string Status => Enum.GetName(typeof(OrderStatus), order.Status);
 
