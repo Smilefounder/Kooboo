@@ -1,7 +1,7 @@
 <!-- #layout name=blank-->
 <div id="app" v-cloak>
   <div class="page-header">
-    <h1 class="title">Orders</h1>
+    <h1 class="title">Orders management</h1>
     <div>
       <div class="input-group input-large pull-right">
         <input
@@ -43,24 +43,24 @@
     </div>
   </div>
   <kb-table :data="tableData" show-select :selected.sync="selected">
-    <kb-table-column label="id">
+    <kb-table-column label="Id">
       <template v-slot="row">
         <a :href="row.Edit.url" @click.stop>{{ row.id }}</a>
       </template>
     </kb-table-column>
-    <kb-table-column label="email address">
+    <kb-table-column label="Email address">
       <template v-slot="row">
         {{ row.customer && row.customer.emailAddress }}
       </template>
     </kb-table-column>
-    <kb-table-column label="telephone">
+    <kb-table-column label="Telephone">
       <template v-slot="row">
         {{ row.customer && row.customer.telephone }}
       </template>
     </kb-table-column>
-    <kb-table-column label="status" prop="status"></kb-table-column>
-    <kb-table-column label="totalAmount" prop="totalAmount"></kb-table-column>
-    <kb-table-column label="contact number">
+    <kb-table-column label="Status" prop="status"></kb-table-column>
+    <kb-table-column label="Total amount" prop="totalAmount"></kb-table-column>
+    <kb-table-column label="Contact number">
       <template v-slot="row">
         {{ row.orderAddress && row.orderAddress.contactNumber }}
       </template>
