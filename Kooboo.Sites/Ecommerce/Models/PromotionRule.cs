@@ -8,6 +8,8 @@ namespace Kooboo.Sites.Ecommerce.Models
 {
     public class PromotionRule : CoreObject
     {
+        public string PromotionRuleName { get; set; }
+
         public string ConditionName { get; set; }
 
         public string Operator { get; set; }

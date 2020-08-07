@@ -125,7 +125,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
                 Operator = promotionRule.Operator,
                 TargetValue = promotionRule.TargetValue,
                 Id = promotionRule.Id,
-                Name = promotionRule.Name,
+                Name = promotionRule.PromotionRuleName,
                 ForObject = promotionRule.ForObject,
                 CanCombine = promotionRule.CanCombine,
                 PromotionMethod = promotionRule.PromotionMethod,
@@ -134,7 +134,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
                 StartDate = promotionRule.StartDate.ToString("yyyy-MM-dd HH:mm"),
                 EndDate = promotionRule.EndDate.ToString("yyyy-MM-dd HH:mm"),
                 IsActive = promotionRule.IsActive,
-                ActiveBasedOnDates = promotionRule.IsActive,
+                ActiveBasedOnDates = promotionRule.ByDate,
                 Categories = promotionRule.ConditionName == "ByProductCategory" ? promotionRule.TargetValue : new List<string>(),
                 PriceAmountReached = promotionRule.ConditionName == "ByTotalAmount" ? promotionRule.TargetValue.FirstOrDefault() : "0"
             };
@@ -143,7 +143,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
         protected static PromotionRule AddOrUpdateMapping(PromotionRule promotionRule, PromotionUpdateViewModel model, IPromotionCondition promotionRuleType, List<string> targetValue)
         {
 
-            promotionRule.Name = model.PromotionModel.Name;
+            promotionRule.PromotionRuleName = model.PromotionModel.Name;
             promotionRule.ConditionName = model.PromotionModel.RuleType;
             promotionRule.Operator = promotionRuleType != null ? promotionRuleType.AvailableOperators.FirstOrDefault() : "";
             promotionRule.TargetValue = targetValue;

@@ -30,6 +30,15 @@ $(function () {
           amount: 0,
           percent: 0,
         },
+        errors: {
+          name: "",
+          ruleType: "",
+          promotionMethod: "",
+          promotionTarget: "",
+          startDate: "",
+          endDate: "",
+          priceAmountReached: "",
+        },
         ruleTypes: [],
         promotionMethods: [],
         promotionTargets: [],
@@ -97,39 +106,75 @@ $(function () {
           }).then(function (res) {
             if (res.success) {
               location.href = Kooboo.Route.Promotion.ListPage;
-              // console.log(cb)
-              // console.log(typeof cb)
-              // if (cb && typeof cb == "function") {
-              //   cb();
-              // } else {
-              //   location.href = Kooboo.Route.Get(
-              //     Kooboo.Route.Promotion.DetailPage,
-              //     {
-              //       id: res.model,
-              //       type: typeId,
-              //     }
-              //   );
-              // }
             }
           });
         }
       },
-      isValid: function () {
-        // var valid = self.$refs.fieldPanel.validate();
-        // if (!valid) return;
 
-        // self.typesMatrix.forEach(function (row) {
-        //   if (
-        //     self.validateInput(row, "price") ||
-        //     self.validateInput(row, "stock")
-        //   ) {
-        //     valid = false;
-        //   }
-        // });
-        var valid = true;
+      validateRuleName: function () {
+        if (!!self.model.name == false) {
+          self.errors.name = Kooboo.text.validation.required;
+          return false;
+        }
+
+        self.errors.name = "";
+        return true;
+      },
+
+      ruleTypeChange: function () {
+        console.log(222222);
+      },
+
+      validatePriceAmountReached: function () {
+        if (
+          self.model.ruleType === "ByTotalAmount" &&
+          (!!self.model.priceAmountReached === false ||
+            +self.model.priceAmountReached <= 0)
+        ) {
+          self.errors.priceAmountReached =
+            Kooboo.text.validation.greaterThan + 0;
+          return false;
+        }
+
+        self.errors.priceAmountReached = "";
+        return true;
+      },
+
+      isValid: function () {
+        var valid = false;
+        console.log(self.model);
+
+        valid = self.validateRuleName();
+        validatePriceAmountReached = self.validatePriceAmountReached();
+
+        if (!!self.model.ruleType == false) {
+          self.errors.ruleType = Kooboo.text.validation.required;
+          valid = false;
+        }
+
+        if (!!self.model.promotionMethod == false) {
+          self.errors.promotionMethod = Kooboo.text.validation.required;
+          valid = false;
+        }
+
+        if (self.model.activeBasedOnDates) {
+          if (!!self.model.startDate == false) {
+            self.errors.startDate = Kooboo.text.validation.required;
+            valid = false;
+          }
+
+          if (!!self.model.endDate == false) {
+            self.errors.endDate = Kooboo.text.validation.required;
+            valid = false;
+          }
+        } else {
+          self.errors.startDate = "";
+          self.errors.endDate = "";
+        }
 
         return valid;
       },
+
       getCategories: function (cates, selectedIds) {
         var temp = [];
         cates.forEach(function (c) {
@@ -173,9 +218,16 @@ $(function () {
       "model.ruleType": function (newValue, oldValue) {
         if (newValue && newValue === "ByTotalAmount") {
           self.selectedCategories = [];
+          self.errors.ruleType = "";
         }
         if (newValue && newValue === "ByProductCategory") {
           self.model.priceAmountReached = 0;
+          self.errors.ruleType = "";
+        }
+      },
+      "model.promotionMethod": function (newValue, oldValue) {
+        if (!!newValue) {
+          self.errors.promotionMethod = "";
         }
       },
     },
