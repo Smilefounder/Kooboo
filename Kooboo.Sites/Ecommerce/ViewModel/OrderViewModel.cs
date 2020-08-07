@@ -65,6 +65,10 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
         public decimal ShippingCost => order.ShippingCost;
 
         public OrderAddress OrderAddress => order.OrderAddress;
+
+        public string LogisticsCompany => order.LogisticsCompany;
+
+        public string LogisticsNumber => order.LogisticsNumber;
     }
 
     public class OrderLineViewModel

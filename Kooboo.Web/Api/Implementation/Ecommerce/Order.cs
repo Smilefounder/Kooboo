@@ -113,6 +113,8 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
                 order.OrderAddress.HouseNumber = neworder.OrderAddress.HouseNumber;
                 order.OrderAddress.Address = neworder.OrderAddress.Address;
                 order.OrderAddress.Address2 = neworder.OrderAddress.Address2;
+                order.LogisticsCompany = neworder.logisticsCompany;
+                order.LogisticsNumber = neworder.logisticsNumber;
                 service.AddOrUpdate(order);
             }
             var view = new OrderViewModel(order, call.Context);
@@ -124,6 +126,12 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             var service = ServiceProvider.Order(call.Context);
             var success = service.Cancel(id);
             return success;
+        }
+
+        public List<LogisticsCompany> GetAllLogistics(ApiCall call)
+        {
+            var service = ServiceProvider.Shipping(call.Context);
+            return service.GetAllLogistics();
         }
 
         public bool ChangeOrderAddress(ApiCall call, Guid orderId, Guid addressId)
@@ -164,6 +172,21 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
                 return false;
             }
 
+        }
+
+        public bool Ship(ApiCall call, Guid orderId, string logisticsCompany, string logisticsNumber)
+        {
+            var sitedb = call.WebSite.SiteDb();
+            var order = sitedb.Order.Get(orderId);
+            if ((int)order.Status < (int)OrderStatus.Shipping)
+            {
+                order.Status = OrderStatus.Shipping;
+            }
+            order.LogisticsCompany = logisticsCompany;
+            order.LogisticsNumber = logisticsNumber;
+            sitedb.Order.AddOrUpdate(order);
+
+            return true;
         }
 
 #if DEBUG

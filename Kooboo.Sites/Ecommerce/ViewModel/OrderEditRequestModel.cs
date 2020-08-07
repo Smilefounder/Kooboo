@@ -13,5 +13,9 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
         public Guid Id { get; set; }
 
         public OrderAddress OrderAddress { get; set; }
+
+        public string logisticsCompany { get; set; }
+
+        public string logisticsNumber { get; set; }
     }
 }

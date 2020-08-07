@@ -1771,6 +1771,14 @@
     this.editOrder = function(para) {
       return this.executePost("EditOrder", para);
     };
+
+    this.getAllLogistics = function(para) {
+      return this.executeGet("GetAllLogistics", para);
+    };
+
+    this.ship = function(para) {
+      return this.executePost("Ship", para);
+    }
   }
   extend(Order, BaseModel);
 

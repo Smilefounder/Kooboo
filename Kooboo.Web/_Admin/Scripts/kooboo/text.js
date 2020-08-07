@@ -243,7 +243,10 @@
         sure: "Are you sure?",
         completedOrder: "Are you sure your order has been completed?"
       },
-      cancelOrder: "Are you sure you want to cancel this order?"
+      eCommerce: {
+        cancelOrder: "Are you sure you want to cancel this order?",
+        shipOrder: "Are you sure you want to ship this order?"
+      }
     },
 
     alert: {
@@ -401,10 +404,16 @@
       seleteExportStoreName:
         "Please select the content you want before exporting.",
       domainMissing: "Domain missing",
-      cancelOrder: {
-        success: "Cancel succeeded.",
-        fail: "Cancel failed."
-      },
+      eCommerce: {
+        cancelOrder: {
+          success: "Cancel succeeded.",
+          fail: "Cancel failed."
+        },
+        shipOrder: {
+          success: "Ship succeeded.",
+          fail: "Ship failed."
+        }
+      }
     },
 
     placeholder: {

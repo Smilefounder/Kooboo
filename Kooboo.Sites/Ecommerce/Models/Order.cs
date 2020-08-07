@@ -98,6 +98,10 @@ namespace Kooboo.Sites.Ecommerce.Models
 
         public decimal ShippingCost { get; set; }
 
+        public string LogisticsCompany { get; set; }
+
+        public string LogisticsNumber { get; set; }
+
         public OrderAddress OrderAddress { get; set; }
     }
 }

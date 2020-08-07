@@ -14,6 +14,7 @@ $(function () {
         siteLangs: null,
         contentValues: {},
         model: {},
+        logistics: [],
         addressRules: {
           consignee: [
             {
@@ -45,6 +46,18 @@ $(function () {
               message: Kooboo.text.validation.required,
             },
           ],
+          logisticsCompany: [
+            {
+              required: true,
+              message: Kooboo.text.validation.required,
+            },
+          ],
+          logisticsNumber: [
+            {
+              required: true,
+              message: Kooboo.text.validation.required,
+            },
+          ],
         },
       };
     },
@@ -55,24 +68,7 @@ $(function () {
         }
         self.getContentFields();
       });
-      Kooboo.EventBus.subscribe("ko/style/list/pickimage/show", function (ctx) {
-        Kooboo.Media.getList().then(function (res) {
-          if (res.success) {
-            res.model["show"] = true;
-            res.model["context"] = ctx;
-            res.model["onAdd"] = function (selected) {
-              ctx.settings.file_browser_callback(
-                ctx.field_name,
-                selected.url + "?SiteId=" + Kooboo.getQueryString("SiteId"),
-                ctx.type,
-                ctx.win,
-                true
-              );
-            };
-            self.mediaDialogData = res.model;
-          }
-        });
-      });
+      this.getAllLogistics();
     },
     methods: {
       getContentFields: function () {
@@ -101,10 +97,19 @@ $(function () {
           }
         });
       },
+      getAllLogistics: function () {
+        Kooboo.Order.getAllLogistics().then(function (res) {
+          if (res.success) {
+            self.logistics = res.model;
+          }
+        });
+      },
       getSaveOrder: function () {
         return {
           id: self.model.id,
-          orderAddress: self.model.orderAddress
+          orderAddress: self.model.orderAddress,
+          logisticsCompany: self.model.logisticsCompany,
+          logisticsNumber: self.model.logisticsNumber
         };
       },
       isAbleToSaveOrder: function () {
@@ -146,6 +151,11 @@ $(function () {
       },
       userCancel: function () {
         location.href = Kooboo.Route.Get(Kooboo.Route.Order.ListPage);
+      },
+    },
+    computed: {
+      isShipped() {
+        return ~["Shipping", "Finished"].indexOf(self.model.status);
       },
     },
   });

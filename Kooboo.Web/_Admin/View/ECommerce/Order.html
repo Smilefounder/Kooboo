@@ -87,12 +87,12 @@
     </fieldset>
     <fieldset class="margin-bottom-15 clearfix" v-if="model.orderAddress">
       <legend>
-        <div class="pull-left">Delivery info</div>
+        <div class="pull-left">Order address</div>
       </legend>
     </fieldset>
     <fieldset class="fieldrow delivery-info" v-if="model.orderAddress">
       <kb-form
-        :model="model.orderAddress"
+        :model="model"
         :rules="addressRules"
         ref="addressForm"
       >
@@ -178,6 +178,26 @@
               /> </div
           ></kb-form-item>
         </div>
+
+        <div class="row row--bordered" v-if="isShipped">
+          <kb-form-item prop="logisticsCompany" class="col-sm-6"
+            ><label class="control-label pull-left">Logistics company</label>
+            <div class="control-value">
+              <select class="form-control" v-model="model.logisticsCompany">
+                <option v-for="(item, index) in logistics" :key="index" :value="item.name">{{ item.displayName }}</option>
+              </select>
+              </div
+          ></kb-form-item>
+          <kb-form-item prop="logisticsNumber" class="col-sm-6"
+            ><label class="control-label pull-left">Logistics number</label>
+            <div class="control-value">
+              <input
+                type="text"
+                class="form-control"
+                v-model="model.logisticsNumber"
+              /> </div
+          ></kb-form-item>
+        </div>
       </kb-form>
     </fieldset>
 
@@ -249,12 +269,16 @@
     width: 80px;
     height: 80px;
   }
+  .row--bordered {
+    border-top: 1px solid #e5e5e5;
+    padding-top: 25px;
+  }
 </style>
 <script>
   (function () {
     Kooboo.loadJS([
       "/_Admin/Scripts/components/kbMultilangSelector.js",
-      "/_Admin/Scripts/components/kbFieldPanel.js",
+      "/_Admin/Scripts/components/kbForm.js",
       "/_Admin/Scripts/lib/jquery-ui-customized.js",
       "/_Admin/Scripts/kooboo/Guid.js",
     ]);
