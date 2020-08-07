@@ -58,8 +58,16 @@
         {{ row.customer && row.customer.telephone }}
       </template>
     </kb-table-column>
-    <kb-table-column label="Status" prop="status"></kb-table-column>
-    <kb-table-column label="Total amount" prop="totalAmount"></kb-table-column>
+    <kb-table-column label="Status">
+      <template v-slot="row">
+       <span class="label label-sm" :class="row.statusTheme">{{ row.status }}</span> 
+      </template>
+    </kb-table-column>
+    <kb-table-column label="Total amount">
+      <template v-slot="row">
+        <span class="badge blue">{{ row.totalAmount }}</span>
+      </template>
+    </kb-table-column>
     <kb-table-column label="Contact number">
       <template v-slot="row">
         {{ row.orderAddress && row.orderAddress.contactNumber }}
@@ -194,7 +202,10 @@
                   />
                 </div>
                 <div class="col-md-2 get-number">
-                  <a class="btn btn-sm green" :class="{disabled:!shipModel.logisticsCompany}" @click.stop="getLogisticsNumber"
+                  <a
+                    class="btn btn-sm green"
+                    :class="{disabled:!shipModel.logisticsCompany}"
+                    @click.stop="getLogisticsNumber"
                     >Get number</a
                   >
                 </div>

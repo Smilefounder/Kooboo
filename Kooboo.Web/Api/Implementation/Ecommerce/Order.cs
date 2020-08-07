@@ -233,6 +233,30 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
 
             return service.CreateOrder(cartItems, new Guid("5dce97a2-80f2-4cf9-9fd8-fc363de4d866"));
         }
+
+        public bool CreateFakeCarts(ApiCall call)
+        {
+            var service = ServiceProvider.Cart(call.Context);
+            var cartItems = new List<CartItem>();
+            cartItems.Add(new CartItem
+            {
+                ProductId = new Guid("f34a7a66-3474-ae7a-bc6d-04d8572fbb85"),
+                Discount = null,
+                ProductVariantId = new Guid("d2d63a39-762c-93b0-932b-f79b745aab03"),
+                Quantity = 1,
+                UnitPrice = 100
+
+            });
+            return service.AddOrUpdate(new Cart
+            {
+                CreationDate = DateTime.UtcNow,
+                CreattionTime = DateTime.UtcNow,
+                CustomerId = new Guid("504d4554-af7e-2fc9-7330-fd46b447e2ec"),
+                IsOrder = true,
+                Items = cartItems,
+                Online = true
+            });
+        }
     }
 #endif
 

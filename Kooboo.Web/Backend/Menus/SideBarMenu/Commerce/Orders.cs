@@ -16,7 +16,7 @@ namespace Kooboo.Web.Menus.SideBarMenu.Commerce
 
         public string Url => "ECommerce/Orders";
 
-        public int Order => 0;
+        public int Order => 4;
 
         public List<ICmsMenu> SubItems { get; set; }
 

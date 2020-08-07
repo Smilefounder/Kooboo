@@ -174,7 +174,9 @@
       chooseObject: "Choose object",
       chooseAction: "Choose action",
 
-      Orders: "Orders"
+      Orders: "Orders",
+      OrdersManagement: "Orders management",
+      ShoppingCart: "Shopping Cart"
     },
 
     promotion: {
