@@ -1361,4 +1361,6 @@
   <key id="Finish">完成</key>
   <key id="Ship">发货</key>
   <key id="Shopping Cart">购物车</key>
+  <key id="Order id">订单编号</key>
+  <key id="Create Date">创建时间</key>
 </Lang>
