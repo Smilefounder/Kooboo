@@ -1,7 +1,4 @@
 $(function () {
-  var SITE_ID_QUERY_STRING = "?SiteId=" + Kooboo.getQueryString("SiteId");
-  var typeId = Kooboo.getQueryString("type") || Kooboo.Guid.Empty;
-  var initTimes = 0;
   var self;
   new Vue({
     el: "#main",
@@ -9,21 +6,13 @@ $(function () {
       self = this;
       return {
         promotionId: Kooboo.getQueryString("id") || Kooboo.Guid.Empty,
-        fields: [],
         startValidating: false,
         validationPassed: false,
-        contentValues: {},
         siteLangs: {},
         categories: [],
         selectedCategories: [],
         multipleMedia: false,
         mediaDialogData: {},
-        variants: [],
-        specNames: [],
-        fixedSpecFields: [],
-        dynaSpecFields: [],
-        dynamicSpecFields: [],
-        typesMatrix: [],
         typesUrl: Kooboo.Route.Promotion.ListPage,
         showCategoriesModal: false,
         model: {
@@ -80,178 +69,17 @@ $(function () {
               promotionViewModel.priceAmountReached;
             self.model.amount = promotionViewModel.amount;
             self.model.percent = promotionViewModel.percent;
-          }
 
-          self.categories = self.getCategories(cateRes.model, []);
-          self.selectedCategories = getSelected(self.categories);
+            self.categories = self.getCategories(
+              cateRes.model,
+              promotionViewModel.categories || []
+            );
+            self.selectedCategories = getSelected(self.categories);
+          }
         }
       });
     },
     methods: {
-      dynamicFieldsChange: function (fields) {
-        self.dynamicSpecFields = fields;
-        fields.forEach(function (f) {
-          if (f.options.length) {
-            if (self.specNames.indexOf(f.name) == -1) {
-              self.specNames.push(f.name);
-            }
-          } else {
-            self.specNames = _.without(self.specNames, f.name);
-          }
-        });
-        self.renderTable();
-      },
-      renderTable: function () {
-        if (self.variants.length) {
-          if (initTimes < 1) {
-            self.typesMatrix = self.variants.map(function (vari) {
-              var types = [];
-              self.specNames.forEach(function (name) {
-                var item = {
-                  name: name,
-                };
-
-                var value = null;
-                var keys = Object.keys(vari.variants);
-                keys.forEach(function (key) {
-                  if (key.toLowerCase() == name.toLowerCase()) {
-                    value = vari.variants[key];
-                  }
-                });
-                item.value = value;
-                types.push(item);
-              });
-
-              var images = [];
-              if (vari.images && vari.images.length) {
-                images = vari.images.map(function (img) {
-                  return {
-                    url: img,
-                    thumbnail: "/_thumbnail/80/80" + img + SITE_ID_QUERY_STRING,
-                  };
-                });
-              }
-
-              return {
-                types: types,
-                stock: vari.stock,
-                price: vari.price,
-                sku: vari.sku,
-                skuImage: vari.thumbnail,
-                skuThumbnail:
-                  "/_thumbnail/80/80" + vari.thumbnail + SITE_ID_QUERY_STRING,
-                images: images,
-                online: vari.online,
-                error: {
-                  stock: false,
-                  price: false,
-                },
-              };
-            });
-            initTimes++;
-          } else {
-            self.getTypeMatrix();
-          }
-        } else {
-          self.getTypeMatrix();
-        }
-      },
-      getTypeMatrix: function () {
-        var types = [];
-        self.fixedSpecFields.forEach(function (f) {
-          var options = JSON.parse(f.selectionOptions).map(function (opt) {
-            return {
-              name: f.name,
-              value: opt.key,
-            };
-          });
-
-          types.push(options);
-        });
-
-        self.dynamicSpecFields.forEach(function (f) {
-          if (f.options.length) {
-            var options = f.options.map(function (opt) {
-              return {
-                name: f.name,
-                value: opt,
-              };
-            });
-            types.push(options);
-          }
-        });
-
-        var matrix = getTableDataByTypes(types);
-        self.typesMatrix = matrix.map(function (m) {
-          var find = _.find(self.typesMatrix, function (row) {
-            return getValue(row.types) == getValue(m);
-
-            function getValue(list) {
-              return list
-                .map(function (item) {
-                  return item.value;
-                })
-                .join(",");
-            }
-          });
-
-          return (
-            find || {
-              types: m,
-              stock: "",
-              price: "",
-              sku: "",
-              skuImage: "",
-              skuThumbnail: "",
-              images: [],
-              online: true,
-              error: {
-                stock: false,
-                price: false,
-              },
-            }
-          );
-        });
-      },
-      removeSkuPic: function (m) {
-        m.skuImage = "";
-        m.skuThumbnail = "";
-      },
-      selectSkuPic: function (m) {
-        self.multipleMedia = false;
-        Kooboo.Media.getList().then(function (res) {
-          if (res.success) {
-            res.model["show"] = true;
-            res.model["context"] = m;
-            res.model["onAdd"] = function (selected) {
-              m.skuImage = selected.url;
-              m.skuThumbnail = selected.thumbnail;
-            };
-            self.mediaDialogData = res.model;
-          }
-        });
-      },
-      selectImages: function (m) {
-        self.multipleMedia = true;
-        Kooboo.Media.getList().then(function (res) {
-          if (res.success) {
-            res.model["show"] = true;
-            res.model["context"] = m;
-            res.model["onAdd"] = function (selected) {
-              m.images = selected.map(function (s) {
-                return {
-                  url: s.url,
-                  thumbnail: s.thumbnail,
-                };
-              });
-            };
-            self.mediaDialogData = res.model;
-          }
-        });
-      },
-      removeImg: function (m, index) {
-        m.images.splice(index, 1);
-      },
       onSaveAndReturn: function () {
         self.onSave(function () {
           location.href = Kooboo.Route.Promotion.ListPage;
@@ -259,29 +87,6 @@ $(function () {
       },
       onSave: function (cb) {
         if (self.isValid()) {
-          // var variants = self.typesMatrix.map(function (row) {
-          //     var specs = {};
-          //     if (row.types && row.types.length) {
-          //       row.types.forEach(function (t) {
-          //         specs[t.name] = t.value;
-          //       });
-          //     }
-          //     return {
-          //       variants: specs,
-          //       stock: row.stock,
-          //       price: row.price,
-          //       sku: row.sku,
-          //       thumbnail: row.skuImage,
-          //       images: row.images.map(function (img) {
-          //         return img.url;
-          //       }),
-          //       online: row.online,
-          //     };
-          //   }),
-          //   categories = self.selectedCategories.map(function (cate) {
-          //     return cate.id;
-          //   });
-
           var categories = self.selectedCategories.map(function (cate) {
             return cate.id;
           });
@@ -337,9 +142,6 @@ $(function () {
 
         return temp;
       },
-      toggleStatus: function (m) {
-        m.online = !m.online;
-      },
       onShowCategoriesModal: function () {
         self.showCategoriesModal = true;
       },
@@ -361,11 +163,19 @@ $(function () {
     },
     watch: {
       "model.promotionMethod": function (newValue, oldValue) {
-        if(newValue && newValue === "Amount"){
+        if (newValue && newValue === "Amount") {
           self.model.percent = 0;
         }
-        if(newValue && newValue === "Percent"){
+        if (newValue && newValue === "Percent") {
           self.model.amount = 0;
+        }
+      },
+      "model.ruleType": function (newValue, oldValue) {
+        if (newValue && newValue === "ByTotalAmount") {
+          self.selectedCategories = [];
+        }
+        if (newValue && newValue === "ByProductCategory") {
+          self.model.priceAmountReached = 0;
         }
       },
     },
@@ -383,22 +193,6 @@ $(function () {
       }
     });
     return temp;
-  }
-
-  function getTableDataByTypes() {
-    return Array.prototype.reduce.call(
-      arguments[0],
-      function (a, b) {
-        var ret = [];
-        a.forEach(function (a) {
-          b.forEach(function (b) {
-            ret.push(a.concat([b]));
-          });
-        });
-        return ret;
-      },
-      [[]]
-    );
   }
 
   Vue.component("product-category", {

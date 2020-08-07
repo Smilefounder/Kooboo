@@ -34,14 +34,6 @@ $(function () {
     mounted: function () {
       Kooboo.PromotionRule.getList().then(function (res) {
         if (res.success) {
-          console.log(res);
-          // self.PromotionRules = res.model.list.map(function(t) {
-          //   return {
-          //     id: t.id,
-          //     name: t.name,
-          //     ruleType: t.ruleType
-          //   };
-          // });
           self.getListByPage();
         }
       });
@@ -69,9 +61,6 @@ $(function () {
         self.pager = data;
         self.tableData = data.list.map(function (d) {
           var date = new Date(d.lastModified);
-          // var type = _.find(self.productTypes, function(t) {
-          //   return t.id == d.productTypeId;
-          // });
 
           return _.assign(
             {
@@ -81,25 +70,16 @@ $(function () {
               ruleTypeDisplay: d.ruleTypeDisplay,
               lastModified: date.toDefaultLangString(),
               online: d.online,
-              // productType: {
-              //   text: type ? type.name : "",
-              //   class: "label-sm " + (type ? "blue" : "label-default"),
-              // },
               edit: {
                 text: Kooboo.text.common.edit,
                 url: Kooboo.Route.Get(Kooboo.Route.Promotion.DetailPage, {
                   id: d.id,
-                  // type: d.productTypeId,
                 }),
               },
             },
             d.values
           );
         });
-
-        // if (data.list.length) {
-        //   self.defaultColumns = Object.keys(data.list[0].values);
-        // }
       },
       onDelete: function () {
         if (confirm(Kooboo.text.confirm.deleteItems)) {
