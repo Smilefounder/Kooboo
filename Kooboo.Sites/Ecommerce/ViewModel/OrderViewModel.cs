@@ -49,7 +49,28 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
             }
         }
 
-        public decimal ShippingCost => this.order.ShippingCost;
+        public CustomerViewModel Customer
+        {
+            get
+            {
+                var customer = ServiceProvider.Customer(this.context).Get(this.CustomerId);
+                if (customer != null)
+                {
+                    return new CustomerViewModel(customer, context);
+                }
+                return null;
+            }
+        }
+
+        public decimal ShippingCost => order.ShippingCost;
+
+        public OrderAddress OrderAddress => order.OrderAddress;
+
+        public string LogisticsCompany => order.LogisticsCompany;
+
+        public string LogisticsNumber => order.LogisticsNumber;
+
+        public Discount Discount => order.Discount;
     }
 
     public class OrderLineViewModel
@@ -91,7 +112,11 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
             get
             {
                 var varants = ServiceProvider.ProductVariants(this.context).Get(this.ProductVariantId);
-                return new ProductVariantsViewModel(varants);
+                if (varants != null)
+                {
+                    return new ProductVariantsViewModel(varants);
+                }
+                return null;
             }
         }
 

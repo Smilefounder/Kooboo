@@ -28,6 +28,7 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
             this.LastModified = product.LastModified;
             this.Online = product.Online;
             this.CreationDate = product.CreationDate;
+            this.Summary = product.SummaryText;
 
             var langcontent = product.GetContentStore(context.Culture);
             if (langcontent != null)

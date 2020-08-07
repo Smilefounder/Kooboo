@@ -1,7 +1,7 @@
 <!-- #layout name=blank-->
 <div id="app" v-cloak>
   <div class="page-header">
-    <h1 class="title">Orders</h1>
+    <h1 class="title">Orders management</h1>
     <div>
       <div class="input-group input-large pull-right">
         <input
@@ -29,9 +29,7 @@
         href="javascript:;"
         >Search result</a
       >
-      <a :href="newOrder" v-else class="btn green navbar-btn"
-        >Add order</a
-      >
+      <!-- <a :href="newOrder" v-else class="btn green navbar-btn">Add order</a> -->
       <a v-if="selected.length > 0" @click="onDelete" class="btn red navbar-btn"
         >Delete</a
       >
@@ -45,18 +43,30 @@
     </div>
   </div>
   <kb-table :data="tableData" show-select :selected.sync="selected">
-    <kb-table-column label="id">
+    <kb-table-column label="Id">
       <template v-slot="row">
-        <a :href="row.id.url" @click.stop style="cursor: pointer">{{
-          row.id.text
-        }}</a>
+        <a :href="row.Edit.url" @click.stop>{{ row.id }}</a>
       </template>
     </kb-table-column>
-    <kb-table-column :label="Kooboo.text.isPaid">
+    <kb-table-column label="Email address">
       <template v-slot="row">
-        <span :class="['label', row.isPaid.class]">{{ row.isPaid.text }}</span>
+        {{ row.customer && row.customer.emailAddress }}
       </template>
     </kb-table-column>
+    <kb-table-column label="Telephone">
+      <template v-slot="row">
+        {{ row.customer && row.customer.telephone }}
+      </template>
+    </kb-table-column>
+    <kb-table-column label="Status" prop="status"></kb-table-column>
+    <kb-table-column label="Total amount" prop="totalAmount"></kb-table-column>
+    <kb-table-column label="Contact number">
+      <template v-slot="row">
+        {{ row.orderAddress && row.orderAddress.contactNumber }}
+      </template>
+    </kb-table-column>
+    <!-- <kb-table-column label="itemTotal" prop="itemTotal"></kb-table-column>
+    <kb-table-column label="shippingCost" prop="shippingCost"></kb-table-column> -->
     <kb-table-column
       :label="Kooboo.text.common.date"
       prop="createDate"
@@ -66,9 +76,141 @@
         <a class="btn btn-sm blue" :href="row.Edit.url" @click.stop>
           {{ row.Edit.text }}
         </a>
+        <a
+          class="btn btn-sm red"
+          @click.stop="cancelOrder(row)"
+          v-if="row.status === 'Created'"
+          >Cancel</a
+        >
+        <a
+          class="btn btn-sm green"
+          @click.stop="ship(row)"
+          v-if="row.status === 'Paid'"
+          >Ship</a
+        >
+        <a
+          class="btn btn-sm orange"
+          @click.stop="finish(row)"
+          v-if="row.status === 'Shipping'"
+          >Finish</a
+        >
       </template>
     </kb-table-column>
   </kb-table>
+  <div
+    class="modal fade"
+    data-backdrop="static"
+    data-keyboard="false"
+    v-kb-modal="visibleShipModal"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button class="close" @click="visibleShipModal=false"
+            ><i class="fa fa-close"></i
+          ></button>
+          <h4 class="modal-title">Ship</h4>
+        </div>
+        <div class="modal-body">
+          <kb-form :model="shipModel" :rules="shipRules" ref="shipForm">
+            <template v-if="currentOrder.orderAddress">
+              <kb-form-item>
+                <label class="control-label col-md-3">Order id</label>
+                <div class="col-md-9 control-value">
+                  {{ currentOrder.id }}
+                </div>
+              </kb-form-item>
+              <kb-form-item>
+                <label class="control-label col-md-3">Consignee</label>
+                <div class="col-md-9 control-value">
+                  {{ currentOrder.orderAddress.consignee }}
+                </div>
+              </kb-form-item>
+              <kb-form-item>
+                <label class="control-label col-md-3">Contact number</label>
+                <div class="col-md-9 control-value">
+                  {{ currentOrder.orderAddress.contactNumber }}
+                </div>
+              </kb-form-item>
+              <kb-form-item>
+                <label class="control-label col-md-3">Country</label>
+                <div class="col-md-9 control-value">
+                  {{ currentOrder.orderAddress.country }}
+                </div>
+              </kb-form-item>
+              <kb-form-item>
+                <label class="control-label col-md-3">City</label>
+                <div class="col-md-9 control-value">
+                  {{ currentOrder.orderAddress.city }}
+                </div>
+              </kb-form-item>
+              <kb-form-item>
+                <label class="control-label col-md-3">Postcode</label>
+                <div class="col-md-9 control-value">
+                  {{ currentOrder.orderAddress.postCode }}
+                </div>
+              </kb-form-item>
+              <kb-form-item>
+                <label class="control-label col-md-3">House number</label>
+                <div class="col-md-9 control-value">
+                  {{ currentOrder.orderAddress.houseNumber }}
+                </div>
+              </kb-form-item>
+              <kb-form-item>
+                <label class="control-label col-md-3">Address</label>
+                <div class="col-md-9 control-value">
+                  {{ currentOrder.orderAddress.address }}
+                </div>
+              </kb-form-item>
+              <kb-form-item>
+                <label class="control-label col-md-3">Address2</label>
+                <div class="col-md-9 control-value">
+                  {{ currentOrder.orderAddress.Address2 }}
+                </div>
+              </kb-form-item>
+              <kb-form-item prop="logisticsCompany">
+                <label class="control-label col-md-3">Logistics company</label>
+                <div class="col-md-9">
+                  <select
+                    class="form-control"
+                    v-model="shipModel.logisticsCompany"
+                  >
+                    <option
+                      v-for="(item, index) in logistics"
+                      :key="index"
+                      :value="item.name"
+                      >{{item.displayName}}</option
+                    >
+                  </select>
+                </div>
+              </kb-form-item>
+              <kb-form-item prop="logisticsNumber">
+                <label class="control-label col-md-3">Logistics number</label>
+                <div class="col-md-7">
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="shipModel.logisticsNumber"
+                  />
+                </div>
+                <div class="col-md-2 get-number">
+                  <a class="btn btn-sm green" :class="{disabled:!shipModel.logisticsCompany}" @click.stop="getLogisticsNumber"
+                    >Get number</a
+                  >
+                </div>
+              </kb-form-item>
+            </template>
+          </kb-form>
+        </div>
+        <div class="modal-footer">
+          <button @click="saveShip" class="btn green">Save</button>
+          <button @click="visibleShipModal=false" class="btn gray"
+            >Cancel</button
+          >
+        </div>
+      </div>
+    </div>
+  </div>
   <kb-pager
     :page-nr="pager.pageNr"
     :total-pages="pager.totalPages"
@@ -77,12 +219,29 @@
 </div>
 
 <script>
-  (function() {
+  (function () {
     Kooboo.loadJS([
       "/_Admin/Scripts/components/kbTable.js",
       "/_Admin/Scripts/components/kbBreadcrumb.js",
-      "/_Admin/Scripts/components/kbPager.js"
+      "/_Admin/Scripts/components/kbPager.js",
+      "/_Admin/Scripts/components/kbForm.js",
     ]);
   })();
 </script>
 <script src="/_Admin/View/ECommerce/Orders.js"></script>
+<style>
+  .table .table-action {
+    width: 140px;
+  }
+  .table .table-action .btn {
+    display: inline-block;
+    margin: 0 2px;
+  }
+  .control-value {
+    padding-top: 6px;
+  }
+  .get-number {
+    text-align: right;
+    padding: 2px 12px 0 0;
+  }
+</style>

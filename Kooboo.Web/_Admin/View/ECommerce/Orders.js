@@ -1,20 +1,20 @@
-$(function() {
+$(function () {
   var self;
   new Vue({
     el: "#app",
-    data: function() {
+    data: function () {
       self = this;
       return {
         breads: [
           {
-            name: "SITES"
+            name: "SITES",
           },
           {
-            name: "DASHBOARD"
+            name: "DASHBOARD",
           },
           {
-            name: Kooboo.text.common.Orders
-          }
+            name: Kooboo.text.common.Orders,
+          },
         ],
         tableData: [],
         selected: [],
@@ -22,28 +22,49 @@ $(function() {
         pager: {},
         searchKey: "",
         cacheData: null,
-        isSearching: false
+        isSearching: false,
+        visibleShipModal: false,
+        currentOrder: {},
+        logistics: [],
+        shipModel: {
+          logisticsCompany: "",
+          logisticsNumber: "",
+        },
+        shipRules: {
+          logisticsCompany: [
+            {
+              required: true,
+              message: Kooboo.text.validation.required,
+            },
+          ],
+          logisticsNumber: [
+            {
+              required: true,
+              message: Kooboo.text.validation.required,
+            },
+          ],
+        },
       };
     },
-    mounted: function() {
+    mounted: function () {
       self.getList();
     },
     methods: {
-      getList: function(page) {
+      getList: function (page) {
         Kooboo.Order.getList({
-          pageNr: page
-        }).then(function(res) {
+          pageNr: page,
+        }).then(function (res) {
           if (res.success) {
             self.cacheData = res.model;
             self.handleData(res.model);
           }
         });
       },
-      searchStart: function() {
+      searchStart: function () {
         if (this.searchKey) {
           Kooboo.Order.search({
-            keyword: self.searchKey
-          }).then(function(res) {
+            keyword: self.searchKey,
+          }).then(function (res) {
             if (res.success) {
               self.handleData(res.model);
               self.isSearching = true;
@@ -54,50 +75,58 @@ $(function() {
           self.handleData(this.cacheData);
         }
       },
-      clearSearching: function() {
+      clearSearching: function () {
         this.searchKey = "";
         this.isSearching = false;
         self.handleData(this.cacheData);
       },
-      dataMapping: function(data) {
-        return data.map(function(item) {
-          var ob = {};
-          ob.id = {
-            text: item.id,
-            url: Kooboo.Route.Get(Kooboo.Route.Order.DetailPage, {
-              id: item.id
-            })
-          };
+      dataMapping: function (data) {
+        return data.map(function (item) {
+          var ob = item;
           ob.createDate = new Date(item.createDate).toDefaultLangString();
-          ob.isPaid = {
-            text: item.isPaid ? Kooboo.text.paid.yes : Kooboo.text.paid.no,
-            class: item.isPaid
-              ? "label-sm label-success"
-              : "label-sm label-default"
-          };
           ob.Edit = {
             text: Kooboo.text.common.edit,
             url: Kooboo.Route.Get(Kooboo.Route.Order.DetailPage, {
-              id: item.id
-            })
+              id: item.id,
+            }),
           };
           return ob;
         });
       },
-      handleData: function(data) {
+      handleData: function (data) {
         self.pager = data;
         self.tableData = self.dataMapping(data.list);
       },
-      onDelete: function() {
+      cancelOrder: function (data) {
+        if (confirm(Kooboo.text.confirm.eCommerce.cancelOrder)) {
+          Kooboo.Order.cancel({
+            id: data.id,
+          }).then(function (res) {
+            if (res.success) {
+              self.getList();
+              window.info.show(
+                Kooboo.text.info.eCommerce.cancelOrder.success,
+                true
+              );
+            } else {
+              window.info.show(
+                Kooboo.text.info.eCommerce.cancelOrder.fail,
+                false
+              );
+            }
+          });
+        }
+      },
+      onDelete: function () {
         if (confirm(Kooboo.text.confirm.deleteItems)) {
-          var ids = self.selected.map(function(row) {
+          var ids = self.selected.map(function (row) {
             return row.id;
           });
           Kooboo.Order.Deletes({
-            ids: JSON.stringify(ids)
-          }).then(function(res) {
+            ids: JSON.stringify(ids),
+          }).then(function (res) {
             if (res.success) {
-              self.tableData = _.filter(self.tableData, function(row) {
+              self.tableData = _.filter(self.tableData, function (row) {
                 return ids.indexOf(row.id) === -1;
               });
               self.selected = [];
@@ -106,9 +135,91 @@ $(function() {
           });
         }
       },
-      changePage: function(page) {
+      changePage: function (page) {
         self.getList(page);
-      }
-    }
+      },
+      getAllLogistics: function () {
+        Kooboo.Order.getAllLogistics().then(function (res) {
+          if (res.success) {
+            self.logistics = res.model;
+          }
+        });
+      },
+      ship: function (order) {
+        this.currentOrder = order;
+        this.shipModel.logisticsCompany = order.logisticsCompany;
+        this.shipModel.logisticsNumber = order.logisticsNumber;
+        if (!order.orderAddress) {
+          this.saveShip();
+          return;
+        }
+        if (!this.logistics || !this.logistics.length) {
+          this.getAllLogistics();
+        }
+        this.visibleShipModal = true;
+        setTimeout(function () {
+          self.$refs.shipForm.clearValid();
+        }, 100);
+      },
+      getLogisticsNumber: function () {
+        if (!self.shipModel.logisticsCompany) {
+          return;
+        }
+        Kooboo.Order.getLogisticsNumber({
+          id: this.currentOrder.id,
+          logisticsCompany: self.shipModel.logisticsCompany,
+        }).then(function (res) {
+          if (res.success) {
+            self.shipModel.logisticsNumber = res.model;
+          }
+        });
+      },
+      saveShip: function () {
+        if (!this.$refs.shipForm.validate()) {
+          return;
+        }
+        if (confirm(Kooboo.text.confirm.eCommerce.shipOrder)) {
+          Kooboo.Order.ship({
+            orderId: self.currentOrder.id,
+            logisticsCompany: self.shipModel.logisticsCompany,
+            logisticsNumber: self.shipModel.logisticsNumber,
+          }).then(function (res) {
+            if (res.success) {
+              window.info.show(
+                Kooboo.text.info.eCommerce.shipOrder.success,
+                true
+              );
+              self.getList();
+              self.visibleShipModal = false;
+            } else {
+              window.info.show(
+                Kooboo.text.info.eCommerce.shipOrder.fail,
+                false
+              );
+            }
+          });
+        }
+      },
+      finish: function (order) {
+        if (confirm(Kooboo.text.confirm.eCommerce.finishOrder)) {
+          Kooboo.Order.finish({
+            id: order.id,
+          }).then(function (res) {
+            if (res.success) {
+              window.info.show(
+                Kooboo.text.info.eCommerce.finishOrder.success,
+                true
+              );
+              self.getList();
+            } else {
+              window.info.show(
+                Kooboo.text.info.eCommerce.finishOrder.success,
+                false
+              );
+            }
+          });
+        }
+      },
+    },
   });
 });
