@@ -1,0 +1,374 @@
+<!-- #layout name=default -->
+<style>
+  #category_tree {
+    padding: 10px 0;
+    border: 1px solid #e5e5e5;
+    border-radius: 2px;
+    max-height: 460px;
+    overflow-y: auto;
+  }
+
+  .category-list,
+  .sub-category-list {
+    list-style: none;
+    padding-left: 10px;
+    margin-bottom: 0;
+  }
+
+  .sub-category-list {
+    padding-left: 30px;
+  }
+
+  .sub-category-list li {
+    position: relative;
+  }
+
+  .sub-category-list li::before {
+    content: "";
+    width: 15px;
+    height: 21px;
+    background-image: url(/_Admin/Styles/images/jstree.png);
+    background-position: -79px -2px;
+    position: absolute;
+    left: -23px;
+    top: -3px;
+  }
+
+  .tree-checkbox label {
+    cursor: pointer;
+    margin-bottom: 6px;
+  }
+
+  .tree-checkbox label .icon {
+    width: 22px;
+    height: 15px;
+    background-image: url(/_Admin/Styles/images/jstree.png);
+    background-position: -169px -9px;
+    display: inline-block;
+    position: relative;
+    top: 2px;
+  }
+
+  .tree-checkbox label.checked .icon {
+    background-position: -233px -9px;
+  }
+
+  .tree-checkbox label input[type="checkbox"] {
+    display: none;
+  }
+
+  .selected-cates-container {
+    border: 1px solid #e5e5e5;
+    border-right: 0;
+    border-radius: 2px 0 0 2px;
+    padding: 6px 6px;
+    height: 32px;
+  }
+
+  .selected-cates-container span.cate {
+    padding: 2px 4px;
+    border: 1px solid #e5e5e5;
+    border-radius: 2px;
+    cursor: default;
+    margin-right: 3px;
+    user-select: none;
+  }
+</style>
+<div id="main" class="">
+  <div class="col-md-8 col-md-offset-2">
+    <fieldset class="">
+      <legend>
+        <div class="pull-left">Promotion info</div>
+      </legend>
+
+      <div class="form-horizontal">
+        <div class="form-group" :class="{'has-error': !!errors.name}">
+          <div class="col-md-3">
+            <label class="control-label">Promotion rule name</label>
+          </div>
+          <div class="col-md-9"
+            ><input
+              type="text"
+              v-model="model.name"
+              v-kb-tooltip:top.manual.error="errors.name"
+              @change="validateRuleName()"
+              class="form-control"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-3">
+            <label class="control-label">Is enable</label>
+          </div>
+          <div class="col-md-9">
+            <kb-switch v-model="model.isActive"></kb-switch>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-3">
+            <label class="control-label">Can combine</label>
+          </div>
+          <div class="col-md-9">
+            <kb-switch v-model="model.canCombine"></kb-switch>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-3">
+            <label class="control-label">Active based on dates</label>
+          </div>
+          <div class="col-md-9">
+            <kb-switch
+              id="activeBasedOnDates"
+              v-model="model.activeBasedOnDates"
+            ></kb-switch>
+          </div>
+        </div>
+
+        <div v-if="model.activeBasedOnDates">
+          <div class="form-group" :class="{'has-error': !!errors.startDate}">
+            <div class="col-md-3">
+              <label class="control-label">Start time</label>
+            </div>
+            <div class="col-sm-9">
+              <input
+                type="text"
+                class="form-control"
+                v-model="model.startDate"
+                v-kb-tooltip:top.manual.error="errors.startDate"
+                v-kb-datetimepicker
+                readonly
+              />
+            </div>
+          </div>
+          <div class="form-group" :class="{'has-error': !!errors.endDate}">
+            <div class="col-md-3">
+              <label class="control-label">End time</label>
+            </div>
+            <div class="col-sm-9">
+              <input
+                type="text"
+                class="form-control"
+                v-model="model.endDate"
+                v-kb-tooltip:top.manual.error="errors.endDate"
+                v-kb-datetimepicker
+                readonly
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" :class="{'has-error': !!errors.ruleType}">
+          <div class="col-md-3">
+            <label class="control-label">select promotion rule types</label>
+          </div>
+          <div class="col-sm-9">
+            <select class="form-control" v-model="model.ruleType">
+              <option
+                v-for="item in ruleTypes"
+                :key="item.value"
+                :value="item.value"
+                v-kb-tooltip:top.manual.error="errors.ruleType"
+                >{{ item.text }}</option
+              >
+            </select>
+          </div>
+        </div>
+
+        <div v-if="model.ruleType==='ByTotalAmount'" class="form-group" :class="{'has-error': !!errors.priceAmountReached}">
+          <div class="col-md-3">
+            <label class="control-label">price amount reached</label>
+          </div>
+          <div class="col-sm-9">
+            <input
+              type="number"
+              min="0"
+              class="form-control"
+              v-model="model.priceAmountReached"
+              v-kb-tooltip:top.manual.error="errors.priceAmountReached"
+              @change="validatePriceAmountReached()"
+            />
+          </div>
+        </div>
+
+        <div v-if="model.ruleType==='ByProductCategory'" class="form-group">
+          <div class="col-md-3">
+            <label class="control-label">Category</label>
+          </div>
+          <div class="col-sm-9">
+            <div class="input-group">
+              <div class="selected-cates-container">
+                <span
+                  class="cate"
+                  v-for="($data, index) in selectedCategories"
+                  :key="index"
+                  >{{ $data.name }}</span
+                >
+              </div>
+              <span class="input-group-btn">
+                <button class="btn blue" @click="onShowCategoriesModal"
+                  >Select</button
+                >
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="form-group"
+          :class="{'has-error': !!errors.promotionMethod}"
+        >
+          <div class="col-md-3">
+            <label class="control-label">select promotion method</label>
+          </div>
+          <div class="col-sm-9">
+            <select class="form-control" v-model="model.promotionMethod">
+              <option
+                v-for="item in promotionMethods"
+                :key="item.value"
+                :value="item.value"
+                v-kb-tooltip:top.manual.error="errors.promotionMethod"
+                >{{ item.text }}</option
+              >
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-3">
+            <label class="control-label">select promotion Target</label>
+          </div>
+          <div class="col-sm-9">
+            <select class="form-control" v-model="model.promotionTarget">
+              <option
+                v-for="item in promotionTargets"
+                :key="item.value"
+                :value="item.value"
+                >{{ item.text }}</option
+              >
+            </select>
+          </div>
+        </div>
+
+        <div v-if="model.promotionMethod==='Amount'" class="form-group">
+          <div class="col-md-3">
+            <label class="control-label">reduction amount</label>
+          </div>
+          <div class="col-sm-9">
+            <input
+              type="number"
+              min="0"
+              class="form-control"
+              v-model="model.amount"
+            />
+          </div>
+        </div>
+
+        <div v-if="model.promotionMethod==='Percent'" class="form-group">
+          <div class="col-md-3">
+            <label class="control-label">price percent</label>
+          </div>
+          <div class="input-group col-sm-9">
+            <input
+              type="number"
+              min="0"
+              v-model="model.percent"
+              class="form-control"
+            />
+            <div class="input-group-addon">%</div>
+            <label class="control-label">
+              origin price * 80% = promotion price
+            </label>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+  </div>
+  <kb-media-dialog
+    :data.sync="mediaDialogData"
+    :multiple="multipleMedia"
+  ></kb-media-dialog>
+  <div
+    v-kb-modal="showCategoriesModal"
+    class="modal fade"
+    data-backdrop="static"
+    data-keyboard="false"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button class="close" @click="onHideCategoriesModal"
+            ><i class="fa fa-close"></i
+          ></button>
+          <h4 class="modal-title">Category</h4>
+        </div>
+        <div class="modal-body">
+          <div id="category_tree" v-if="categories.length">
+            <ul class="category-list">
+              <li v-for="($data, index) in categories" :key="index">
+                <product-category :category="$data"></product-category>
+              </li>
+            </ul>
+          </div>
+          <p v-else class="form-control-static"
+            >You don't have a category yet.</p
+          >
+        </div>
+        <div class="modal-footer">
+          <button class="btn green" @click="onSaveCategoriesModal">Save</button>
+          <button class="btn gray" @click="onHideCategoriesModal"
+            >Cancel</button
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-buttons">
+    <div v-if="!isNew" class="btn-group dropup">
+      <button @click="onSaveAndReturn" class="btn green" style="margin: 0;"
+        >Save &amp; Return</button
+      >
+      <a
+        class="btn green dropdown-toggle"
+        data-toggle="dropdown"
+        style="margin: 0; min-width: auto;"
+      >
+        <i class="fa fa-angle-up"></i>
+      </a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="javascript:;" @click="onSave">Save</a>
+        </li>
+      </ul>
+    </div>
+    <button v-else @click="onSave" class="btn green">Save</button>
+    <a :href="typesUrl" class="btn gray">Cancel</a>
+  </div>
+</div>
+<script>
+  Kooboo.loadJS([
+    "/_Admin/Scripts/Kooboo/Guid.js",
+    "/_Admin/Scripts/components/kbMultilangSelector.js",
+    "/_Admin/Scripts/components/kbFieldPanel.js",
+    "/_Admin/Scripts/components/ECommerce/kbCommerceSpec.js",
+  ]);
+</script>
+<script src="/_Admin/View/ECommerce/Promotion.js"></script>
+
+<script type="text/x-template" id="category-template">
+  <div class="tree-checkbox">
+      <label :class="{checked: category.selected }">
+          <i class="icon"></i>
+          <input type="checkbox" v-model="category.selected">
+          {{ category.name }}
+      </label>
+      <ul v-if="category.subCats.length" class="sub-category-list">
+          <li v-for="(subCate, index) in category.subCats" :key="index">
+            <product-category :category="subCate"></product-category>
+          </li>
+      </ul>
+  </div>
+</script>

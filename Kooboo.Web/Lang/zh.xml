@@ -340,6 +340,25 @@
   <key id="SKU preview">SKU 预览</key>
   <key id="You don't have a category yet.">还没有目录</key>
   <key id="Products management">商品管理</key>
+  <key id="Promotions management">促销管理</key>
+  <key id="Add promotion rule">添加促销规则</key>
+  <key id="Promotion rule name">促销规则名称</key>
+  <key id="select promotion rule types">选择促销规则</key>
+  <key id="promotion rule types">促销规则</key>
+  <key id="select promotion method">选择促销优惠方式</key>
+  <key id="select promotion Target">选择使用目标</key>
+  <key id="Active based on dates">根据日期有效</key>
+  <key id="ForProduct">适用于商品</key>
+  <key id="ForShoppingCart">适用于购物车</key>
+  <key id="PromitionByAmount">通过减金额方式</key>
+  <key id="PromitionByPercent">通过打折方式</key>
+  <key id="Promotion info">促销信息</key>
+  <key id="origin price * 80% = promotion price">原价*打折百分比=折后价格</key>
+  <key id="price amount reached">价格金额达到</key>
+  <key id="Is enable">是否启用</key>
+  <key id="Can combine">是否叠加</key>
+  <key id="reduction amount">满减金额</key>
+  <key id="price percent">价格打折</key>
   <key id="Add product">添加商品</key>
   <key id="Create a new type first">请先创建一个类型</key>
   <key id="Product categories">商品类别</key>
@@ -1224,8 +1243,8 @@
   <key id="image size">图片大小</key>
   <key id="Missing images">缺失图片</key>
   <key id="missing image">缺失图片</key>
-  <key id="ByProductCategory">ByProductCategory</key>
-  <key id="ByTotalAmount">ByTotalAmount</key>
+  <key id="ByProductCategory">根据商品类别条件</key>
+  <key id="ByTotalAmount">订单满足xx金额条件</key>
   <key id="Username or email address already exists">用户名或是邮件已经存在</key>
   <key id="Payment Method not found">未找到支付方式</key>
   <key id="currency not supported by payment method">不支持该货币</key>

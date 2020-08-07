@@ -6,8 +6,10 @@ using System.Text;
 
 namespace Kooboo.Sites.Ecommerce.Models
 {
-    public class PromotionRule : Kooboo.Sites.Contents.Models.MultipleLanguageObject
+    public class PromotionRule : CoreObject
     {
+        public string PromotionRuleName { get; set; }
+
         public string ConditionName { get; set; }
 
         public string Operator { get; set; }
@@ -39,6 +41,11 @@ namespace Kooboo.Sites.Ecommerce.Models
         /// Can combined with other rules.
         /// </summary>
         public bool CanCombine { get; set; }
+
+        /// <summary>
+        /// Amount  or  Percent
+        /// </summary>
+        public string PromotionMethod { get; set; }
 
         public decimal Amount { get; set; } = 0;
 

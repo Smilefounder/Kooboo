@@ -1669,6 +1669,15 @@
   }
   extend(Product, BaseModel);
 
+  function PromotionRule() {
+    this.name = "PromotionRule";
+
+    this.getList = function(para) {
+      return this.executeGet("PromotionList", para);
+    };
+  }
+  extend(PromotionRule, BaseModel);
+
   function ProductType() {
     this.name = "ProductType";
     this.getColumnsById = function (para) {
@@ -1897,6 +1906,7 @@
     Page: new Page(),
     ProductType: new ProductType(),
     Product: new Product(),
+    PromotionRule: new PromotionRule(),
     ProductCategory: new ProductCategory(),
     Profile: new Profile(),
     Publish: new Publish(),

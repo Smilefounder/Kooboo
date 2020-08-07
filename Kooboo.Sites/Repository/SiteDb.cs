@@ -31,7 +31,7 @@ namespace Kooboo.Sites.Repository
 
         public SiteDb(WebSite website)
         {
-            this.WebSite = website; 
+            this.WebSite = website;
             this.DatabaseDb = DB.GetDatabase(website);
             this.SiteRepos = new Dictionary<string, IRepository>(StringComparer.OrdinalIgnoreCase);
         }
@@ -965,7 +965,7 @@ namespace Kooboo.Sites.Repository
                 }
                 return _textcontent;
             }
-        } 
+        }
 
         // rebuild the index... 
         public void ClearLog(string[] storenames)
@@ -1080,6 +1080,15 @@ namespace Kooboo.Sites.Repository
             }
         }
 
+        public PromotionRuleRepository _promotionRule;
+        public PromotionRuleRepository PromotionRule
+        {
+            get
+            {
+                return GetSiteRepository<PromotionRuleRepository, PromotionRule>();
+            }
+        }
+
         public CustomerRepository Customer
         {
             get
@@ -1087,8 +1096,6 @@ namespace Kooboo.Sites.Repository
                 return GetSiteRepository<CustomerRepository, Customer>();
             }
         }
-
-
         #endregion
 
     }

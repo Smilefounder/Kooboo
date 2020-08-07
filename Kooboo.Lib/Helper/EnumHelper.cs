@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Kooboo.Lib.Helper
 {
-   public static class EnumHelper
+    public static class EnumHelper
     {
         // use when the value can be lower or upper case. 
         public static string GetRightName<TEnum>(string value)
@@ -34,16 +34,27 @@ namespace Kooboo.Lib.Helper
 
         public static T GetEnum<T>(string name) where T : struct, IConvertible
         {
-            var rightname = GetRightName<T>(name); 
-           
-            if (rightname !=null)
+            var rightname = GetRightName<T>(name);
+
+            if (rightname != null)
             {
                 if (Enum.TryParse<T>(rightname, out T result))
                 {
-                    return result; 
+                    return result;
                 }
             }
-            return default(T); 
-        }     
+            return default(T);
+        }
+
+        public static Dictionary<int, string> GetEnumAllNameAndValue<T>()
+        {
+            var dic = new Dictionary<int, string>();
+            foreach (var value in Enum.GetValues(typeof(T)))
+            {
+                dic.Add(Convert.ToInt32(value), value.ToString());
+            }
+
+            return dic;
+        }
     }
 }
