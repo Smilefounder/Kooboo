@@ -177,6 +177,11 @@
       Orders: "Orders"
     },
 
+    promotion: {
+      management: "Promotions management",
+      ruleType: "promotion rule types",
+    },
+
     system: {
       serverName: "Server name",
       serverAddress: "Server address"
