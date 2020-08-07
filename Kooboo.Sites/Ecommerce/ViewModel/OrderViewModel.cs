@@ -69,6 +69,8 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
         public string LogisticsCompany => order.LogisticsCompany;
 
         public string LogisticsNumber => order.LogisticsNumber;
+
+        public Discount Discount => order.Discount;
     }
 
     public class OrderLineViewModel

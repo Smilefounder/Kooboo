@@ -127,6 +127,18 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             var success = service.Cancel(id);
             return success;
         }
+        public bool Finish(ApiCall call, Guid id)
+        {
+            var service = ServiceProvider.Order(call.Context);
+            var success = service.Finish(id);
+            return success;
+        }
+
+        public string GetLogisticsNumber(ApiCall call, Guid id, string logisticsCompany)
+        {
+            // TODO: Get number form Logistics API
+            return string.Empty;
+        }
 
         public List<LogisticsCompany> GetAllLogistics(ApiCall call)
         {
@@ -174,7 +186,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
 
         }
 
-        public bool Ship(ApiCall call, Guid orderId, string logisticsCompany, string logisticsNumber)
+        public bool Ship(ApiCall call, Guid orderId)
         {
             var sitedb = call.WebSite.SiteDb();
             var order = sitedb.Order.Get(orderId);
@@ -182,8 +194,8 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             {
                 order.Status = OrderStatus.Shipping;
             }
-            order.LogisticsCompany = logisticsCompany;
-            order.LogisticsNumber = logisticsNumber;
+            order.LogisticsCompany = call.GetValue("logisticsCompany");
+            order.LogisticsNumber = call.GetValue("logisticsNumber");
             sitedb.Order.AddOrUpdate(order);
 
             return true;

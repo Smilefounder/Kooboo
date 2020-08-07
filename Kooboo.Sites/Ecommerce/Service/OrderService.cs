@@ -58,6 +58,11 @@ namespace Kooboo.Sites.Ecommerce.Service
             return UpdateStatus(orderId, OrderStatus.Cancel);
         }
 
+        public bool Finish(Guid orderId)
+        {
+            return UpdateStatus(orderId, OrderStatus.Finished);
+        }
+
         public List<Order> ListByCustomerId(int skip, int take)
         {
             var list = this.Repo.Store.Where(it => it.CustomerId == this.CommerceContext.customer.Id).OrderByDescending().Skip(skip).Take(take);

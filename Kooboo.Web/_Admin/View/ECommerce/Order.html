@@ -79,7 +79,7 @@
             <td>{{ item.variants && item.variants.sku }}</td>
             <td>{{ item.unitPrice }}</td>
             <td>{{ item.quantity }}</td>
-            <td>{{ item.discount }}</td>
+            <td>{{ item.discount ? -item.discount.total : '' }}</td>
             <td>{{ item.itemTotal }}</td>
           </tr>
         </tbody>

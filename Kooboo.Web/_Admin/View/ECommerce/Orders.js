@@ -146,16 +146,33 @@ $(function () {
         });
       },
       ship: function (order) {
+        this.currentOrder = order;
+        this.shipModel.logisticsCompany = order.logisticsCompany;
+        this.shipModel.logisticsNumber = order.logisticsNumber;
+        if (!order.orderAddress) {
+          this.saveShip();
+          return;
+        }
         if (!this.logistics || !this.logistics.length) {
           this.getAllLogistics();
         }
         this.visibleShipModal = true;
-        this.currentOrder = order;
-        this.shipModel.logisticsCompany = order.logisticsCompany;
-        this.shipModel.logisticsNumber = order.logisticsNumber;
-        setTimeout(function() {
+        setTimeout(function () {
           self.$refs.shipForm.clearValid();
         }, 100);
+      },
+      getLogisticsNumber: function () {
+        if (!self.shipModel.logisticsCompany) {
+          return;
+        }
+        Kooboo.Order.getLogisticsNumber({
+          id: this.currentOrder.id,
+          logisticsCompany: self.shipModel.logisticsCompany,
+        }).then(function (res) {
+          if (res.success) {
+            self.shipModel.logisticsNumber = res.model;
+          }
+        });
       },
       saveShip: function () {
         if (!this.$refs.shipForm.validate()) {
@@ -173,16 +190,36 @@ $(function () {
                 true
               );
               self.getList();
-              this.visibleShipModal = false;
+              self.visibleShipModal = false;
             } else {
               window.info.show(
-                Kooboo.text.info.eCommerce.shipOrder.success,
+                Kooboo.text.info.eCommerce.shipOrder.fail,
                 false
               );
             }
           });
         }
       },
-    }
+      finish: function (order) {
+        if (confirm(Kooboo.text.confirm.eCommerce.finishOrder)) {
+          Kooboo.Order.finish({
+            id: order.id,
+          }).then(function (res) {
+            if (res.success) {
+              window.info.show(
+                Kooboo.text.info.eCommerce.finishOrder.success,
+                true
+              );
+              self.getList();
+            } else {
+              window.info.show(
+                Kooboo.text.info.eCommerce.finishOrder.success,
+                false
+              );
+            }
+          });
+        }
+      },
+    },
   });
 });

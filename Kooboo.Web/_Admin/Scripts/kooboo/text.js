@@ -244,8 +244,9 @@
         completedOrder: "Are you sure your order has been completed?"
       },
       eCommerce: {
-        cancelOrder: "Are you sure you want to cancel this order?",
-        shipOrder: "Are you sure you want to ship this order?"
+        cancelOrder: "Are you sure to cancel this order?",
+        shipOrder: "Are you sure to ship this order?",
+        finishOrder: "Are you sure to finish this order?"
       }
     },
 
@@ -412,7 +413,11 @@
         shipOrder: {
           success: "Ship succeeded.",
           fail: "Ship failed."
-        }
+        },
+        finishOrder: {
+          success: "Finish succeeded.",
+          fail: "Finish failed."
+        },
       }
     },
 
