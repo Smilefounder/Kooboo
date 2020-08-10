@@ -1,4 +1,7 @@
 <!-- #layout name=blank-->
+<script engine="kscript">
+  var statuses = ["Created", "Paid", "Shipping", "Finished", "Cancel"];
+</script>
 <div id="app" v-cloak>
   <div class="page-header">
     <h1 class="title">Orders management</h1>
@@ -17,6 +20,17 @@
             ><i class="fa fa-search"></i>Search</button
           >
         </div>
+      </div>
+      <div class="input-group input-small pull-right">
+        <select class="form-control" v-model="status" style="height: 32px">
+          <option value="">All</option>
+          <option
+            k-repeat="item statuses"
+            k-repeat-self="true"
+            k-attributes="value item"
+            k-content="item"
+          ></option>
+        </select>
       </div>
     </div>
   </div>
@@ -60,7 +74,9 @@
     </kb-table-column>
     <kb-table-column label="Status">
       <template v-slot="row">
-       <span class="label label-sm" :class="row.statusTheme">{{ row.status }}</span> 
+        <span class="label label-sm" :class="row.statusTheme"
+          >{{ row.status }}</span
+        >
       </template>
     </kb-table-column>
     <kb-table-column label="Total amount">

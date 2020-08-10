@@ -45,6 +45,7 @@ $(function () {
           ],
         },
         currentPageNr: 1,
+        status: ''
       };
     },
     mounted: function () {
@@ -63,9 +64,10 @@ $(function () {
         });
       },
       searchStart: function () {
-        if (this.searchKey) {
+        if (this.searchKey || this.status) {
           Kooboo.Order.search({
             keyword: self.searchKey,
+            status: self.status,
           }).then(function (res) {
             if (res.success) {
               self.handleData(res.model);
@@ -79,6 +81,7 @@ $(function () {
       },
       clearSearching: function () {
         this.searchKey = "";
+        this.status = "";
         this.isSearching = false;
         self.handleData(this.cacheData);
       },
