@@ -7,6 +7,11 @@ namespace Kooboo.Sites.Ecommerce.Service
 {
     public class ProductService : ServiceBase<Product>
     {
+        public List<Product> All(int skip = 0, int count = 50)
+        {
+            return this.Repo.Store.Where(it => it.Online).OrderByDescending(o => o.Order).Skip(skip).Take(count);
+        }
+
         public List<Product> ByCategory(string CategorykeyIdOrPath, int skip = 0, int count = 50)
         {
             var a = ServiceProvider.Category(this.Context).Repo.All();
@@ -41,7 +46,7 @@ namespace Kooboo.Sites.Ecommerce.Service
                 }
             }
 
-            return result; 
+            return result;
         }
     }
 }
