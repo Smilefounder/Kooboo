@@ -45,7 +45,18 @@ $(function () {
           ],
         },
         currentPageNr: 1,
+        status: '',
+        statuses: []
       };
+    },
+    created() {
+      var statuses = ["Created", "Paid", "Shipping", "Finished", "Cancel"];
+      this.statuses = statuses.map(function(item) {
+        return {
+          value: item,
+          label: Kooboo.text.eCommerce.orderStatus[item]
+        }
+      });
     },
     mounted: function () {
       self.getList();
@@ -63,9 +74,10 @@ $(function () {
         });
       },
       searchStart: function () {
-        if (this.searchKey) {
+        if (this.searchKey || this.status) {
           Kooboo.Order.search({
             keyword: self.searchKey,
+            status: self.status,
           }).then(function (res) {
             if (res.success) {
               self.handleData(res.model);
@@ -79,6 +91,7 @@ $(function () {
       },
       clearSearching: function () {
         this.searchKey = "";
+        this.status = "";
         this.isSearching = false;
         self.handleData(this.cacheData);
       },
@@ -97,6 +110,7 @@ $(function () {
               ob.statusTheme = "gray";
               break;
           }
+          ob.statusText = Kooboo.text.eCommerce.orderStatus[ob.status] || ob.status;
           ob.Edit = {
             text: Kooboo.text.common.edit,
             url: Kooboo.Route.Get(Kooboo.Route.Order.DetailPage, {

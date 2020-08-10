@@ -35,47 +35,55 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
         }
 
 
-        public PagedListViewModel<OrderViewModel> Search(ApiCall call, string keyword)
+        public PagedListViewModel<OrderViewModel> Search(ApiCall call)
         {
-            if (string.IsNullOrWhiteSpace(keyword))
-            {
-                return GetOrders(call);
-            }
+            string keyword = call.GetValue("keyword");
+            string status = call.GetValue("status");
+
             var pager = ApiHelper.GetPager(call, 50);
             var sitedb = call.WebSite.SiteDb();
 
             var items = new List<Order>();
-            if (Guid.TryParse(keyword, out var orderId))
-            {
-                // search by orderid
-                items = sitedb.Order.Query.Where(o => o.Id == orderId).SelectAll();
-            }
-            else if (Enum.TryParse<OrderStatus>(keyword, out var status))
+
+            var query = sitedb.Order.Query;
+            if (Enum.TryParse<OrderStatus>(status, out var orderStatus))
             {
                 // search by status
-                items = sitedb.Order.Query.Where(o => o.Status == status).SelectAll();
+                query = query.Where(o => o.Status == orderStatus);
             }
-            else if (keyword.Contains("@"))
+
+            if (string.IsNullOrWhiteSpace(keyword))
             {
-                // search by user email
-                var emailHash = Lib.Security.Hash.ComputeGuidIgnoreCase(keyword);
-                var customer = sitedb.Customer.Query.Where(o => o.EmailHash == emailHash).FirstOrDefault();
-                if (customer != null)
-                {
-                    items = sitedb.Order.Query.Where(o => o.CustomerId == customer.Id).SelectAll();
-                }
+                items = query.SelectAll();
             }
             else
             {
-                // serach by telphone
-                var telhash = Lib.Security.Hash.ComputeGuidIgnoreCase(keyword);
-                var customer = sitedb.Customer.Query.Where(o => o.TelHash == telhash).FirstOrDefault();
-                if (customer != null)
+                if (Guid.TryParse(keyword, out var orderId))
                 {
-                    items = sitedb.Order.Query.Where(o => o.CustomerId == customer.Id).SelectAll();
+                    // search by orderid
+                    items = query.Where(o => o.Id == orderId).SelectAll();
+                }
+                else if (keyword.Contains("@"))
+                {
+                    // search by user email
+                    var emailHash = Lib.Security.Hash.ComputeGuidIgnoreCase(keyword);
+                    var customer = sitedb.Customer.Query.Where(o => o.EmailHash == emailHash).FirstOrDefault();
+                    if (customer != null)
+                    {
+                        items = query.Where(o => o.CustomerId == customer.Id).SelectAll();
+                    }
+                }
+                else
+                {
+                    // serach by telphone
+                    var telhash = Lib.Security.Hash.ComputeGuidIgnoreCase(keyword);
+                    var customer = sitedb.Customer.Query.Where(o => o.TelHash == telhash).FirstOrDefault();
+                    if (customer != null)
+                    {
+                        items = query.Where(o => o.CustomerId == customer.Id).SelectAll();
+                    }
                 }
             }
-
             PagedListViewModel<OrderViewModel> model = new PagedListViewModel<OrderViewModel>();
             model.TotalCount = items.Count();
             model.PageNr = pager.PageNr;
