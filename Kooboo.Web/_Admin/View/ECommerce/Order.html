@@ -28,7 +28,7 @@
       <div class="row">
         <div class="col-sm-6">
           <label class="control-label pull-left">Status</label>
-          <div class="control-value">{{ model.status }}</div>
+          <div class="control-value">{{ Kooboo.text.eCommerce.orderStatus[model.status] || model.status }}</div>
         </div>
         <div class="col-sm-6">
           <label class="control-label pull-left">Create Date</label>

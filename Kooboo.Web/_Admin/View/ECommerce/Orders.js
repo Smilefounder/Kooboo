@@ -45,8 +45,18 @@ $(function () {
           ],
         },
         currentPageNr: 1,
-        status: ''
+        status: '',
+        statuses: []
       };
+    },
+    created() {
+      var statuses = ["Created", "Paid", "Shipping", "Finished", "Cancel"];
+      this.statuses = statuses.map(function(item) {
+        return {
+          value: item,
+          label: Kooboo.text.eCommerce.orderStatus[item]
+        }
+      });
     },
     mounted: function () {
       self.getList();
@@ -100,6 +110,7 @@ $(function () {
               ob.statusTheme = "gray";
               break;
           }
+          ob.statusText = Kooboo.text.eCommerce.orderStatus[ob.status] || ob.status;
           ob.Edit = {
             text: Kooboo.text.common.edit,
             url: Kooboo.Route.Get(Kooboo.Route.Order.DetailPage, {
