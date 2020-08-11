@@ -1672,7 +1672,7 @@
   function PromotionRule() {
     this.name = "PromotionRule";
 
-    this.getList = function(para) {
+    this.getList = function (para) {
       return this.executeGet("PromotionList", para);
     };
   }
@@ -1809,37 +1809,7 @@
   function Customer() {
     this.name = "Customer";
     this.getList = function (para) {
-      return new Promise((resovel) => {
-        var fakeData = {
-          model: {
-            list: [],
-            pageNr: 1,
-            pageSize: 20,
-            totalCount: 50,
-            totalPages: 2,
-          },
-          success: true,
-        };
-        Array(10)
-          .fill(0)
-          .forEach((x, i) => {
-            fakeData.model.list.push({
-              id: "bcd3df0f-e295-e731-f9e8-95929f33335" + i,
-              firstName: "firstName",
-              lastName: "LastName",
-              emailAddress: "EmailAddress",
-              telephone: "telephone",
-              address: "address",
-              postCode: "postCode",
-              address2: "Address2",
-              houseNumber: "houseNumber",
-              city: "city",
-              country: "country",
-            });
-          });
-        resovel(fakeData);
-      });
-      return this.executeGet("GetList", para);
+      return this.executeGet("CustomerList", para);
     };
     extend(Customer, BaseModel);
 
@@ -1848,6 +1818,7 @@
     };
   }
   extend(Customer, BaseModel);
+
   function Cart() {
     this.name = "cart";
     this.List = function (para) {
