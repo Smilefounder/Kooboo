@@ -20,6 +20,12 @@ namespace Kooboo.Sites.Ecommerce.KScript
             this.context = context;
             this.service = Kooboo.Sites.Ecommerce.ServiceProvider.GetService<ProductService>(this.context);
         }
+        public ProductViewModel[] All(int skip, int take)
+        {
+            var products = service.All(skip, take);
+
+            return products.Select(o => new ProductViewModel(o, this.context, null)).ToArray();
+        }
 
         public ProductViewModel[] Top(int count)
         {
