@@ -1097,7 +1097,6 @@ namespace Kooboo.Sites.Repository
                 return GetSiteRepository<CustomerRepository, Customer>();
             }
         }
-
         #endregion
 
     }

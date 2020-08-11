@@ -1,9 +1,10 @@
-$(function() {
+$(function () {
   var CONTENT_ID = Kooboo.getQueryString("id");
+  var SITE_ID_QUERY_STRING = "?SiteId=" + Kooboo.getQueryString("SiteId");
   var self;
   new Vue({
     el: "#main",
-    data: function() {
+    data: function () {
       self = this;
       return {
         id: CONTENT_ID || Kooboo.Guid.Empty,
@@ -11,59 +12,115 @@ $(function() {
         mediaDialogData: {},
         fields: [],
         siteLangs: null,
-        contentValues: {}
+        contentValues: {},
+        model: {},
+        logistics: [],
+        addressRules: {
+          consignee: [
+            {
+              required: true,
+              message: Kooboo.text.validation.required,
+            },
+          ],
+          contactNumber: [
+            {
+              required: true,
+              message: Kooboo.text.validation.required,
+            },
+          ],
+          country: [
+            {
+              required: true,
+              message: Kooboo.text.validation.required,
+            },
+          ],
+          city: [
+            {
+              required: true,
+              message: Kooboo.text.validation.required,
+            },
+          ],
+          address: [
+            {
+              required: true,
+              message: Kooboo.text.validation.required,
+            },
+          ],
+          logisticsCompany: [
+            {
+              required: true,
+              message: Kooboo.text.validation.required,
+            },
+          ],
+          logisticsNumber: [
+            {
+              required: true,
+              message: Kooboo.text.validation.required,
+            },
+          ],
+        },
       };
     },
-    mounted: function() {
-      Kooboo.Site.Langs().then(function(langRes) {
+    mounted: function () {
+      Kooboo.Site.Langs().then(function (langRes) {
         if (langRes.success) {
           self.siteLangs = langRes.model;
         }
         self.getContentFields();
       });
-      Kooboo.EventBus.subscribe("ko/style/list/pickimage/show", function(ctx) {
-        Kooboo.Media.getList().then(function(res) {
-          if (res.success) {
-            res.model["show"] = true;
-            res.model["context"] = ctx;
-            res.model["onAdd"] = function(selected) {
-              ctx.settings.file_browser_callback(
-                ctx.field_name,
-                selected.url + "?SiteId=" + Kooboo.getQueryString("SiteId"),
-                ctx.type,
-                ctx.win,
-                true
-              );
-            };
-            self.mediaDialogData = res.model;
-          }
-        });
-      });
+      this.getAllLogistics();
     },
     methods: {
-      getContentFields: function() {
+      getContentFields: function () {
         var params = {};
         if (CONTENT_ID) {
           params.id = self.id;
         }
-        Kooboo.Order.getEdit(params).then(function(res) {
+        Kooboo.Order.getEdit(params).then(function (res) {
           if (res.success) {
-            self.fields = res.model.properties;
+            res.model.createDate = new Date(
+              res.model.createDate
+            ).toDefaultLangString();
+            res.model.items.forEach(function (item) {
+              item.url = Kooboo.Route.Get(Kooboo.Route.Product.DetailPage, {
+                id: item.product.id,
+                type: item.product.productTypeId,
+              });
+              if (item.variants && item.variants.thumbnail) {
+                item.variants.thumbnail =
+                  "/_thumbnail/80/80" +
+                  item.variants.thumbnail +
+                  SITE_ID_QUERY_STRING;
+              }
+            });
+            self.model = res.model;
           }
         });
       },
-      getSaveOrder: function() {
+      getAllLogistics: function () {
+        Kooboo.Order.getAllLogistics().then(function (res) {
+          if (res.success) {
+            self.logistics = res.model;
+          }
+        });
+      },
+      getSaveOrder: function () {
         return {
-          id: self.contentId,
-          values: self.contentValues.fieldsValue || {}
+          id: self.model.id,
+          orderAddress: self.model.orderAddress,
+          logisticsCompany: self.model.logisticsCompany,
+          logisticsNumber: self.model.logisticsNumber
         };
       },
-      isAbleToSaveOrder: function() {
-        return this.$refs.fieldPanel.validate();
+      isAbleToSaveOrder: function () {
+        if (!this.$refs.addressForm) {
+          return true;
+        }
+        return this.$refs.addressForm.validate();
       },
-      onSubmit: function(cb) {
+      onSubmit: function (cb) {
         if (self.isAbleToSaveOrder()) {
-          Kooboo.Order.post(self.getSaveOrder()).then(function(res) {
+          Kooboo.Order.editOrder(self.getSaveOrder()).then(function (res) {
             if (res.success) {
               if (cb && typeof cb == "function") {
                 cb(res.model);
@@ -72,29 +129,34 @@ $(function() {
           });
         }
       },
-      onContentSave: function() {
-        self.onSubmit(function(id) {
+      onContentSave: function () {
+        self.onSubmit(function (order) {
           location.href = Kooboo.Route.Get(Kooboo.Route.Order.DetailPage, {
-            id: id
+            id: order.id,
           });
         });
       },
-      onContentSaveAndCreate: function() {
-        self.onSubmit(function() {
+      onContentSaveAndCreate: function () {
+        self.onSubmit(function () {
           window.info.done(Kooboo.text.info.save.success);
-          setTimeout(function() {
+          setTimeout(function () {
             location.href = Kooboo.Route.Get(Kooboo.Route.Order.DetailPage);
           }, 300);
         });
       },
-      onContentSaveAndReturn: function() {
-        self.onSubmit(function() {
+      onContentSaveAndReturn: function () {
+        self.onSubmit(function () {
           location.href = Kooboo.Route.Get(Kooboo.Route.Order.ListPage);
         });
       },
-      userCancel: function() {
+      userCancel: function () {
         location.href = Kooboo.Route.Get(Kooboo.Route.Order.ListPage);
-      }
-    }
+      },
+    },
+    computed: {
+      isShipped() {
+        return ~["Shipping", "Finished"].indexOf(self.model.status);
+      },
+    },
   });
 });

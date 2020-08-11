@@ -60,7 +60,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
 
             var service = Sites.Ecommerce.ServiceProvider.Cart(call.Context);
 
-            var items = service.List(skip:pager.SkipCount, start:DateTime.UtcNow.AddYears(-3),productMsg:"小碎花",categaryId:"1111");
+            var items = service.List(pager.SkipCount, pager.PageSize);
 
             PagedListViewModel<ShoppingCartWebViewModel> result = new PagedListViewModel<ShoppingCartWebViewModel>();
 

@@ -1,33 +1,28 @@
-﻿using Kooboo.Data.Context;
-using Kooboo.Data.Language;
-using Kooboo.Web.Menus;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Kooboo.Data.Context;
+using Kooboo.Data.Language;
 
 namespace Kooboo.Web.Menus.SideBarMenu.Commerce
 {
-   
-    public class ShoppingCart : ISideBarMenu
+    public class Orders : ISideBarMenu
     {
         public SideBarSection Parent => SideBarSection.Commerce;
 
-        public string Name => "ShoppingCart";
+        public string Name => "Orders";
 
         public string Icon => "";
 
-        public string Url => "ECommerce/shoppingcart";
+        public string Url => "ECommerce/Orders";
 
-        public int Order => 3;
+        public int Order => 4;
 
         public List<ICmsMenu> SubItems { get; set; }
 
         public string GetDisplayName(RenderContext Context)
         {
-            return Hardcoded.GetValue("Shopping Cart", Context);
+            return Hardcoded.GetValue("Orders management", Context);
         }
     }
-
-
-
 }
