@@ -13,7 +13,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
 {
     public class CustomerApi : SiteObjectApi<Customer>
     {
-        public PagedListViewModel<CustomerViewModel> CustomerList(ApiCall call)
+        public PagedListViewModel<CustomerForPageViewModel> CustomerList(ApiCall call)
         {
             var sitedb = call.WebSite.SiteDb();
 
@@ -22,7 +22,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             int pagesize = ApiHelper.GetPageSize(call, 50);
             int pagenr = ApiHelper.GetPageNr(call);
 
-            PagedListViewModel<CustomerViewModel> model = new PagedListViewModel<CustomerViewModel>();
+            PagedListViewModel<CustomerForPageViewModel> model = new PagedListViewModel<CustomerForPageViewModel>();
             model.PageNr = pagenr;
             model.PageSize = pagesize;
 
@@ -36,9 +36,9 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             return model;
         }
 
-        protected static CustomerViewModel MapCustomer(ApiCall call, Customer customer)
+        protected static CustomerForPageViewModel MapCustomer(ApiCall call, Customer customer)
         {
-            return new CustomerViewModel
+            return new CustomerForPageViewModel
             {
                 Id = customer.Id,
                 FirstName = customer.FirstName,
@@ -54,7 +54,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             var sitedb = call.Context.WebSite.SiteDb();
 
             Customer customer = null;
-            var customerViewModel = new CustomerViewModel();
+            var customerViewModel = new CustomerForPageViewModel();
 
             var customerId = call.GetValue<Guid>("id");
             if (customerId != default(Guid))

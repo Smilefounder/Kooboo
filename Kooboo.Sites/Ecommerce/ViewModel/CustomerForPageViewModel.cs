@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Kooboo.Sites.Ecommerce.ViewModel
 {
-    public class CustomerViewModel
+    public class CustomerForPageViewModel
     {
         public Guid Id { get; set; }
 

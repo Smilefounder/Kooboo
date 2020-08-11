@@ -6,6 +6,6 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
 {
     public class CustomerEditViewModel
     {
-        public CustomerViewModel CustomerViewModel { get; set; }
+        public CustomerForPageViewModel CustomerViewModel { get; set; }
     }
 }
