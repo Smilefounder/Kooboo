@@ -84,12 +84,12 @@ namespace Kooboo.Sites.Ecommerce.KScript
         }
 
         [Description("Get All Customer Address")]
-        public List<CustomerAddressViewModel> GetAllCustomerAddresses()
+        public CustomerAddressViewModel[] GetAllCustomerAddresses()
         {
             var allCustomerAddresses = this.service.Repo.Query.Where(it => it.CustomerId == this.service.CommerceContext.customer.Id).SelectAll();
             if (allCustomerAddresses != null)
             {
-                return allCustomerAddresses.OrderByDescending(it => it.CreationDate).Select(it => new CustomerAddressViewModel(it)).ToList();
+                return allCustomerAddresses.OrderByDescending(it => it.CreationDate).Select(it => new CustomerAddressViewModel(it)).ToArray();
             }
             return null;
         }
@@ -107,7 +107,7 @@ namespace Kooboo.Sites.Ecommerce.KScript
                 }
             }
 
-            return new CustomerAddressViewModel(new CustomerAddress());
+            return null;
         }
 
         [Description("Delete All Customer Address")]
