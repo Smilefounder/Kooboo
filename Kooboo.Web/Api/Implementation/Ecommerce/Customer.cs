@@ -1,5 +1,6 @@
 ﻿using Kooboo.Api;
 using Kooboo.Data.Language;
+using Kooboo.Sites.Ecommerce;
 using Kooboo.Sites.Ecommerce.Models;
 using Kooboo.Sites.Ecommerce.ViewModel;
 using Kooboo.Sites.Extensions;
@@ -17,8 +18,6 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
         {
             var sitedb = call.WebSite.SiteDb();
 
-            //sitedb.Customer.AddOrUpdate(new Customer { FirstName = "first name", LastName = "last name", EmailAddress = "tenghui@kooboo.cn", Telephone = "10086" }, call.Context.User.Id);
-
             int pagesize = ApiHelper.GetPageSize(call, 50);
             int pagenr = ApiHelper.GetPageNr(call);
 
@@ -34,19 +33,6 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             model.List = customerList.Select(it => MapCustomer(call, it)).ToList();
 
             return model;
-        }
-
-        protected static CustomerForPageViewModel MapCustomer(ApiCall call, Customer customer)
-        {
-            return new CustomerForPageViewModel
-            {
-                Id = customer.Id,
-                FirstName = customer.FirstName,
-                LastName = customer.LastName,
-                EmailAddress = customer.EmailAddress,
-                Telephone = customer.Telephone,
-                MembershipNumber = customer.MembershipNumber
-            };
         }
 
         public CustomerEditViewModel GetEdit(ApiCall call)
@@ -69,39 +55,66 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             return model;
         }
 
-        public Guid Post(PromotionUpdateViewModel model, ApiCall call)
+        public Guid Post(CustomerUpdateViewModel model, ApiCall call)
         {
-            //model.PromotionModel = model.PromotionModel ?? new PromotionModel();
+            var service = ServiceProvider.Customer(call.Context);
 
-            //var sitedb = call.WebSite.SiteDb();
-            //var promotionRuleType = Lib.IOC.Service.GetInstances<IPromotionCondition>().FirstOrDefault(it => it.Name == model.PromotionModel.RuleType);
+            model.CustomerModel = model.CustomerModel ?? new CustomerModel();
 
-            //var targetValue = new List<string>();
-            //if (model.PromotionModel.RuleType == "ByTotalAmount")
-            //{
-            //    targetValue.Add(model.PromotionModel.PriceAmountReached.ToString());
-            //}
-            //else if (model.PromotionModel.RuleType == "ByProductCategory")
-            //{
-            //    targetValue = model.Categories.Select(it => it.ToString()).ToList();
-            //}
+            var sitedb = call.WebSite.SiteDb();
 
-            //PromotionRule newPromotionRule = sitedb.PromotionRule.Get(call.ObjectId);
-            //if (newPromotionRule == null)
-            //{
-            //    newPromotionRule = new PromotionRule();
-            //    newPromotionRule = AddOrUpdateMapping(newPromotionRule, model, promotionRuleType, targetValue);
-            //}
-            //else
-            //{
-            //    newPromotionRule = AddOrUpdateMapping(newPromotionRule, model, promotionRuleType, targetValue);
-            //}
+            Customer newCustomer = sitedb.Customer.Get(call.ObjectId);
+            if (newCustomer == null)
+            {
+                var result = service.CreatAccount(model.CustomerModel.UserName, model.CustomerModel.EmailAddress, model.CustomerModel.Password, model.CustomerModel.FirstName, model.CustomerModel.LastName, model.CustomerModel.Telephone);
 
-            //sitedb.PromotionRule.AddOrUpdate(newPromotionRule, call.Context.User.Id);
+                return result.Id;
+            }
+            else
+            {
+                newCustomer = AddOrUpdateMapping(newCustomer, model);
+                sitedb.Customer.AddOrUpdate(newCustomer, call.Context.User.Id);
 
-            //return newPromotionRule.Id;
+                return newCustomer.Id;
+            }
+        }
 
-            return Guid.NewGuid();
+        public bool IsUniqueName(string userName, ApiCall apiCall)
+        {
+            var service = ServiceProvider.Customer(apiCall.Context);
+
+            return service.IsUSerNameAvailable(userName);
+        }
+
+        public bool IsUniqueEmail(string email, ApiCall apiCall)
+        {
+            var service = ServiceProvider.Customer(apiCall.Context);
+
+            return service.IsEmailAddressAvailable(email);
+        }
+
+        protected static CustomerForPageViewModel MapCustomer(ApiCall call, Customer customer)
+        {
+            return new CustomerForPageViewModel
+            {
+                Id = customer.Id,
+                UserName = customer.Name,
+                FirstName = customer.FirstName,
+                LastName = customer.LastName,
+                EmailAddress = customer.EmailAddress,
+                Telephone = customer.Telephone,
+                MembershipNumber = customer.MembershipNumber
+            };
+        }
+
+        protected static Customer AddOrUpdateMapping(Customer customer, CustomerUpdateViewModel model)
+        {
+            customer.Name = model.CustomerModel.UserName;
+            customer.FirstName = model.CustomerModel.FirstName;
+            customer.LastName = model.CustomerModel.LastName;
+            customer.EmailAddress = model.CustomerModel.EmailAddress;
+            customer.Telephone = model.CustomerModel.Telephone;
+            return customer;
         }
     }
 }

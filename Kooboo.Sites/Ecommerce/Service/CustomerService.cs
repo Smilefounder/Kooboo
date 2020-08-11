@@ -74,7 +74,7 @@ namespace Kooboo.Sites.Ecommerce
 
         public bool IsUSerNameAvailable(string username)
         {
-            var find = this.Repo.Get(username);
+            var find = this.Repo.Query.Where(o => o.Name == username).FirstOrDefault();
             return find == null;
         }
 

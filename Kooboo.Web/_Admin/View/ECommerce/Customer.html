@@ -7,6 +7,30 @@
       </legend>
       <div class="form-horizontal">
         <kb-form :model="model" :rules="rules" ref="form">
+          <kb-form-item prop="userName">
+            <label class="col-md-3">UserName</label>
+            <div class="col-md-9">
+              <input
+                class="form-control"
+                type="text"
+                placeholder="UserName"
+                v-model="model.userName"
+              />
+            </div>
+          </kb-form-item>
+
+          <kb-form-item v-if="isNew" prop="password">
+            <label class="col-md-3">Password</label>
+            <div class="col-md-9">
+              <input
+                class="form-control"
+                type="password"
+                placeholder="Password"
+                v-model="model.password"
+              />
+            </div>
+          </kb-form-item>
+
           <kb-form-item prop="firstName">
             <label class="col-md-3">FirstName</label>
             <div class="col-md-9">

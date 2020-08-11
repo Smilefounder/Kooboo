@@ -1811,7 +1811,14 @@
     this.getList = function (para) {
       return this.executeGet("CustomerList", para);
     };
-    extend(Customer, BaseModel);
+
+    this.isUniqueName = function (para) {
+      return this._getUrl("isUniqueName", para);
+    };
+
+    this.isUniqueEmail = function (para) {
+      return this._getUrl("isUniqueEmail", para);
+    };
 
     this.search = function (para) {
       return this.executePost("Search", para);
