@@ -1089,6 +1089,7 @@ namespace Kooboo.Sites.Repository
             }
         }
 
+        public CustomerRepository _customer;
         public CustomerRepository Customer
         {
             get

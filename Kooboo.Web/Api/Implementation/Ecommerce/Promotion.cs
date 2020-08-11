@@ -23,21 +23,15 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             int pagesize = ApiHelper.GetPageSize(call, 50);
             int pagenr = ApiHelper.GetPageNr(call);
 
-            string language = string.IsNullOrEmpty(call.Context.Culture) ? call.WebSite.DefaultCulture : call.Context.Culture;
-
             PagedListViewModel<PromotionViewModel> model = new PagedListViewModel<PromotionViewModel>();
             model.PageNr = pagenr;
             model.PageSize = pagesize;
 
             var promotionRules = sitedb.PromotionRule.All();
-
             model.TotalCount = promotionRules.Count();
             model.TotalPages = ApiHelper.GetPageCount(model.TotalCount, model.PageSize);
 
             var promotionRuleList = promotionRules.OrderByDescending(o => o.LastModified).Skip(model.PageNr * model.PageSize - model.PageSize).Take(model.PageSize).ToList();
-
-            model.List = new List<PromotionViewModel>();
-
             model.List = promotionRuleList.Select(it => MapPromotionRule(call, it)).ToList();
 
             return model;
