@@ -105,7 +105,16 @@ $(function () {
             categories: categories,
           }).then(function (res) {
             if (res.success) {
-              location.href = Kooboo.Route.Promotion.ListPage;
+              if (cb && typeof cb == "function") {
+                cb();
+              } else {
+                location.href = Kooboo.Route.Get(
+                  Kooboo.Route.Promotion.DetailPage,
+                  {
+                    id: res.model,
+                  }
+                );
+              }
             }
           });
         }
@@ -142,10 +151,9 @@ $(function () {
 
       isValid: function () {
         var valid = false;
-        console.log(self.model);
 
         valid = self.validateRuleName();
-        validatePriceAmountReached = self.validatePriceAmountReached();
+        valid = self.validatePriceAmountReached();
 
         if (!!self.model.ruleType == false) {
           self.errors.ruleType = Kooboo.text.validation.required;

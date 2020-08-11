@@ -1,53 +1,117 @@
 <!-- #layout name=default -->
 <div id="main" class="clearfix" v-cloak>
   <div class="col-md-8 col-md-offset-2">
-    <fieldset class="margin-bottom-15 clearfix">
+    <fieldset class="">
       <legend>
-        <div class="pull-left"></div>
-        <kb-multilang-selector
-          v-if="siteLangs"
-          class="clearfix margin-bottom-5"
-          :cultures="siteLangs.cultures"
-          :default-culture="siteLangs.default"
-        >
-        </kb-multilang-selector>
+        <div class="pull-left">Promotion info</div>
       </legend>
-      <kb-field-panel
-        class="clearfix"
-        ref="fieldPanel"
-        :fields="fields"
-        :values.sync="contentValues"
-        :site-langs="siteLangs"
-      ></kb-field-panel>
+      <div class="form-horizontal">
+        <kb-form :model="model" :rules="rules" ref="form">
+          <kb-form-item prop="userName">
+            <label class="col-md-3">UserName</label>
+            <div class="col-md-9">
+              <input
+                class="form-control"
+                type="text"
+                placeholder="UserName"
+                v-model="model.userName"
+              />
+            </div>
+          </kb-form-item>
+
+          <kb-form-item v-if="isNew" prop="password">
+            <label class="col-md-3">Password</label>
+            <div class="col-md-9">
+              <input
+                class="form-control"
+                type="password"
+                placeholder="Password"
+                v-model="model.password"
+              />
+            </div>
+          </kb-form-item>
+
+          <kb-form-item prop="firstName">
+            <label class="col-md-3">FirstName</label>
+            <div class="col-md-9">
+              <input
+                class="form-control"
+                type="text"
+                placeholder="FirstName"
+                v-model="model.firstName"
+              />
+            </div>
+          </kb-form-item>
+
+          <kb-form-item prop="lastName">
+            <label class="col-md-3">LastName</label>
+            <div class="col-md-9">
+              <input
+                class="form-control"
+                type="text"
+                placeholder="LastName"
+                v-model="model.lastName"
+              />
+            </div>
+          </kb-form-item>
+
+          <kb-form-item prop="emailAddress">
+            <label class="col-md-3">EmailAddress</label>
+            <div class="col-md-9">
+              <input
+                class="form-control"
+                type="text"
+                placeholder="EmailAddress"
+                v-model="model.emailAddress"
+              />
+            </div>
+          </kb-form-item>
+
+          <kb-form-item prop="telephone">
+            <label class="col-md-3">Telephone</label>
+            <div class="col-md-9">
+              <input
+                class="form-control"
+                type="text"
+                placeholder="Telephone"
+                v-model="model.telephone"
+              />
+            </div>
+          </kb-form-item>
+        </kb-form>
+      </div>
     </fieldset>
   </div>
 
   <div class="page-buttons">
-    <template v-if="isNewContent">
-      <a href="javascript:;" class="btn green" @click="onContentSaveAndCreate"
-        >Save &amp; Create</a
+    <div v-if="!isNew" class="btn-group dropup">
+      <button @click="onSaveAndReturn" class="btn green" style="margin: 0;"
+        >Save &amp; Return</button
       >
-      <a href="javascript:;" class="btn green" @click="onContentSaveAndReturn"
-        >Save</a
+      <a
+        class="btn green dropdown-toggle"
+        data-toggle="dropdown"
+        style="margin: 0; min-width: auto;"
       >
-    </template>
-    <template v-else>
-      <a href="javascript:;" class="btn green" @click="onContentSave">Save</a>
-      <a href="javascript:;" class="btn green" @click="onContentSaveAndReturn"
-        >Save &amp; Return</a
-      >
-    </template>
-    <a href="javascript:;" class="btn gray" @click="userCancel">Return</a>
+        <i class="fa fa-angle-up"></i>
+      </a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="javascript:;" @click="onSave">Save</a>
+        </li>
+      </ul>
+    </div>
+    <button v-else @click="onSave" class="btn green">Save</button>
+    <a :href="typesUrl" class="btn gray">Cancel</a>
   </div>
-  <kb-media-dialog :data.sync="mediaDialogData"></kb-media-dialog>
 </div>
 <script>
-  (function() {
+  (function () {
     Kooboo.loadJS([
       "/_Admin/Scripts/components/kbMultilangSelector.js",
       "/_Admin/Scripts/components/kbFieldPanel.js",
       "/_Admin/Scripts/lib/jquery-ui-customized.js",
-      "/_Admin/Scripts/kooboo/Guid.js"
+      "/_Admin/Scripts/kooboo/Guid.js",
     ]);
   })();
 </script>

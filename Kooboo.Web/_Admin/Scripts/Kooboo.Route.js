@@ -202,7 +202,7 @@
             DetailPage: GetRoute("ECommerce/Order")
         },
         Customer: {
-            ListPage: GetRoute("ECommerce/Customer"),
+            ListPage: GetRoute("ECommerce/Customers"),
             DetailPage: GetRoute("ECommerce/Customer")
         },
         Get: function(PageRoute, params) {
