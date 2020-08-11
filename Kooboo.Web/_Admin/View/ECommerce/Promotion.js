@@ -145,7 +145,7 @@ $(function () {
         console.log(self.model);
 
         valid = self.validateRuleName();
-        validatePriceAmountReached = self.validatePriceAmountReached();
+        valid = self.validatePriceAmountReached();
 
         if (!!self.model.ruleType == false) {
           self.errors.ruleType = Kooboo.text.validation.required;
