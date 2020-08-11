@@ -198,7 +198,7 @@ namespace Kooboo.Sites.Ecommerce.Repository
 
             foreach (var item in old)
             {
-                if (variants.Find(o=>o.Id == item.Id) == null)
+                if (variants.Any(o=>o.Id == item.Id))
                 {
                     repo.Delete(item.Id); 
                 }

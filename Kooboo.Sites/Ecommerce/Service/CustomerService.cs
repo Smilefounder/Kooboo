@@ -32,7 +32,7 @@ namespace Kooboo.Sites.Ecommerce
                 customer = this.Repo.Query.Where(o => o.EmailHash == hash).FirstOrDefault();
                 if (customer != null)
                 {
-                    var passwordhash = Lib.IOC.Service.GetSingleTon<IPasswordHash>();
+                    var passwordhash = Lib.IOC.Service.GetSingleTon<IPasswordHash>(true);
                     bool loginok = passwordhash.Verify(password, customer.Password);
                     if (loginok)
                     {

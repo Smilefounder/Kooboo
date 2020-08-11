@@ -83,5 +83,18 @@ namespace KScript
             }
         }
 
+        private KCustomer _customer;
+        public KCustomer Customer
+        {
+            get
+            {
+                if (_customer == null)
+                {
+                    _customer = new KCustomer(this.context);
+                }
+                return _customer;
+            }
+        }
+
     }
 }
