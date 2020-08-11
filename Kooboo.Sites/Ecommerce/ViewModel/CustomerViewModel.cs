@@ -8,6 +8,8 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
 {
     public class CustomerViewModel
     {
+        public Guid Id { get; set; }
+
         public string FirstName { get; set; }
 
         public string LastName { get; set; }

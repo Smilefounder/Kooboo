@@ -13,55 +13,95 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
 {
     public class CustomerApi : SiteObjectApi<Customer>
     {
-        public PagedListViewModel<PromotionViewModel> CustomerList(ApiCall call)
+        public PagedListViewModel<CustomerViewModel> CustomerList(ApiCall call)
         {
             var sitedb = call.WebSite.SiteDb();
+
+            //sitedb.Customer.AddOrUpdate(new Customer { FirstName = "first name", LastName = "last name", EmailAddress = "tenghui@kooboo.cn", Telephone = "10086" }, call.Context.User.Id);
 
             int pagesize = ApiHelper.GetPageSize(call, 50);
             int pagenr = ApiHelper.GetPageNr(call);
 
-            string language = string.IsNullOrEmpty(call.Context.Culture) ? call.WebSite.DefaultCulture : call.Context.Culture;
-
-            PagedListViewModel<PromotionViewModel> model = new PagedListViewModel<PromotionViewModel>();
+            PagedListViewModel<CustomerViewModel> model = new PagedListViewModel<CustomerViewModel>();
             model.PageNr = pagenr;
             model.PageSize = pagesize;
 
-            var promotionRules = sitedb.PromotionRule.All();
-
-            model.TotalCount = promotionRules.Count();
+            var customers = sitedb.Customer.All();
+            model.TotalCount = customers.Count();
             model.TotalPages = ApiHelper.GetPageCount(model.TotalCount, model.PageSize);
 
-            var promotionRuleList = promotionRules.OrderByDescending(o => o.LastModified).Skip(model.PageNr * model.PageSize - model.PageSize).Take(model.PageSize).ToList();
-
-            model.List = new List<PromotionViewModel>();
-
-            model.List = promotionRuleList.Select(it => MapPromotionRule(call, it)).ToList();
+            var customerList = customers.OrderByDescending(o => o.LastModified).Skip(model.PageNr * model.PageSize - model.PageSize).Take(model.PageSize).ToList();
+            model.List = customerList.Select(it => MapCustomer(call, it)).ToList();
 
             return model;
         }
 
-        protected static PromotionViewModel MapPromotionRule(ApiCall call, PromotionRule promotionRule)
+        protected static CustomerViewModel MapCustomer(ApiCall call, Customer customer)
         {
-            return new PromotionViewModel
+            return new CustomerViewModel
             {
-                RuleTypeDisplay = Hardcoded.GetValue(promotionRule.ConditionName ?? "", call.Context),
-                RuleType = promotionRule.ConditionName,
-                Operator = promotionRule.Operator,
-                TargetValue = promotionRule.TargetValue,
-                Id = promotionRule.Id,
-                Name = promotionRule.PromotionRuleName,
-                ForObject = promotionRule.ForObject,
-                CanCombine = promotionRule.CanCombine,
-                PromotionMethod = promotionRule.PromotionMethod,
-                Amount = promotionRule.Amount,
-                Percent = promotionRule.Percent,
-                StartDate = promotionRule.StartDate.ToString("yyyy-MM-dd HH:mm"),
-                EndDate = promotionRule.EndDate.ToString("yyyy-MM-dd HH:mm"),
-                IsActive = promotionRule.IsActive,
-                ActiveBasedOnDates = promotionRule.ByDate,
-                Categories = promotionRule.ConditionName == "ByProductCategory" ? promotionRule.TargetValue : new List<string>(),
-                PriceAmountReached = promotionRule.ConditionName == "ByTotalAmount" ? promotionRule.TargetValue.FirstOrDefault() : "0"
+                Id = customer.Id,
+                FirstName = customer.FirstName,
+                LastName = customer.LastName,
+                EmailAddress = customer.EmailAddress,
+                Telephone = customer.Telephone,
+                MembershipNumber = customer.MembershipNumber
             };
+        }
+
+        public CustomerEditViewModel GetEdit(ApiCall call)
+        {
+            var sitedb = call.Context.WebSite.SiteDb();
+
+            Customer customer = null;
+            var customerViewModel = new CustomerViewModel();
+
+            var customerId = call.GetValue<Guid>("id");
+            if (customerId != default(Guid))
+            {
+                customer = sitedb.Customer.Get(customerId);
+                customerViewModel = MapCustomer(call, customer);
+            }
+
+            var model = new CustomerEditViewModel();
+            model.CustomerViewModel = customerViewModel;
+
+            return model;
+        }
+
+        public Guid Post(PromotionUpdateViewModel model, ApiCall call)
+        {
+            //model.PromotionModel = model.PromotionModel ?? new PromotionModel();
+
+            //var sitedb = call.WebSite.SiteDb();
+            //var promotionRuleType = Lib.IOC.Service.GetInstances<IPromotionCondition>().FirstOrDefault(it => it.Name == model.PromotionModel.RuleType);
+
+            //var targetValue = new List<string>();
+            //if (model.PromotionModel.RuleType == "ByTotalAmount")
+            //{
+            //    targetValue.Add(model.PromotionModel.PriceAmountReached.ToString());
+            //}
+            //else if (model.PromotionModel.RuleType == "ByProductCategory")
+            //{
+            //    targetValue = model.Categories.Select(it => it.ToString()).ToList();
+            //}
+
+            //PromotionRule newPromotionRule = sitedb.PromotionRule.Get(call.ObjectId);
+            //if (newPromotionRule == null)
+            //{
+            //    newPromotionRule = new PromotionRule();
+            //    newPromotionRule = AddOrUpdateMapping(newPromotionRule, model, promotionRuleType, targetValue);
+            //}
+            //else
+            //{
+            //    newPromotionRule = AddOrUpdateMapping(newPromotionRule, model, promotionRuleType, targetValue);
+            //}
+
+            //sitedb.PromotionRule.AddOrUpdate(newPromotionRule, call.Context.User.Id);
+
+            //return newPromotionRule.Id;
+
+            return Guid.NewGuid();
         }
     }
 }

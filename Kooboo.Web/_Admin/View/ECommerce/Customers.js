@@ -62,12 +62,6 @@ $(function() {
       dataMapping: function(data) {
         return data.map(function(item) {
           var ob = _.assign({}, item, {
-            id: {
-              text: item.id,
-              url: Kooboo.Route.Get(Kooboo.Route.Customer.DetailPage, {
-                id: item.id
-              })
-            },
             Edit: {
               text: Kooboo.text.common.edit,
               url: Kooboo.Route.Get(Kooboo.Route.Customer.DetailPage, {
