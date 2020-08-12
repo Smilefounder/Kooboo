@@ -43,6 +43,11 @@ namespace Kooboo.Sites.Ecommerce.KScript
             return service.Login(nameOrEmail, password);
         }
 
+        public bool Logout()
+        {
+            return service.Logout();
+        }
+
         public bool IsUserNameAvailable(string username)
         {
             return service.IsUSerNameAvailable(username);
