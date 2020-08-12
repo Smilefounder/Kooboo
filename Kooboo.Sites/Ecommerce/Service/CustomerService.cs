@@ -9,10 +9,10 @@ namespace Kooboo.Sites.Ecommerce
     public class CustomerService : ServiceBase<Customer>, ICustomerService
     {
         public Customer Login(string nameOrEmail, string password)
-        { 
+        {
             var customer = this.Repo.Get(nameOrEmail);
             if (customer != null)
-            { 
+            {
                 bool loginok = Service.PasswordService.Verify(password, customer.Password);
                 if (loginok)
                 {
@@ -43,7 +43,7 @@ namespace Kooboo.Sites.Ecommerce
 
                 }
             }
-             
+
 
             return null;
         }
@@ -55,7 +55,7 @@ namespace Kooboo.Sites.Ecommerce
             {
                 var messge = Data.Language.Hardcoded.GetValue("Username or email address already exists", this.Context);
                 throw new Exception(messge);
-            } 
+            }
 
             Customer newcus = new Customer()
             {
@@ -89,9 +89,9 @@ namespace Kooboo.Sites.Ecommerce
 
         public Customer GetFromContext(RenderContext context)
         {
-            return initCustomer(context); 
+            return initCustomer(context);
         }
-         
+
         private Customer initCustomer(RenderContext context)
         {
             if (context.Request.Cookies.ContainsKey(Constants.CustomerCookieName))
@@ -112,7 +112,7 @@ namespace Kooboo.Sites.Ecommerce
 
             else if (context.Request.Cookies.ContainsKey(Constants.CustomerTempCookieName))
             {
-                var idvalue = context.Request.Cookies[Constants.CustomerTempCookieName]; 
+                var idvalue = context.Request.Cookies[Constants.CustomerTempCookieName];
                 if (System.Guid.TryParse(idvalue, out Guid guidvalue))
                 {
                     var tempuser = new Customer() { NoLogin = true };
@@ -123,6 +123,16 @@ namespace Kooboo.Sites.Ecommerce
             var newtemp = new Customer() { NoLogin = true, Id = Lib.Helper.IDHelper.TempGuid() };
             context.Response.AppendCookie(Constants.CustomerTempCookieName, newtemp.Id.ToString(), DateTime.Now.AddDays(10));
             return newtemp;
+        }
+
+        public bool Logout()
+        {
+            var customer = GetFromContext(this.Context);
+            if (!customer.NoLogin)
+            {
+                this.Context.Response.AppendCookie(Constants.CustomerCookieName, customer.Id.ToString(), DateTime.Now.AddDays(-1));
+            }
+            return true;
         }
     }
 }
