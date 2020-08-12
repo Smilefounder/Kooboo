@@ -1,5 +1,7 @@
-﻿using Kooboo.Data.Context;
+﻿using Kooboo.Data.Attributes;
+using Kooboo.Data.Context;
 using Kooboo.Sites.Ecommerce.Models;
+using Kooboo.Sites.Ecommerce.Request;
 using Kooboo.Sites.Ecommerce.Service;
 using Kooboo.Sites.Ecommerce.ViewModel;
 using System;
@@ -42,16 +44,20 @@ namespace Kooboo.Sites.Ecommerce.KScript
         }
 
         [Description("Add Customer Address")]
-        public bool AddCustomerAddress(string selectedIdsStr, string detailAdress, string postCode, string consignee, string contactNumber)
+        [KDefineType(Params = new[] { typeof(CustomerAddressRequest) })]
+        public bool AddCustomerAddress(IDictionary<string, object> request)
         {
-            List<string> geoAdresses = GetgeoAdresses(selectedIdsStr);
+            var requestData = Lib.Reflection.TypeHelper.ToObject<CustomerAddressRequest>(request);
+
             var toAdd = new CustomerAddress
             {
-                Country = geoAdresses.FirstOrDefault(),
-                Address = MapAddress(detailAdress, geoAdresses),
-                PostCode = postCode,
-                Consignee = consignee,
-                ContactNumber = contactNumber,
+                Country = requestData.CountryName,
+                City = requestData.ProvinceName,
+                Address = requestData.Address1,
+                Address2 = requestData.Address2,
+                PostCode = requestData.PostCode,
+                Consignee = requestData.ConsigneeName,
+                ContactNumber = requestData.ContactNumber,
                 CustomerId = this.service.CommerceContext.customer.Id
             };
 
