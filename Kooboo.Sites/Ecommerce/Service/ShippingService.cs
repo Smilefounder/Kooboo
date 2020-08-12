@@ -1,5 +1,6 @@
 ﻿using Kooboo.Data.Context;
 using Kooboo.Sites.Ecommerce.Models;
+using Kooboo.Sites.Extensions;
 using Kooboo.Sites.Logistics;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,12 @@ namespace Kooboo.Sites.Ecommerce.Service
 
         public decimal CalculateCost(Cart cart)
         {
-            return (decimal)2.95;
+            var setting = Context.WebSite.SiteDb().CoreSetting.GetSetting<CommerceSetting>();
+            if (setting == null)
+            {
+                return 0;
+            }
+            return (decimal)setting.DefaultShippingCost;
         }
 
         private List<LogisticsCompany> _logistics;

@@ -43,6 +43,15 @@ namespace Kooboo.Sites.Ecommerce.KScript
             return null;
         }
 
+        public Order Get(string orderId)
+        {
+            if(Guid.TryParse(orderId, out var id))
+            {
+                return service.Get(id);
+            }
+            return null;
+        }
+
         public Order CreateSelected(object[] selected, string addressId)
         {
             Guid addressguid;
