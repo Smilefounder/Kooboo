@@ -53,6 +53,11 @@ namespace Kooboo.Sites.Ecommerce.KScript
             return service.IsUSerNameAvailable(username);
         }
 
+        public bool ChangePassword(string oldPassword, string newPassword)
+        {
+            return service.ChangePassword(oldPassword, newPassword);
+        }
+
         public bool IsEmailAddressAvailable(string emailaddress)
         {
             return service.IsEmailAddressAvailable(emailaddress);
