@@ -2,6 +2,7 @@
 using ICSharpCode.SharpZipLib.Zip;
 using Kooboo.Lib.Helper;
 using Kooboo.Lib.VirtualFile.Zip;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -23,7 +24,8 @@ namespace VirtualFile.Zip
             _zipArchives[zipPath] = zipArchive;
 
             var dir = GetZipVirtualPath(zipPath);
-            var fileMaps = GetFileMaps(zipArchive);
+            var fileMaps = GetFileMaps<FileMapping[]>(zipArchive, "mappings");
+            var unzipFiles = GetFileMaps<string[]>(zipArchive, "unzipFiles");
 
             foreach (ZipEntry item in zipArchive)
             {
@@ -37,7 +39,7 @@ namespace VirtualFile.Zip
                 }
                 else
                 {
-                    var fileMap = fileMaps.FirstOrDefault(f => f.To == item.Name);
+                    var fileMap = fileMaps?.FirstOrDefault(f => f.To == item.Name);
 
                     if (fileMap != null)
                     {
@@ -49,7 +51,18 @@ namespace VirtualFile.Zip
                         virtualResources._fileMaps[fileMapFrom] = virtualFile;
                     }
 
-                    virtualResources._entries[path] = new ZipFile(item, zipArchive, path, zipPath, zipOption);
+
+                    var zipFile = new ZipFile(item, zipArchive, path, zipPath, zipOption);
+
+                    if (unzipFiles?.Contains(item.Name) ?? false)
+                    {
+                        var unzipPath = Path.Combine(AppContext.BaseDirectory, item.Name);
+                        if (!File.Exists(unzipPath)) File.WriteAllBytes(unzipPath, zipFile.ReadAllBytes());
+                    }
+                    else
+                    {
+                        virtualResources._entries[path] = zipFile;
+                    }
 
                     while (true)
                     {
@@ -117,7 +130,19 @@ namespace VirtualFile.Zip
             }
         }
 
-        static FileMapping[] GetFileMaps(ICSharpCode.SharpZipLib.Zip.ZipFile zipArchive)
+        static T GetFileMaps<T>(ICSharpCode.SharpZipLib.Zip.ZipFile zipArchive, string node)
+        {
+            var config = GetConfig(zipArchive);
+
+            if (config != null && config.TryGetValue(node, out var obj))
+            {
+                return obj.ToObject<T>();
+            }
+
+            return default(T);
+        }
+
+        static JObject GetConfig(ICSharpCode.SharpZipLib.Zip.ZipFile zipArchive)
         {
             try
             {
@@ -133,19 +158,14 @@ namespace VirtualFile.Zip
                     }
 
                     var json = Encoding.UTF8.GetString(buffer);
-                    var jObject = JsonHelper.DeserializeJObject(json);
-
-                    if (jObject.TryGetValue("mappings", out var obj))
-                    {
-                        return obj.ToObject<FileMapping[]>();
-                    }
+                    return JsonHelper.DeserializeJObject(json);
                 }
             }
             catch (Exception)
             {
             }
 
-            return new FileMapping[0];
+            return null;
         }
     }
 }
