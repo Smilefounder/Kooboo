@@ -97,8 +97,6 @@ namespace Kooboo.Sites.Logistics.Methods.sto.lib
 
             var content = new STOCreateOrderContent
             {
-                // 测试单号，需要删除
-                waybillNo = "773027487051301",
                 orderNo = request.Id.ToString("N"),
                 orderSource = "VIPEO",
                 billType = "00",

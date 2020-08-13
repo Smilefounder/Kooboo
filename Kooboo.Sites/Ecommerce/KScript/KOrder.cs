@@ -44,8 +44,8 @@ namespace Kooboo.Sites.Ecommerce.KScript
                 {
                     var order = this.service.CreateOrder(cart, id);
 
-                    // clear cart
-                    cartService.RemoveAll();
+                    // remove cart
+                    cartService.Delete(cart.Id);
                     return order;
                 }
             }
@@ -192,11 +192,14 @@ namespace Kooboo.Sites.Ecommerce.KScript
             }
         }
 
+        public int GetTotalCount()
+        {
+            return this.service.Count();
+        }
+
         public OrderViewModel[] GetOrderList(int skip, int take)
         {
-            var orders = this.service.ListByCustomerId(skip, take)
-                  .Where(it => !it.DeleteByCustomer)
-                  .Select(it => new OrderViewModel(it, this.context)).ToArray();
+            var orders = this.service.ListByCustomerId(skip, take).Select(it => new OrderViewModel(it, this.context)).ToArray();
             return orders;
         }
     }

@@ -41,7 +41,7 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
 
         public string RuleType { get; set; }
 
-        public string PromotionMethod { get; set; }
+        public EnumPromotionMethod PromotionMethod { get; set; }
 
         public EnumPromotionTarget PromotionTarget { get; set; }
 

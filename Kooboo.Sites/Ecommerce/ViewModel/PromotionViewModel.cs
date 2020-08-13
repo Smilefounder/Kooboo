@@ -24,7 +24,7 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
 
         public bool CanCombine { get; set; }
 
-        public string PromotionMethod { get; set; }
+        public EnumPromotionMethod PromotionMethod { get; set; }
 
         public decimal Amount { get; set; }
 

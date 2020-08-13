@@ -7,6 +7,7 @@ using Kooboo.Sites.Ecommerce;
 using Kooboo.Sites.Ecommerce.Models;
 using Kooboo.Sites.Ecommerce.ViewModel;
 using Kooboo.Sites.Extensions;
+using Kooboo.Sites.Logistics;
 using Kooboo.Web.ViewModel;
 
 namespace Kooboo.Web.Api.Implementation.Ecommerce
@@ -144,8 +145,37 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
 
         public string GetLogisticsNumber(ApiCall call, Guid id, string logisticsCompany)
         {
-            // TODO: Get number form Logistics API
-            return string.Empty;
+            var sender = call.Context.WebSite.SiteDb().CoreSetting.GetSetting<LogisticsSenderSetting>();
+            if (sender == null)
+            {
+                var messge = Data.Language.Hardcoded.GetValue("Please config LogisticsSender first", call.Context);
+                throw new Exception(messge);
+            }
+            var logisticsmethod = LogisticsManager.GetMethod(logisticsCompany, call.Context);
+            if (logisticsmethod != null)
+            {
+                var method = new KLogisticsMethodWrapper(logisticsmethod, call.Context);
+                var service = ServiceProvider.Order(call.Context);
+                var receiver = service.Get(id).OrderAddress;
+                var info = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { "sendername", sender.SenderName },
+                    { "senderphone", sender.SenderPhone },
+                    { "senderprovince", sender.SenderProvince },
+                    { "sendercity", sender.SenderCity },
+                    { "sendercounty", sender.SenderCounty },
+                    { "senderaddress", sender.SenderAddress },
+
+                    { "receivername", receiver.Consignee },
+                    { "receiverphone", receiver.ContactNumber },
+                    { "receiverprovince", receiver.City }, // TODO: how to map city to provice ?
+                    { "receivercity", receiver.City },
+                    { "receiveraddress", receiver.Address + receiver.Address2 }
+                };
+                var logisticsOrder = method.CreateOrder(info);
+                return logisticsOrder?.logisticsMethodReferenceId;
+            }
+            return null;
         }
 
         public List<LogisticsCompany> GetAllLogistics(ApiCall call)
@@ -208,64 +238,5 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
 
             return true;
         }
-
-#if DEBUG
-        public CustomerAddress CreateFakeAddress(ApiCall call)
-        {
-            var address = new CustomerAddress
-            {
-                CustomerId = new Guid("504d4554-af7e-2fc9-7330-fd46b447e2ec"),
-                CreationDate = DateTime.UtcNow,
-                Country = "China",
-                ContactNumber = "17859520990",
-                Address = "福建省",
-                Address2 = "厦门市集美区",
-                City = "厦门市",
-                Consignee = "吴收货"
-            };
-            ServiceProvider.CustomerAddress(call.Context).AddOrUpdate(address);
-            return address;
-        }
-        public Order CreateFakeOrders(ApiCall call)
-        {
-            var service = ServiceProvider.Order(call.Context);
-            var cartItems = new List<CartItem>();
-            cartItems.Add(new CartItem
-            {
-                ProductId = new Guid("f34a7a66-3474-ae7a-bc6d-04d8572fbb85"),
-                Discount = null,
-                ProductVariantId = new Guid("d2d63a39-762c-93b0-932b-f79b745aab03"),
-                Quantity = 1,
-                UnitPrice = 100
-            });
-
-            return service.CreateOrder(cartItems, new Guid("5dce97a2-80f2-4cf9-9fd8-fc363de4d866"));
-        }
-
-        public bool CreateFakeCarts(ApiCall call)
-        {
-            var service = ServiceProvider.Cart(call.Context);
-            var cartItems = new List<CartItem>();
-            cartItems.Add(new CartItem
-            {
-                ProductId = new Guid("f34a7a66-3474-ae7a-bc6d-04d8572fbb85"),
-                Discount = null,
-                ProductVariantId = new Guid("d2d63a39-762c-93b0-932b-f79b745aab03"),
-                Quantity = 1,
-                UnitPrice = 100
-
-            });
-            return service.AddOrUpdate(new Cart
-            {
-                CreationDate = DateTime.UtcNow,
-                CreattionTime = DateTime.UtcNow,
-                CustomerId = new Guid("504d4554-af7e-2fc9-7330-fd46b447e2ec"),
-                IsOrder = true,
-                Items = cartItems,
-                Online = true
-            });
-        }
     }
-#endif
-
 }
