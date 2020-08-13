@@ -7,7 +7,7 @@ using System.Text;
 namespace Kooboo.Sites.Ecommerce.Service
 {
     public interface ICustomerService : IEcommerceService<Customer>
-    { 
+    {
         Customer Login(string nameOrEmail, string password);
 
         Customer CreatAccount(string UserName, string email, string password, string firstName, string LastName, string Telephone);
@@ -16,6 +16,8 @@ namespace Kooboo.Sites.Ecommerce.Service
 
         bool IsEmailAddressAvailable(string emailaddress);
 
-        Customer GetFromContext(RenderContext context); 
+        Customer GetFromContext(RenderContext context);
+
+        bool Logout();
     }
 }

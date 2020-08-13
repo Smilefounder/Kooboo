@@ -17,11 +17,14 @@ namespace Kooboo.Sites.Ecommerce.KScript
 
         private ICartService service { get; set; }
 
+        private ShippingService shippingService { get; set; }
+
         public KCart(RenderContext context)
         {
             this.context = context;
             this.service = ServiceProvider.Cart(this.context);
             this.ShoppingCart = this.service.GetOrCreateCart();
+            this.shippingService = ServiceProvider.Shipping(this.context);
         }
 
         public bool AddITem(object ProductVariantId, int quantity = 1)
@@ -65,6 +68,8 @@ namespace Kooboo.Sites.Ecommerce.KScript
                 return false;
             }
         }
+
+        public decimal shippingCost => shippingService.CalculateCost(this.ShoppingCart);
 
         public CartItemViewModel[] Items
         {

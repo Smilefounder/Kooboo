@@ -18,10 +18,13 @@ namespace Kooboo.Sites.Ecommerce.KScript
 
         private OrderService service { get; set; }
 
+        private ICartService cartService { get; set; }
+
         public KOrder(RenderContext context)
         {
             this.context = context;
-            this.service = Kooboo.Sites.Ecommerce.ServiceProvider.GetService<OrderService>(this.context);
+            this.service = ServiceProvider.Order(this.context);
+            this.cartService = ServiceProvider.Cart(this.context);
         }
 
         [Description("Create an order based on current shopping cart items")]
@@ -37,8 +40,20 @@ namespace Kooboo.Sites.Ecommerce.KScript
                 if (cart.Items.Any())
                 {
                     var order = this.service.CreateOrder(cart, id);
+
+                    // clear cart
+                    cartService.RemoveAll();
                     return order;
                 }
+            }
+            return null;
+        }
+
+        public Order Get(string orderId)
+        {
+            if(Guid.TryParse(orderId, out var id))
+            {
+                return service.Get(id);
             }
             return null;
         }

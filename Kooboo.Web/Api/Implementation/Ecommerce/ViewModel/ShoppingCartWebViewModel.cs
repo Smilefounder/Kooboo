@@ -33,21 +33,25 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce.ViewModel
 
             var productService = Kooboo.Sites.Ecommerce.ServiceProvider.Product(context);
 
-            string products = null; 
+            string products = null;
+            decimal total = 0;
             foreach (var item in cart.Items)
             {
                 var product = productService.Get(item.ProductId);
                 if (product !=null)
                 {
-                    string name = product.Name; 
+                    string name = product.Name;
+                    if (string.IsNullOrWhiteSpace(name))
+                    { name = product.SummaryText; }
                     if (string.IsNullOrWhiteSpace(name))
                     { name = product.UserKey;  }
 
                     products += name + " [" + item.Quantity + "]"; 
                 }
+                total += item.ItemTotal;
             }
-            this.Products = products; 
-
+            this.Products = products;
+            this.Total = total;
         }
 
         public string UserName { get; set; }

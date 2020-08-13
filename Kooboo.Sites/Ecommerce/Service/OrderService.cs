@@ -19,10 +19,22 @@ namespace Kooboo.Sites.Ecommerce.Service
         public Order CreateOrder(Cart cart, Guid addressId)
         {
             var shipping = ServiceProvider.Shipping(this.Context).CalculateCost(cart);
+            var variantService = ServiceProvider.ProductVariants(this.Context);
 
             Order neworder = new Order();
             foreach (var item in cart.Items)
             {
+                var variant = variantService.Get(item.ProductVariantId);
+                if (variant == null)
+                {
+                    var messge = Data.Language.Hardcoded.GetValue("This specification of product is not found", this.Context);
+                    throw new Exception(messge);
+                }
+                if (variant.Stock < item.Quantity)
+                {
+                    var messge = Data.Language.Hardcoded.GetValue("The inventory is not enough for the supply", this.Context);
+                    throw new Exception(messge);
+                }
                 neworder.Items.Add(Mapper.ToOrderLine(item));
             }
             neworder.Discount = cart.Discount;
@@ -32,7 +44,13 @@ namespace Kooboo.Sites.Ecommerce.Service
             neworder.OrderAddress = new OrderAddress(address);
             neworder.CustomerId = this.CommerceContext.customer.Id;
             neworder.CreateDate = neworder.CreationDate;
-            this.Repo.AddOrUpdate(neworder);
+            if (this.Repo.AddOrUpdate(neworder))
+            {
+                foreach (var item in cart.Items)
+                {
+                    variantService.DeductStock(item.ProductVariantId, item.Quantity);
+                }
+            }
             return neworder;
         }
 
