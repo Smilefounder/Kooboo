@@ -41,8 +41,8 @@ namespace Kooboo.Sites.Ecommerce.KScript
                 {
                     var order = this.service.CreateOrder(cart, id);
 
-                    // clear cart
-                    cartService.RemoveAll();
+                    // remove cart
+                    cartService.Delete(cart.Id);
                     return order;
                 }
             }
