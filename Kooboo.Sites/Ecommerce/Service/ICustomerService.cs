@@ -19,5 +19,7 @@ namespace Kooboo.Sites.Ecommerce.Service
         Customer GetFromContext(RenderContext context);
 
         bool Logout();
+
+        bool ChangePassword(string oldPassword, string newPassword);
     }
 }

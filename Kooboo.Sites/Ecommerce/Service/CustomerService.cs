@@ -134,5 +134,17 @@ namespace Kooboo.Sites.Ecommerce
             }
             return true;
         }
+
+        public bool ChangePassword(string oldPassword, string newPassword)
+        {
+            var customer = GetFromContext(this.Context);
+            bool samePassword = Service.PasswordService.Verify(oldPassword, customer.Password);
+            if(samePassword)
+            {
+                customer.Password = Service.PasswordService.Hash(newPassword);
+                return this.AddOrUpdate(customer);
+            }
+            return false;
+        }
     }
 }
