@@ -94,11 +94,12 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
                 Value = it.Name
             }).ToList();
 
-            model.PromotionMethods = new List<ItemList>
+            var promotionMethodsDic = EnumHelper.GetEnumAllNameAndValue<EnumPromotionMethod>();
+            model.PromotionMethods = promotionMethodsDic.Select(it => new ItemList
             {
-                new ItemList{ Text =  Hardcoded.GetValue("PromitionByAmount", call.Context), Value = "Amount" },
-                new ItemList{ Text =  Hardcoded.GetValue("PromitionByPercent", call.Context), Value = "Percent" }
-            };
+                Text = Hardcoded.GetValue(it.Value, call.Context),
+                Value = it.Key.ToString()
+            }).ToList();
 
             var promotionTargetDic = EnumHelper.GetEnumAllNameAndValue<EnumPromotionTarget>();
             model.PromotionTargets = promotionTargetDic.Select(it => new ItemList
@@ -144,8 +145,16 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             promotionRule.ForObject = model.PromotionModel.PromotionTarget;
             promotionRule.CanCombine = model.PromotionModel.CanCombine;
             promotionRule.PromotionMethod = model.PromotionModel.PromotionMethod;
-            promotionRule.Amount = model.PromotionModel.Amount;
-            promotionRule.Percent = model.PromotionModel.Percent;
+            if (promotionRule.PromotionMethod == EnumPromotionMethod.PromitionByPercent)
+            {
+                promotionRule.Percent = model.PromotionModel.Percent / 100;
+                promotionRule.Amount = 0;
+            }
+            else
+            {
+                promotionRule.Amount = model.PromotionModel.Amount;
+                promotionRule.Percent = 0;
+            }
             promotionRule.StartDate = model.PromotionModel.StartDate ?? DateTime.Now;
             promotionRule.EndDate = model.PromotionModel.EndDate ?? DateTime.Now;
             promotionRule.IsActive = model.PromotionModel.IsActive;
