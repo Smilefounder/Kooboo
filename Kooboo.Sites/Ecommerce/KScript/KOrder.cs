@@ -51,10 +51,25 @@ namespace Kooboo.Sites.Ecommerce.KScript
 
         public Order Get(string orderId)
         {
-            if(Guid.TryParse(orderId, out var id))
+            if (Guid.TryParse(orderId, out var id))
             {
                 return service.Get(id);
             }
+            return null;
+        }
+
+        public Order AddPaymentRequestId(string orderId, string paymentRequestId)
+        {
+            if (Guid.TryParse(orderId, out var id) && Guid.TryParse(paymentRequestId, out var paymentRequestIdParsed))
+            {
+
+                var order = service.Get(id);
+                order.PaymentRequestId = paymentRequestIdParsed;
+                this.service.AddOrUpdate(order);
+
+                return order;
+            }
+
             return null;
         }
 
