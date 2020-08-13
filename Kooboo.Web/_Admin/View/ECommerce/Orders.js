@@ -196,7 +196,7 @@ $(function () {
           id: this.currentOrder.id,
           logisticsCompany: self.shipModel.logisticsCompany,
         }).then(function (res) {
-          if (res.success) {
+          if (res.success && res.model) {
             self.shipModel.logisticsNumber = res.model;
           }
         });

@@ -77,7 +77,7 @@ $(function () {
             self.model.priceAmountReached =
               promotionViewModel.priceAmountReached;
             self.model.amount = promotionViewModel.amount;
-            self.model.percent = promotionViewModel.percent;
+            self.model.percent = promotionViewModel.percent * 100;
 
             self.categories = self.getCategories(
               cateRes.model,
@@ -215,14 +215,6 @@ $(function () {
       },
     },
     watch: {
-      "model.promotionMethod": function (newValue, oldValue) {
-        if (newValue && newValue === "Amount") {
-          self.model.percent = 0;
-        }
-        if (newValue && newValue === "Percent") {
-          self.model.amount = 0;
-        }
-      },
       "model.ruleType": function (newValue, oldValue) {
         if (newValue && newValue === "ByTotalAmount") {
           self.selectedCategories = [];

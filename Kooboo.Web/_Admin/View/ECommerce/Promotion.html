@@ -252,7 +252,7 @@
           </div>
         </div>
 
-        <div v-if="model.promotionMethod==='Amount'" class="form-group">
+        <div v-if="model.promotionMethod==0" class="form-group">
           <div class="col-md-3">
             <label class="control-label">reduction amount</label>
           </div>
@@ -266,11 +266,12 @@
           </div>
         </div>
 
-        <div v-if="model.promotionMethod==='Percent'" class="form-group">
+        <div v-else class="form-group">
           <div class="col-md-3">
             <label class="control-label">price percent</label>
           </div>
-          <div class="input-group col-sm-9">
+          <div class="col-sm-9">
+            <div class="input-group">
             <input
               type="number"
               min="0"
@@ -278,9 +279,7 @@
               class="form-control"
             />
             <div class="input-group-addon">%</div>
-            <label class="control-label">
-              origin price * 80% = promotion price
-            </label>
+          </div>
           </div>
         </div>
       </div>
