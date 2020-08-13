@@ -38,6 +38,7 @@ namespace Kooboo.Sites.Payment.Methods.Alipay
         [Description(@"<script engine='kscript'>
     var charge = {};
     charge.total = 1.50; 
+	charge.id ='2f65d88e-4990-a265-17d2-4732abde573f';   //guid  this is paymentrequestid
 charge.currency='CNY';
 charge.name = 'green tea order'; 
 charge.description = 'The best tea from Xiamen';  
