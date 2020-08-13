@@ -71,10 +71,6 @@ namespace Kooboo.Sites.Logistics.Methods.sto
             res = new LogisticsResponse();
             res.requestId = request.Id;
             res.logisticsMethodReferenceId = apiResult.data.waybillNo;
-
-            // to be remove
-            checkStatus(request);
-
             return res;
         }
 
