@@ -6,18 +6,22 @@ namespace Kooboo.Sites.Ecommerce.Request
 {
     public class CustomerAddressRequest
     {
-        public string CountryName { get; set; }
+        public string Country { get; set; }
 
-        public string ProvinceName { get; set; }
+        public string City { get; set; }
 
-        public string Address1 { get; set; }
+        public string Address { get; set; }
 
         public string Address2 { get; set; }
 
         public string PostCode { get; set; }
 
-        public string ConsigneeName { get; set; }
+        public string Consignee { get; set; }
 
         public string ContactNumber { get; set; }
+
+        public string HouseNumber { get; set; }
+
+        public bool IsDefault { get; set; }
     }
 }

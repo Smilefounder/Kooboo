@@ -19,11 +19,14 @@ namespace Kooboo.Sites.Ecommerce.KScript
 
         private GeographicalRegionService geoService { get; set; }
 
+        private ICustomerService customerService { get; set; }
+
         public KCustomerAddress(RenderContext context)
         {
             this.context = context;
             this.service = ServiceProvider.GetService<CustomerAddressService>(this.context);
             this.geoService = ServiceProvider.GetService<GeographicalRegionService>(this.context);
+            this.customerService = ServiceProvider.Customer(this.context);
         }
 
         [Description("GetCountries")]
@@ -48,69 +51,78 @@ namespace Kooboo.Sites.Ecommerce.KScript
         public bool AddCustomerAddress(IDictionary<string, object> request)
         {
             var requestData = Lib.Reflection.TypeHelper.ToObject<CustomerAddressRequest>(request);
-
+            var customer = this.service.CommerceContext.customer;
             var toAdd = new CustomerAddress
             {
-                Country = requestData.CountryName,
-                City = requestData.ProvinceName,
-                Address = requestData.Address1,
+                Country = requestData.Country,
+                City = requestData.City,
+                Address = requestData.Address,
                 Address2 = requestData.Address2,
                 PostCode = requestData.PostCode,
-                Consignee = requestData.ConsigneeName,
+                Consignee = requestData.Consignee,
                 ContactNumber = requestData.ContactNumber,
-                CustomerId = this.service.CommerceContext.customer.Id
+                HouseNumber = requestData.HouseNumber,
+                CustomerId = customer.Id
             };
 
+            if (requestData.IsDefault)
+            {
+                customer.DefaultShippingAddress = toAdd.Id;
+                this.customerService.AddOrUpdate(customer);
+            }
             return this.service.AddOrUpdate(toAdd);
         }
 
         [Description("Update Customer Address")]
-        public bool UpdateCustomerAddress(string customerAddressId, string selectedIdsStr, string detailAdress, string postCode, string consignee, string contactNumber)
+        [KDefineType(Params = new[] { typeof(string), typeof(CustomerAddressRequest) })]
+        public bool UpdateCustomerAddress(string addressId, IDictionary<string, object> request)
         {
-            List<string> geoAdresses = GetgeoAdresses(selectedIdsStr);
-            var toUpdate = this.service.Get(customerAddressId);
+            if (!Guid.TryParse(addressId, out var id))
+            {
+                return false;
+            }
+            var toUpdate = this.service.Get(id);
             if (toUpdate == null)
             {
                 return false;
             }
+            var requestData = Lib.Reflection.TypeHelper.ToObject<CustomerAddressRequest>(request);
+            toUpdate.Country = requestData.Country;
+            toUpdate.City = requestData.City;
+            toUpdate.Address = requestData.Address;
+            toUpdate.Address2 = requestData.Address2;
+            toUpdate.PostCode = requestData.PostCode;
+            toUpdate.Consignee = requestData.Consignee;
+            toUpdate.ContactNumber = requestData.ContactNumber;
+            toUpdate.HouseNumber = requestData.HouseNumber;
 
-            toUpdate.Country = geoAdresses.FirstOrDefault();
-            toUpdate.Address = MapAddress(detailAdress, geoAdresses);
-            toUpdate.PostCode = postCode;
-            toUpdate.Consignee = consignee;
-            toUpdate.ContactNumber = contactNumber;
-            toUpdate.CustomerId = this.service.CommerceContext.customer.Id;
-
+            if (requestData.IsDefault)
+            {
+                var customer = this.service.CommerceContext.customer;
+                customer.DefaultShippingAddress = id;
+                this.customerService.AddOrUpdate(customer);
+            }
             return this.service.AddOrUpdate(toUpdate);
         }
 
-        private string MapAddress(string detailAdress, List<string> geoAdresses)
-        {
-            return string.Join(" ", geoAdresses) + "\r\n" + detailAdress;
-        }
-
         [Description("Get All Customer Address")]
-        public CustomerAddressViewModel[] GetAllCustomerAddresses()
+        public CustomerAddress[] GetAllCustomerAddresses()
         {
             var allCustomerAddresses = this.service.Repo.Query.Where(it => it.CustomerId == this.service.CommerceContext.customer.Id).SelectAll();
             if (allCustomerAddresses != null)
             {
-                return allCustomerAddresses.OrderByDescending(it => it.CreationDate).Select(it => new CustomerAddressViewModel(it)).ToArray();
+                return allCustomerAddresses.OrderByDescending(it => it.CreationDate).ToArray();
             }
             return null;
         }
 
         [Description("Get Customer Address")]
-        public CustomerAddressViewModel GetCustomerAddress(string customerAddressId)
+        public CustomerAddress GetCustomerAddress(string customerAddressId)
         {
             Guid id;
             if (Guid.TryParse(customerAddressId, out id))
             {
-                var customerAddress = this.service.Get(id);
-                if (customerAddress != null)
-                {
-                    return new CustomerAddressViewModel(customerAddress);
-                }
+                return this.service.Get(id);
             }
 
             return null;
@@ -124,23 +136,6 @@ namespace Kooboo.Sites.Ecommerce.KScript
             {
                 this.service.Delete(id);
             }
-        }
-
-        private List<string> GetgeoAdresses(string selectedIdsStr)
-        {
-            var geoAdress = new List<string>();
-            if (string.IsNullOrEmpty(selectedIdsStr))
-            {
-                return geoAdress;
-            }
-
-            var selectIds = selectedIdsStr.Split(',').ToList();
-            foreach (var item in selectIds)
-            {
-                geoAdress.Add(this.geoService.Get(item).Name);
-            }
-
-            return geoAdress;
         }
     }
 }
