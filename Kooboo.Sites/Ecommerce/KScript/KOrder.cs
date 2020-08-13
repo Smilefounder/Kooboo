@@ -2,6 +2,9 @@
 using Kooboo.Sites.Ecommerce.Models;
 using Kooboo.Sites.Ecommerce.Service;
 using Kooboo.Sites.Ecommerce.ViewModel;
+using Kooboo.Sites.Extensions;
+using Kooboo.Sites.Payment;
+using Kooboo.Sites.Payment.Repository;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -51,10 +54,38 @@ namespace Kooboo.Sites.Ecommerce.KScript
 
         public Order Get(string orderId)
         {
-            if(Guid.TryParse(orderId, out var id))
+            if (Guid.TryParse(orderId, out var id))
             {
                 return service.Get(id);
             }
+            return null;
+        }
+
+        public Order AddPaymentRequestId(string orderId, string paymentRequestId)
+        {
+            if (Guid.TryParse(orderId, out var id) && Guid.TryParse(paymentRequestId, out var paymentRequestIdParsed))
+            {
+
+                var order = service.Get(id);
+                order.PaymentRequestId = paymentRequestIdParsed;
+                this.service.AddOrUpdate(order);
+
+                return order;
+            }
+
+            return null;
+        }
+
+        public PaymentCallback GetPaymentCallBack(string paymentRequestId)
+        {
+            if (Guid.TryParse(paymentRequestId, out var paymentRequestIdParsed))
+            {
+                var sitedb = context.WebSite.SiteDb();
+                var callbackrepo = sitedb.GetSiteRepository<PaymentCallBackRepository>();
+
+                return callbackrepo.Query.Where(it => it.RequestId == paymentRequestIdParsed).FirstOrDefault();
+            }
+
             return null;
         }
 
