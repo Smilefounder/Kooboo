@@ -64,7 +64,7 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
 
         public decimal ShippingCost => order.ShippingCost;
 
-        public OrderAddress OrderAddress => order.OrderAddress;
+        public CustomerAddress CustomerAddress => order.CustomerAddress;
 
         public string LogisticsCompany => order.LogisticsCompany;
 

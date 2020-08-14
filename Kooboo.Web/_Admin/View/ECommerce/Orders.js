@@ -176,7 +176,7 @@ $(function () {
         this.currentOrder = order;
         this.shipModel.logisticsCompany = order.logisticsCompany;
         this.shipModel.logisticsNumber = order.logisticsNumber;
-        if (!order.orderAddress) {
+        if (!order.customerAddress) {
           this.saveShip();
           return;
         }
