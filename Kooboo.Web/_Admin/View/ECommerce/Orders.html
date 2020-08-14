@@ -78,7 +78,7 @@
     </kb-table-column>
     <kb-table-column label="Contact number">
       <template v-slot="row">
-        {{ row.orderAddress && row.orderAddress.contactNumber }}
+        {{ row.customerAddress && row.customerAddress.contactNumber }}
       </template>
     </kb-table-column>
     <!-- <kb-table-column label="itemTotal" prop="itemTotal"></kb-table-column>
@@ -129,7 +129,7 @@
         </div>
         <div class="modal-body">
           <kb-form :model="shipModel" :rules="shipRules" ref="shipForm">
-            <template v-if="currentOrder.orderAddress">
+            <template v-if="currentOrder.customerAddress">
               <kb-form-item>
                 <label class="control-label col-md-3">Order id</label>
                 <div class="col-md-9 control-value">
@@ -139,49 +139,49 @@
               <kb-form-item>
                 <label class="control-label col-md-3">Consignee</label>
                 <div class="col-md-9 control-value">
-                  {{ currentOrder.orderAddress.consignee }}
+                  {{ currentOrder.customerAddress.consignee }}
                 </div>
               </kb-form-item>
               <kb-form-item>
                 <label class="control-label col-md-3">Contact number</label>
                 <div class="col-md-9 control-value">
-                  {{ currentOrder.orderAddress.contactNumber }}
+                  {{ currentOrder.customerAddress.contactNumber }}
                 </div>
               </kb-form-item>
               <kb-form-item>
                 <label class="control-label col-md-3">Country</label>
                 <div class="col-md-9 control-value">
-                  {{ currentOrder.orderAddress.country }}
+                  {{ currentOrder.customerAddress.country }}
                 </div>
               </kb-form-item>
               <kb-form-item>
                 <label class="control-label col-md-3">City</label>
                 <div class="col-md-9 control-value">
-                  {{ currentOrder.orderAddress.city }}
+                  {{ currentOrder.customerAddress.city }}
                 </div>
               </kb-form-item>
               <kb-form-item>
                 <label class="control-label col-md-3">Postcode</label>
                 <div class="col-md-9 control-value">
-                  {{ currentOrder.orderAddress.postCode }}
+                  {{ currentOrder.customerAddress.postCode }}
                 </div>
               </kb-form-item>
               <kb-form-item>
                 <label class="control-label col-md-3">House number</label>
                 <div class="col-md-9 control-value">
-                  {{ currentOrder.orderAddress.houseNumber }}
+                  {{ currentOrder.customerAddress.houseNumber }}
                 </div>
               </kb-form-item>
               <kb-form-item>
                 <label class="control-label col-md-3">Address</label>
                 <div class="col-md-9 control-value">
-                  {{ currentOrder.orderAddress.address }}
+                  {{ currentOrder.customerAddress.address }}
                 </div>
               </kb-form-item>
               <kb-form-item>
                 <label class="control-label col-md-3">Address2</label>
                 <div class="col-md-9 control-value">
-                  {{ currentOrder.orderAddress.Address2 }}
+                  {{ currentOrder.customerAddress.Address2 }}
                 </div>
               </kb-form-item>
               <kb-form-item prop="logisticsCompany">
