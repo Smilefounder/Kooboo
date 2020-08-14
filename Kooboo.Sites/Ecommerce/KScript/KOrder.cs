@@ -209,11 +209,6 @@ namespace Kooboo.Sites.Ecommerce.KScript
             return this.service.Count();
         }
 
-        public string GenerateGuid()
-        {
-            return Guid.NewGuid().ToString();
-        }
-
         public OrderViewModel[] GetOrderList(int skip, int take)
         {
             var orders = this.service.ListByCustomerId(skip, take).Select(it => new OrderViewModel(it, this.context)).ToArray();
