@@ -24,20 +24,12 @@ $(function () {
           endDate: moment().format("YYYY-MM-DD HH:mm"),
           ruleType: "",
           promotionMethod: "0",
-          priceAmountReached: "",
+          priceAmountReached: 0,
           amount: 0,
           percent: 0,
         },
-        errors: {
-          name: "",
-          ruleType: "",
-          promotionMethod: "",
-          startDate: "",
-          endDate: "",
-          priceAmountReached: "",
-        },
         ruleTypes: [],
-        promotionMethods: []
+        promotionMethods: [],
       };
     },
     mounted: function () {
@@ -58,7 +50,7 @@ $(function () {
           self.promotionMethods = promotionRules.model.promotionMethods || [];
 
           var promotionViewModel = promotionRules.model.promotionViewModel;
-          if (promotionViewModel) {
+          if (promotionViewModel && !self.isNew) {
             self.model.name = promotionViewModel.name;
             self.model.isActive = promotionViewModel.isActive;
             self.model.canCombine = promotionViewModel.canCombine;
@@ -66,7 +58,7 @@ $(function () {
               promotionViewModel.activeBasedOnDates;
             self.model.startDate = promotionViewModel.startDate;
             self.model.endDate = promotionViewModel.endDate;
-            self.model.ruleType = promotionViewModel.ruleType;
+            self.model.ruleType = promotionViewModel.ruleType || "";
             self.model.promotionMethod = promotionViewModel.promotionMethod;
             self.model.priceAmountReached =
               promotionViewModel.priceAmountReached;
@@ -114,67 +106,8 @@ $(function () {
         }
       },
 
-      validateRuleName: function () {
-        if (!!self.model.name == false) {
-          self.errors.name = Kooboo.text.validation.required;
-          return false;
-        }
-
-        self.errors.name = "";
-        return true;
-      },
-
-      ruleTypeChange: function () {
-        console.log(222222);
-      },
-
-      validatePriceAmountReached: function () {
-        if (
-          self.model.ruleType === "ByTotalAmount" &&
-          (!!self.model.priceAmountReached === false ||
-            +self.model.priceAmountReached <= 0)
-        ) {
-          self.errors.priceAmountReached =
-            Kooboo.text.validation.greaterThan + 0;
-          return false;
-        }
-
-        self.errors.priceAmountReached = "";
-        return true;
-      },
-
       isValid: function () {
-        var valid = false;
-
-        valid = self.validateRuleName();
-        valid = self.validatePriceAmountReached();
-
-        if (!!self.model.ruleType == false) {
-          self.errors.ruleType = Kooboo.text.validation.required;
-          valid = false;
-        }
-
-        if (!!self.model.promotionMethod == false) {
-          self.errors.promotionMethod = Kooboo.text.validation.required;
-          valid = false;
-        }
-
-        if (self.model.activeBasedOnDates) {
-          if (!!self.model.startDate == false) {
-            self.errors.startDate = Kooboo.text.validation.required;
-            valid = false;
-          }
-
-          if (!!self.model.endDate == false) {
-            self.errors.endDate = Kooboo.text.validation.required;
-            valid = false;
-          }
-        } else {
-          self.errors.startDate = "";
-          self.errors.endDate = "";
-        }
-
-        return valid;
+        return this.$refs.form.validate();
       },
 
       getCategories: function (cates, selectedIds) {
@@ -199,29 +132,50 @@ $(function () {
         self.selectedCategories = getSelected(self.categories);
         self.onHideCategoriesModal();
       },
-      validateInput: function (data, fieldName) {
-        return (data.error[fieldName] = data[fieldName] === "");
-      },
     },
     computed: {
       isNew: function () {
         return self.promotionId == Kooboo.Guid.Empty;
+      },
+      rules: function () {
+        var rules = {
+          name: [{ required: Kooboo.text.validation.required }],
+          startDate: [{ required: Kooboo.text.validation.required }],
+          endDate: [{ required: Kooboo.text.validation.required }],
+          ruleType: [{ required: Kooboo.text.validation.required }],
+          priceAmountReached: [
+            { required: Kooboo.text.validation.required },
+            {
+              min: 0,
+              message: Kooboo.text.validate.minimalValue + " 0",
+            },
+          ],
+          amount: [
+            { required: Kooboo.text.validation.required },
+            {
+              min: 0,
+              message: Kooboo.text.validate.minimalValue + " 0",
+            },
+          ],
+          percent: [
+            { required: Kooboo.text.validation.required },
+            {
+              min: 0,
+              message: Kooboo.text.validate.minimalValue + " 0",
+            },
+          ],
+        };
+
+        return rules;
       },
     },
     watch: {
       "model.ruleType": function (newValue, oldValue) {
         if (newValue && newValue === "ByTotalAmount") {
           self.selectedCategories = [];
-          self.errors.ruleType = "";
         }
         if (newValue && newValue === "ByProductCategory") {
           self.model.priceAmountReached = 0;
-          self.errors.ruleType = "";
-        }
-      },
-      "model.promotionMethod": function (newValue, oldValue) {
-        if (!!newValue) {
-          self.errors.promotionMethod = "";
         }
       },
     },
