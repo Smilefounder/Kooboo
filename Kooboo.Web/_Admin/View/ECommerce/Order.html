@@ -20,8 +20,8 @@
           <div class="control-value">{{ model.id }}</div>
         </div>
         <div class="col-sm-6">
-          <label class="control-label pull-left">Total amount</label>
-          <div class="control-value">{{ model.totalAmount }}</div>
+          <label class="control-label pull-left">Payment requestId</label>
+          <div class="control-value">{{ model.paymentRequestId }}</div>
         </div>
       </div>
 
@@ -58,8 +58,8 @@
           >
         </div>
         <div class="col-sm-6">
-          <label class="control-label pull-left">Payment requestId</label>
-          <div class="control-value">{{ model.paymentRequestId }}</div>
+          <label class="control-label pull-left">Total amount</label>
+          <div class="control-value">{{ model.totalAmount }}</div>
         </div>
       </div>
     </fieldset>
@@ -103,7 +103,7 @@
     </fieldset>
     <fieldset class="margin-bottom-15 clearfix" v-if="model.customerAddress">
       <legend>
-        <div class="pull-left">Order address</div>
+        <div class="pull-left">Customer address</div>
       </legend>
     </fieldset>
     <fieldset class="fieldrow delivery-info" v-if="model.customerAddress">

@@ -108,5 +108,20 @@ namespace Kooboo.Sites.Ecommerce.Service
             }
             return false;
         }
+
+        public bool ReturnStock(Guid id)
+        {
+            var order = this.Repo.Get(id);
+            if (order != null)
+            {
+                var variantService = ServiceProvider.ProductVariants(this.Context);
+                order.Items.ForEach(item =>
+                {
+                    variantService.ReturnStock(item.ProductVariantId, item.Quantity);
+                });
+                return true;
+            }
+            return false;
+        }
     }
 }
