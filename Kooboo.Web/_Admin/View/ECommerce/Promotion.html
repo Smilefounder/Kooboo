@@ -82,190 +82,158 @@
       </legend>
 
       <div class="form-horizontal">
-        <div class="form-group" :class="{'has-error': !!errors.name}">
-          <div class="col-md-3">
-            <label class="control-label">Promotion rule name</label>
-          </div>
-          <div class="col-md-9"
-            ><input
-              type="text"
-              v-model="model.name"
-              v-kb-tooltip:top.manual.error="errors.name"
-              @change="validateRuleName()"
-              class="form-control"
-            />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div class="col-md-3">
-            <label class="control-label">Is enable</label>
-          </div>
-          <div class="col-md-9">
-            <kb-switch v-model="model.isActive"></kb-switch>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div class="col-md-3">
-            <label class="control-label">Can combine</label>
-          </div>
-          <div class="col-md-9">
-            <kb-switch v-model="model.canCombine"></kb-switch>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div class="col-md-3">
-            <label class="control-label">Active based on dates</label>
-          </div>
-          <div class="col-md-9">
-            <kb-switch
-              id="activeBasedOnDates"
-              v-model="model.activeBasedOnDates"
-            ></kb-switch>
-          </div>
-        </div>
-
-        <div v-if="model.activeBasedOnDates">
-          <div class="form-group" :class="{'has-error': !!errors.startDate}">
-            <div class="col-md-3">
-              <label class="control-label">Start time</label>
-            </div>
-            <div class="col-sm-9">
+        <kb-form :model="model" :rules="rules" ref="form">
+          <kb-form-item prop="name">
+            <label class="col-md-3">Promotion rule name</label>
+            <div class="col-md-9">
               <input
-                type="text"
                 class="form-control"
-                v-model="model.startDate"
-                v-kb-tooltip:top.manual.error="errors.startDate"
-                v-kb-datetimepicker
-                readonly
+                type="text"
+                placeholder="Promotion rule name"
+                v-model="model.name"
               />
             </div>
-          </div>
-          <div class="form-group" :class="{'has-error': !!errors.endDate}">
-            <div class="col-md-3">
-              <label class="control-label">End time</label>
+          </kb-form-item>
+
+          <kb-form-item prop="isActive">
+            <label class="col-md-3">Is enable</label>
+            <div class="col-md-9">
+              <kb-switch v-model="model.isActive"></kb-switch>
             </div>
-            <div class="col-sm-9">
-              <input
-                type="text"
-                class="form-control"
-                v-model="model.endDate"
-                v-kb-tooltip:top.manual.error="errors.endDate"
-                v-kb-datetimepicker
-                readonly
-              />
+          </kb-form-item>
+
+          <kb-form-item prop="canCombine">
+            <label class="col-md-3">Can combine</label>
+            <div class="col-md-9">
+              <kb-switch v-model="model.canCombine"></kb-switch>
             </div>
-          </div>
-        </div>
+          </kb-form-item>
 
-        <div class="form-group" :class="{'has-error': !!errors.ruleType}">
-          <div class="col-md-3">
-            <label class="control-label">select promotion rule types</label>
-          </div>
-          <div class="col-sm-9">
-            <select class="form-control" v-model="model.ruleType">
-              <option
-                v-for="item in ruleTypes"
-                :key="item.value"
-                :value="item.value"
-                v-kb-tooltip:top.manual.error="errors.ruleType"
-                >{{ item.text }}</option
-              >
-            </select>
-          </div>
-        </div>
+          <kb-form-item prop="activeBasedOnDates">
+            <label class="col-md-3">Active based on dates</label>
+            <div class="col-md-9">
+              <kb-switch v-model="model.activeBasedOnDates"></kb-switch>
+            </div>
+          </kb-form-item>
 
-        <div v-if="model.ruleType==='ByTotalAmount'" class="form-group" :class="{'has-error': !!errors.priceAmountReached}">
-          <div class="col-md-3">
-            <label class="control-label">price amount reached</label>
-          </div>
-          <div class="col-sm-9">
-            <input
-              type="number"
-              min="0"
-              class="form-control"
-              v-model="model.priceAmountReached"
-              v-kb-tooltip:top.manual.error="errors.priceAmountReached"
-              @change="validatePriceAmountReached()"
-            />
-          </div>
-        </div>
-
-        <div v-if="model.ruleType==='ByProductCategory'" class="form-group">
-          <div class="col-md-3">
-            <label class="control-label">Category</label>
-          </div>
-          <div class="col-sm-9">
-            <div class="input-group">
-              <div class="selected-cates-container">
-                <span
-                  class="cate"
-                  v-for="($data, index) in selectedCategories"
-                  :key="index"
-                  >{{ $data.name }}</span
-                >
+          <div v-if="model.activeBasedOnDates">
+            <kb-form-item prop="startDate">
+              <label class="col-md-3">Start time</label>
+              <div class="col-md-9">
+                <input
+                  class="form-control"
+                  type="text"
+                  placeholder="Start time"
+                  v-model="model.startDate"
+                  v-kb-datetimepicker
+                  readonly
+                />
               </div>
-              <span class="input-group-btn">
-                <button class="btn blue" @click="onShowCategoriesModal"
-                  >Select</button
+            </kb-form-item>
+
+            <kb-form-item prop="endDate">
+              <label class="col-md-3">End time</label>
+              <div class="col-md-9">
+                <input
+                  class="form-control"
+                  type="text"
+                  placeholder="End time"
+                  v-model="model.endDate"
+                  v-kb-datetimepicker
+                  readonly
+                />
+              </div>
+            </kb-form-item>
+          </div>
+
+          <kb-form-item prop="ruleType">
+            <label class="col-md-3">select promotion rule types</label>
+            <div class="col-md-9">
+              <select class="form-control" v-model="model.ruleType">
+                <option
+                  v-for="item in ruleTypes"
+                  :key="item.value"
+                  :value="item.value"
+                  >{{ item.text }}</option
                 >
-              </span>
+              </select>
             </div>
-          </div>
-        </div>
+          </kb-form-item>
 
-        <div
-          class="form-group"
-          :class="{'has-error': !!errors.promotionMethod}"
-        >
-          <div class="col-md-3">
-            <label class="control-label">select promotion method</label>
-          </div>
-          <div class="col-sm-9">
-            <select class="form-control" v-model="model.promotionMethod">
-              <option
-                v-for="item in promotionMethods"
-                :key="item.value"
-                :value="item.value"
-                v-kb-tooltip:top.manual.error="errors.promotionMethod"
-                >{{ item.text }}</option
-              >
-            </select>
-          </div>
-        </div>
+          <kb-form-item
+            v-if="model.ruleType==='ByTotalAmount'"
+            prop="priceAmountReached"
+          >
+            <label class="col-md-3">price amount reached</label>
+            <div class="col-md-9">
+              <input
+                class="form-control"
+                type="number"
+                v-model.number="model.priceAmountReached"
+              />
+            </div>
+          </kb-form-item>
 
-        <div v-if="model.promotionMethod==0" class="form-group">
-          <div class="col-md-3">
-            <label class="control-label">reduction amount</label>
-          </div>
-          <div class="col-sm-9">
-            <input
-              type="number"
-              min="0"
-              class="form-control"
-              v-model="model.amount"
-            />
-          </div>
-        </div>
+          <kb-form-item v-if="model.ruleType==='ByProductCategory'">
+            <label class="col-md-3">Category</label>
+            <div class="col-md-9">
+              <div class="input-group">
+                <div class="selected-cates-container">
+                  <span
+                    class="cate"
+                    v-for="($data, index) in selectedCategories"
+                    :key="index"
+                    >{{ $data.name }}</span
+                  >
+                </div>
+                <span class="input-group-btn">
+                  <button class="btn blue" @click="onShowCategoriesModal"
+                    >Select</button
+                  >
+                </span>
+              </div>
+            </div>
+          </kb-form-item>
 
-        <div v-else class="form-group">
-          <div class="col-md-3">
-            <label class="control-label">price percent</label>
-          </div>
-          <div class="col-sm-9">
-            <div class="input-group">
-            <input
-              type="number"
-              min="0"
-              v-model="model.percent"
-              class="form-control"
-            />
-            <div class="input-group-addon">%</div>
-          </div>
-          </div>
-        </div>
+          <kb-form-item prop="promotionMethod">
+            <label class="col-md-3">select promotion method</label>
+            <div class="col-md-9">
+              <select class="form-control" v-model="model.promotionMethod">
+                <option
+                  v-for="item in promotionMethods"
+                  :key="item.value"
+                  :value="item.value"
+                  >{{ item.text }}</option
+                >
+              </select>
+            </div>
+          </kb-form-item>
+
+          <kb-form-item v-if="model.promotionMethod==0" prop="amount">
+            <label class="col-md-3">reduction amount</label>
+            <div class="col-md-9">
+              <input
+                class="form-control"
+                type="number"
+                v-model.number="model.amount"
+              />
+            </div>
+          </kb-form-item>
+
+          <kb-form-item  v-if="model.promotionMethod==1" prop="percent">
+            <label class="col-md-3">price percent</label>
+            <div class="col-md-9">
+              <div class="input-group">
+                <input
+                  class="form-control"
+                  type="number"
+                  v-model.number="model.percent"
+                />
+                <div class="input-group-addon">%</div>
+              </div>
+            </div>
+          </kb-form-item>
+        </kb-form>
       </div>
     </fieldset>
   </div>
