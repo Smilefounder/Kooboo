@@ -17,7 +17,6 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
         public PagedListViewModel<CustomerForPageViewModel> CustomerList(ApiCall call)
         {
             var sitedb = call.WebSite.SiteDb();
-
             int pagesize = ApiHelper.GetPageSize(call, 50);
             int pagenr = ApiHelper.GetPageNr(call);
 
@@ -30,6 +29,57 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             model.TotalPages = ApiHelper.GetPageCount(model.TotalCount, model.PageSize);
 
             var customerList = customers.OrderByDescending(o => o.LastModified).Skip(model.PageNr * model.PageSize - model.PageSize).Take(model.PageSize).ToList();
+            model.List = customerList.Select(it => MapCustomer(call, it)).ToList();
+
+            return model;
+        }
+
+        public PagedListViewModel<CustomerForPageViewModel> Search(ApiCall call)
+        {
+            string keyword = call.GetValue("keyword");
+            string status = call.GetValue("status");
+
+            var sitedb = call.WebSite.SiteDb();
+            int pagesize = ApiHelper.GetPageSize(call, 50);
+            int pagenr = ApiHelper.GetPageNr(call);
+
+
+
+
+            var items = new List<Customer>();
+
+            var query = sitedb.Customer.Query;
+
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                items = query.SelectAll();
+            }
+            else
+            {
+                if (keyword.Contains("@"))
+                {
+                    // search by user email
+                    var emailHash = Lib.Security.Hash.ComputeGuidIgnoreCase(keyword);
+                    items = query.Where(o => o.EmailHash == emailHash).SelectAll();
+                }
+                //else
+                //{
+                //    // serach by telphone
+                //    var telhash = Lib.Security.Hash.ComputeGuidIgnoreCase(keyword);
+                //    var customer = sitedb.Customer.Query.Where(o => o.TelHash == telhash).FirstOrDefault();
+                //    if (customer != null)
+                //    {
+                //        items = query.Where(o => o.CustomerId == customer.Id).SelectAll();
+                //    }
+                //}
+            }
+            PagedListViewModel<CustomerForPageViewModel> model = new PagedListViewModel<CustomerForPageViewModel>();
+            model.PageNr = pagenr;
+            model.PageSize = pagesize;
+            model.TotalCount = items.Count();
+            model.TotalPages = ApiHelper.GetPageCount(model.TotalCount, model.PageSize);
+
+            var customerList = items.OrderByDescending(o => o.LastModified).Skip(model.PageNr * model.PageSize - model.PageSize).Take(model.PageSize).ToList();
             model.List = customerList.Select(it => MapCustomer(call, it)).ToList();
 
             return model;
