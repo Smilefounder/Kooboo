@@ -40,8 +40,7 @@ namespace Kooboo.Sites.Ecommerce.Service
             neworder.Discount = cart.Discount;
             neworder.ShippingCost = shipping;
             neworder.AddressId = addressId;
-            var address = ServiceProvider.CustomerAddress(Context).Get(addressId);
-            neworder.OrderAddress = new OrderAddress(address);
+            neworder.CustomerAddress = ServiceProvider.CustomerAddress(Context).Get(addressId);
             neworder.CustomerId = this.CommerceContext.customer.Id;
             neworder.CreateDate = neworder.CreationDate;
             if (this.Repo.AddOrUpdate(neworder))
@@ -105,6 +104,21 @@ namespace Kooboo.Sites.Ecommerce.Service
             {
                 order.Status = status;
                 this.Repo.AddOrUpdate(order);
+                return true;
+            }
+            return false;
+        }
+
+        public bool ReturnStock(Guid id)
+        {
+            var order = this.Repo.Get(id);
+            if (order != null)
+            {
+                var variantService = ServiceProvider.ProductVariants(this.Context);
+                order.Items.ForEach(item =>
+                {
+                    variantService.ReturnStock(item.ProductVariantId, item.Quantity);
+                });
                 return true;
             }
             return false;

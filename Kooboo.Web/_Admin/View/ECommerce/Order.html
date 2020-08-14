@@ -20,15 +20,18 @@
           <div class="control-value">{{ model.id }}</div>
         </div>
         <div class="col-sm-6">
-          <label class="control-label pull-left">Total amount</label>
-          <div class="control-value">{{ model.totalAmount }}</div>
+          <label class="control-label pull-left">Payment requestId</label>
+          <div class="control-value">{{ model.paymentRequestId }}</div>
         </div>
       </div>
 
       <div class="row">
         <div class="col-sm-6">
           <label class="control-label pull-left">Status</label>
-          <div class="control-value">{{ Kooboo.text.eCommerce.orderStatus[model.status] || model.status }}</div>
+          <div class="control-value"
+            >{{ Kooboo.text.eCommerce.orderStatus[model.status] || model.status
+            }}</div
+          >
         </div>
         <div class="col-sm-6">
           <label class="control-label pull-left">Create Date</label>
@@ -49,8 +52,14 @@
 
       <div class="row">
         <div class="col-sm-6">
-          <label class="control-label pull-left">Payment requestId</label>
-          <div class="control-value">{{ model.paymentRequestId }}</div>
+          <label class="control-label pull-left">Discount</label>
+          <div class="control-value"
+            >{{ model.discount ? model.discount.total : '-' }}</div
+          >
+        </div>
+        <div class="col-sm-6">
+          <label class="control-label pull-left">Total amount</label>
+          <div class="control-value">{{ model.totalAmount }}</div>
         </div>
       </div>
     </fieldset>
@@ -92,17 +101,13 @@
         </tbody>
       </table>
     </fieldset>
-    <fieldset class="margin-bottom-15 clearfix" v-if="model.orderAddress">
+    <fieldset class="margin-bottom-15 clearfix" v-if="model.customerAddress">
       <legend>
-        <div class="pull-left">Order address</div>
+        <div class="pull-left">Customer address</div>
       </legend>
     </fieldset>
-    <fieldset class="fieldrow delivery-info" v-if="model.orderAddress">
-      <kb-form
-        :model="model"
-        :rules="addressRules"
-        ref="addressForm"
-      >
+    <fieldset class="fieldrow delivery-info" v-if="model.customerAddress">
+      <kb-form :model="model" :rules="addressRules" ref="addressForm">
         <div class="row">
           <kb-form-item prop="consignee" class="col-sm-6">
             <label class="control-label pull-left">Consignee</label>
@@ -110,7 +115,7 @@
               <input
                 type="text"
                 class="form-control"
-                v-model="model.orderAddress.consignee"
+                v-model="model.customerAddress.consignee"
               />
             </div>
           </kb-form-item>
@@ -120,7 +125,7 @@
               <input
                 type="text"
                 class="form-control"
-                v-model="model.orderAddress.contactNumber"
+                v-model="model.customerAddress.contactNumber"
               /> </div
           ></kb-form-item>
         </div>
@@ -131,7 +136,7 @@
               <input
                 type="text"
                 class="form-control"
-                v-model="model.orderAddress.country"
+                v-model="model.customerAddress.country"
               /> </div
           ></kb-form-item>
           <kb-form-item prop="city" class="col-sm-6"
@@ -140,7 +145,7 @@
               <input
                 type="text"
                 class="form-control"
-                v-model="model.orderAddress.city"
+                v-model="model.customerAddress.city"
               /> </div
           ></kb-form-item>
         </div>
@@ -151,7 +156,7 @@
               <input
                 type="text"
                 class="form-control"
-                v-model="model.orderAddress.postCode"
+                v-model="model.customerAddress.postCode"
               /> </div
           ></kb-form-item>
           <kb-form-item prop="houseNumber" class="col-sm-6">
@@ -160,7 +165,7 @@
               <input
                 type="text"
                 class="form-control"
-                v-model="model.orderAddress.houseNumber"
+                v-model="model.customerAddress.houseNumber"
               /> </div
           ></kb-form-item>
         </div>
@@ -172,7 +177,7 @@
               <input
                 type="text"
                 class="form-control"
-                v-model="model.orderAddress.address"
+                v-model="model.customerAddress.address"
               /> </div
           ></kb-form-item>
           <kb-form-item prop="address2" class="col-sm-6"
@@ -181,7 +186,7 @@
               <input
                 type="text"
                 class="form-control"
-                v-model="model.orderAddress.address2"
+                v-model="model.customerAddress.address2"
               /> </div
           ></kb-form-item>
         </div>
@@ -191,10 +196,15 @@
             ><label class="control-label pull-left">Logistics company</label>
             <div class="control-value">
               <select class="form-control" v-model="model.logisticsCompany">
-                <option v-for="(item, index) in logistics" :key="index" :value="item.name">{{ item.displayName }}</option>
+                <option
+                  v-for="(item, index) in logistics"
+                  :key="index"
+                  :value="item.name"
+                  >{{ item.displayName }}</option
+                >
               </select>
-              </div
-          ></kb-form-item>
+            </div></kb-form-item
+          >
           <kb-form-item prop="logisticsNumber" class="col-sm-6"
             ><label class="control-label pull-left">Logistics number</label>
             <div class="control-value">

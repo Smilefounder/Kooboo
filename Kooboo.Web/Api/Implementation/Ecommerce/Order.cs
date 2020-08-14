@@ -112,16 +112,16 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
         {
             var service = ServiceProvider.Order(call.Context);
             var order = service.Get(neworder.Id);
-            if (order.OrderAddress != null)
+            if (order.CustomerAddress != null)
             {
-                order.OrderAddress.Consignee = neworder.OrderAddress.Consignee;
-                order.OrderAddress.ContactNumber = neworder.OrderAddress.ContactNumber;
-                order.OrderAddress.Country = neworder.OrderAddress.Country;
-                order.OrderAddress.City = neworder.OrderAddress.City;
-                order.OrderAddress.PostCode = neworder.OrderAddress.PostCode;
-                order.OrderAddress.HouseNumber = neworder.OrderAddress.HouseNumber;
-                order.OrderAddress.Address = neworder.OrderAddress.Address;
-                order.OrderAddress.Address2 = neworder.OrderAddress.Address2;
+                order.CustomerAddress.Consignee = neworder.CustomerAddress.Consignee;
+                order.CustomerAddress.ContactNumber = neworder.CustomerAddress.ContactNumber;
+                order.CustomerAddress.Country = neworder.CustomerAddress.Country;
+                order.CustomerAddress.City = neworder.CustomerAddress.City;
+                order.CustomerAddress.PostCode = neworder.CustomerAddress.PostCode;
+                order.CustomerAddress.HouseNumber = neworder.CustomerAddress.HouseNumber;
+                order.CustomerAddress.Address = neworder.CustomerAddress.Address;
+                order.CustomerAddress.Address2 = neworder.CustomerAddress.Address2;
                 order.LogisticsCompany = neworder.logisticsCompany;
                 order.LogisticsNumber = neworder.logisticsNumber;
                 service.AddOrUpdate(order);
@@ -156,7 +156,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             {
                 var method = new KLogisticsMethodWrapper(logisticsmethod, call.Context);
                 var service = ServiceProvider.Order(call.Context);
-                var receiver = service.Get(id).OrderAddress;
+                var receiver = service.Get(id).CustomerAddress;
                 var info = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
                 {
                     { "sendername", sender.SenderName },
@@ -184,7 +184,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             return service.GetAllLogistics();
         }
 
-        public bool ChangeOrderAddress(ApiCall call, Guid orderId, Guid addressId)
+        public bool ChangeCustomerAddress(ApiCall call, Guid orderId, Guid addressId)
         {
             var sitedb = call.WebSite.SiteDb();
 

@@ -107,7 +107,7 @@ $(function () {
       getSaveOrder: function () {
         return {
           id: self.model.id,
-          orderAddress: self.model.orderAddress,
+          customerAddress: self.model.customerAddress,
           logisticsCompany: self.model.logisticsCompany,
           logisticsNumber: self.model.logisticsNumber
         };

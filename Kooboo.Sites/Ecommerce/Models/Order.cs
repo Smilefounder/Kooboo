@@ -102,6 +102,6 @@ namespace Kooboo.Sites.Ecommerce.Models
 
         public string LogisticsNumber { get; set; }
 
-        public OrderAddress OrderAddress { get; set; }
+        public CustomerAddress CustomerAddress { get; set; }
     }
 }
