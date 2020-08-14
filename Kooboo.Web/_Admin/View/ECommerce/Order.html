@@ -28,7 +28,10 @@
       <div class="row">
         <div class="col-sm-6">
           <label class="control-label pull-left">Status</label>
-          <div class="control-value">{{ Kooboo.text.eCommerce.orderStatus[model.status] || model.status }}</div>
+          <div class="control-value"
+            >{{ Kooboo.text.eCommerce.orderStatus[model.status] || model.status
+            }}</div
+          >
         </div>
         <div class="col-sm-6">
           <label class="control-label pull-left">Create Date</label>
@@ -48,6 +51,12 @@
       </div>
 
       <div class="row">
+        <div class="col-sm-6">
+          <label class="control-label pull-left">Discount</label>
+          <div class="control-value"
+            >{{ model.discount ? model.discount.total : '-' }}</div
+          >
+        </div>
         <div class="col-sm-6">
           <label class="control-label pull-left">Payment requestId</label>
           <div class="control-value">{{ model.paymentRequestId }}</div>
@@ -98,11 +107,7 @@
       </legend>
     </fieldset>
     <fieldset class="fieldrow delivery-info" v-if="model.orderAddress">
-      <kb-form
-        :model="model"
-        :rules="addressRules"
-        ref="addressForm"
-      >
+      <kb-form :model="model" :rules="addressRules" ref="addressForm">
         <div class="row">
           <kb-form-item prop="consignee" class="col-sm-6">
             <label class="control-label pull-left">Consignee</label>
@@ -191,10 +196,15 @@
             ><label class="control-label pull-left">Logistics company</label>
             <div class="control-value">
               <select class="form-control" v-model="model.logisticsCompany">
-                <option v-for="(item, index) in logistics" :key="index" :value="item.name">{{ item.displayName }}</option>
+                <option
+                  v-for="(item, index) in logistics"
+                  :key="index"
+                  :value="item.name"
+                  >{{ item.displayName }}</option
+                >
               </select>
-              </div
-          ></kb-form-item>
+            </div></kb-form-item
+          >
           <kb-form-item prop="logisticsNumber" class="col-sm-6"
             ><label class="control-label pull-left">Logistics number</label>
             <div class="control-value">
