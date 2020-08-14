@@ -43,8 +43,6 @@ namespace Kooboo.Sites.Ecommerce.ViewModel
 
         public EnumPromotionMethod PromotionMethod { get; set; }
 
-        public EnumPromotionTarget PromotionTarget { get; set; }
-
         public string PriceAmountReached { get; set; }
 
         public decimal Amount { get; set; }
