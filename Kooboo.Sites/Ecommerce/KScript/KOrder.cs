@@ -160,6 +160,18 @@ namespace Kooboo.Sites.Ecommerce.KScript
             }
         }
 
+        public void ReturnStock(object[] orderIds)
+        {
+            foreach (var orderId in orderIds)
+            {
+                var id = Lib.Helper.IDHelper.GetGuid(orderId);
+                if (id != default)
+                {
+                    service.ReturnStock(id);
+                }
+            }
+        }
+
         private void ChangeOrderStatus(Guid OrderId, string status)
         {
             var order = this.service.Get(OrderId);
