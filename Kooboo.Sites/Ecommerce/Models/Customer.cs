@@ -89,6 +89,7 @@ namespace Kooboo.Sites.Ecommerce.Models
         {
             string unique = this.Name + this.FirstName + this.LastName + this.EmailAddress + this.Telephone;
             unique += this.DefaultBankCard.ToString() + this.DefaultShippingAddress.ToString();
+            unique += this.Password;
             return Lib.Security.Hash.ComputeIntCaseSensitive(unique);
         }
     }
