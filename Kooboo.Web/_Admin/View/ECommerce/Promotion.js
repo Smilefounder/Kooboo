@@ -23,9 +23,7 @@ $(function () {
           startDate: moment().format("YYYY-MM-DD HH:mm"),
           endDate: moment().format("YYYY-MM-DD HH:mm"),
           ruleType: "",
-          promotionMethod: "",
-          // -1 不让传给后台
-          promotionTarget: -1,
+          promotionMethod: "0",
           priceAmountReached: "",
           amount: 0,
           percent: 0,
@@ -34,14 +32,12 @@ $(function () {
           name: "",
           ruleType: "",
           promotionMethod: "",
-          promotionTarget: "",
           startDate: "",
           endDate: "",
           priceAmountReached: "",
         },
         ruleTypes: [],
-        promotionMethods: [],
-        promotionTargets: [],
+        promotionMethods: []
       };
     },
     mounted: function () {
@@ -60,7 +56,6 @@ $(function () {
           self.siteLangs = langRes.model;
           self.ruleTypes = promotionRules.model.promotionRuleTypes || [];
           self.promotionMethods = promotionRules.model.promotionMethods || [];
-          self.promotionTargets = promotionRules.model.promotionTargets || [];
 
           var promotionViewModel = promotionRules.model.promotionViewModel;
           if (promotionViewModel) {
@@ -73,7 +68,6 @@ $(function () {
             self.model.endDate = promotionViewModel.endDate;
             self.model.ruleType = promotionViewModel.ruleType;
             self.model.promotionMethod = promotionViewModel.promotionMethod;
-            self.model.promotionTarget = promotionViewModel.forObject;
             self.model.priceAmountReached =
               promotionViewModel.priceAmountReached;
             self.model.amount = promotionViewModel.amount;

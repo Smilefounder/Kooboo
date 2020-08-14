@@ -101,13 +101,6 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
                 Value = it.Key.ToString()
             }).ToList();
 
-            var promotionTargetDic = EnumHelper.GetEnumAllNameAndValue<EnumPromotionTarget>();
-            model.PromotionTargets = promotionTargetDic.Select(it => new ItemList
-            {
-                Text = Hardcoded.GetValue(it.Value, call.Context),
-                Value = it.Key.ToString()
-            }).ToList();
-
             return model;
         }
 
@@ -142,7 +135,7 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             promotionRule.ConditionName = model.PromotionModel.RuleType;
             promotionRule.Operator = promotionRuleType != null ? promotionRuleType.AvailableOperators.FirstOrDefault() : "";
             promotionRule.TargetValue = targetValue;
-            promotionRule.ForObject = model.PromotionModel.PromotionTarget;
+            promotionRule.ForObject = promotionRuleType != null ? promotionRuleType.TargetObject : EnumPromotionTarget.ForProduct;
             promotionRule.CanCombine = model.PromotionModel.CanCombine;
             promotionRule.PromotionMethod = model.PromotionModel.PromotionMethod;
             if (promotionRule.PromotionMethod == EnumPromotionMethod.PromitionByPercent)

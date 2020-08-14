@@ -138,20 +138,20 @@ namespace Kooboo.Sites.Logistics.Methods.yto
             {
                 Receiver = new PersonalInfo
                 {
-                    Address = "软件园",
-                    City = "厦门市",
-                    Prov = "福建省",
-                    Name = "receiver",
-                    Phone = "11111111111",
+                    Address = request.ReceiverInfo.Address,
+                    City = request.ReceiverInfo.City,
+                    Prov = request.ReceiverInfo.Prov,
+                    Name = request.ReceiverInfo.Name,
+                    Phone = request.ReceiverInfo.Phone,
                     PostCode = "0"
                 },
                 Sender = new PersonalInfo
                 {
-                    Address = "软件园",
-                    City = "泉州市",
-                    Prov = "福建省",
-                    Name = "receiver",
-                    Phone = "11111111111",
+                    Address = request.SenderInfo.Address,
+                    City = request.SenderInfo.City,
+                    Prov = request.SenderInfo.Prov,
+                    Name = request.SenderInfo.Name,
+                    Phone = request.SenderInfo.Phone,
                     PostCode = "0"
                 },
                 TxLogisticID = request.Id.ToString("N")
