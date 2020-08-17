@@ -272,11 +272,14 @@ $(function() {
             res.model["show"] = true;
             res.model["context"] = m;
             res.model["onAdd"] = function(selected) {
-              m.images = selected.map(function(s) {
-                return {
-                  url: s.url,
-                  thumbnail: s.thumbnail
-                };
+              m.images = m.images || [];
+              selected.forEach(s => {
+                if(!m.images.some(function(o) { return o.url === s.url})) {
+                  m.images.push({
+                    url: s.url,
+                    thumbnail: s.thumbnail
+                  });
+                }
               });
             };
             self.mediaDialogData = res.model;
