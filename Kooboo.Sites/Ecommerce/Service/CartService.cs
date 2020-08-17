@@ -27,7 +27,7 @@ namespace Kooboo.Sites.Ecommerce.Service
 
         public void AddITem(Guid ProductVariantId, int quantity = 1)
         {
-            var variantService = ServiceProvider.GetService<ProductVariantsService>(this.Context);
+            var variantService = ServiceProvider.ProductVariants(this.Context);
 
             var variant = variantService.Get(ProductVariantId);
 
@@ -69,7 +69,7 @@ namespace Kooboo.Sites.Ecommerce.Service
 
         public void ChangeQuantity(Guid ProductVariantId, int newQuantity)
         {
-            var variantService = ServiceProvider.GetService<ProductVariantsService>(this.Context);
+            var variantService = ServiceProvider.ProductVariants(this.Context);
 
             var variant = variantService.Get(ProductVariantId);
 

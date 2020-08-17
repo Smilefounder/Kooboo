@@ -5,17 +5,17 @@ using System.Text;
 
 namespace Kooboo.Sites.Ecommerce.Service
 {
-   public class ProductVariantsService : ServiceBase<ProductVariants>
-    { 
+    public class ProductVariantsService : ServiceBase<ProductVariants>, IProductVariantsService
+    {
         public List<ProductVariants> ListByProduct(Guid ProductId)
         {
-           return this.Repo.Query.Where(o => o.ProductId == ProductId).SelectAll(); 
+            return this.Repo.Query.Where(o => o.ProductId == ProductId).SelectAll();
         }
 
         public bool DeductStock(Guid id, int quantity)
         {
             var variant = this.Get(id);
-            if(variant.Stock < quantity)
+            if (variant.Stock < quantity)
             {
                 return false;
             }
