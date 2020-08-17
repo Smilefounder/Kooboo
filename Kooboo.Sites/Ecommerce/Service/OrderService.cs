@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Kooboo.Sites.Ecommerce.Service
 {
-    public class OrderService : ServiceBase<Order>
+    public class OrderService : ServiceBase<Order>, IOrderService
     {
         //only order some of the shopping cart item... 
         public Order CreateOrder(List<CartItem> CartItems, Guid addressId)

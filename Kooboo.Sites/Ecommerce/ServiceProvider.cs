@@ -39,14 +39,14 @@ namespace Kooboo.Sites.Ecommerce
             return GetService<CategoryService>(context);
         }
 
-        public static ProductService Product(RenderContext context)
+        public static IProductService Product(RenderContext context)
         {
-            return GetService<ProductService>(context);
+            return GetService<IProductService>(context);
         }
 
-        public static ProductVariantsService ProductVariants(RenderContext context)
+        public static IProductVariantsService ProductVariants(RenderContext context)
         {
-            return GetService<ProductVariantsService>(context);
+            return GetService<IProductVariantsService>(context);
         }
 
         public static ICustomerService Customer(RenderContext context)
@@ -69,9 +69,9 @@ namespace Kooboo.Sites.Ecommerce
             return GetService<ICartService>(context);
         }
 
-        public static OrderService Order(RenderContext context)
+        public static IOrderService Order(RenderContext context)
         {
-            return GetService<OrderService>(context);
+            return GetService<IOrderService>(context);
         }
 
         public static ShippingService Shipping(RenderContext context)

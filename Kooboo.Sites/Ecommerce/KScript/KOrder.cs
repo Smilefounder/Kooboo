@@ -19,7 +19,7 @@ namespace Kooboo.Sites.Ecommerce.KScript
 
         public CommerceContext commerceContext { get; set; }
 
-        private OrderService service { get; set; }
+        private IOrderService service { get; set; }
 
         private ICartService cartService { get; set; }
 
@@ -38,7 +38,7 @@ namespace Kooboo.Sites.Ecommerce.KScript
 
             if (parseok)
             {
-                var cartservice = ServiceProvider.GetService<CartService>(this.context);
+                var cartservice = ServiceProvider.Cart(this.context);
                 var cart = cartservice.GetOrCreateCart();
                 if (cart.Items.Any())
                 {
@@ -110,7 +110,7 @@ namespace Kooboo.Sites.Ecommerce.KScript
                     }
                 }
 
-                var cartservice = ServiceProvider.GetService<CartService>(this.context);
+                var cartservice = ServiceProvider.Cart(this.context);
                 var cart = cartservice.GetOrCreateCart();
                 if (cart.Items.Any() && selectedCartItem.Any())
                 {
