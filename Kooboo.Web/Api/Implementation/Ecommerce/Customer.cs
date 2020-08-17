@@ -37,17 +37,13 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
         public PagedListViewModel<CustomerForPageViewModel> Search(ApiCall call)
         {
             string keyword = call.GetValue("keyword");
-            string status = call.GetValue("status");
+            keyword = keyword.Trim();
 
             var sitedb = call.WebSite.SiteDb();
             int pagesize = ApiHelper.GetPageSize(call, 50);
             int pagenr = ApiHelper.GetPageNr(call);
 
-
-
-
             var items = new List<Customer>();
-
             var query = sitedb.Customer.Query;
 
             if (string.IsNullOrWhiteSpace(keyword))
@@ -62,16 +58,21 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
                     var emailHash = Lib.Security.Hash.ComputeGuidIgnoreCase(keyword);
                     items = query.Where(o => o.EmailHash == emailHash).SelectAll();
                 }
-                //else
-                //{
-                //    // serach by telphone
-                //    var telhash = Lib.Security.Hash.ComputeGuidIgnoreCase(keyword);
-                //    var customer = sitedb.Customer.Query.Where(o => o.TelHash == telhash).FirstOrDefault();
-                //    if (customer != null)
-                //    {
-                //        items = query.Where(o => o.CustomerId == customer.Id).SelectAll();
-                //    }
-                //}
+                else
+                {
+                    var telhash = Lib.Security.Hash.ComputeGuidIgnoreCase(keyword);
+                    items = query.Where(o => o.TelHash == telhash).SelectAll();
+
+                    var itemsByName = query.Where(o => o.Name == keyword).SelectAll();
+                    var itemsByFirstName = query.Where(o => o.FirstName == keyword).SelectAll();
+                    var itemsByLastName = query.Where(o => o.LastName == keyword).SelectAll();
+
+                    items = items.Union(itemsByName).ToList();
+                    items = items.Union(itemsByFirstName).ToList();
+                    items = items.Union(itemsByLastName).ToList();
+
+                    items = items.Distinct(new Customer_Comparer_By_Id()).ToList();
+                }
             }
             PagedListViewModel<CustomerForPageViewModel> model = new PagedListViewModel<CustomerForPageViewModel>();
             model.PageNr = pagenr;
@@ -165,6 +166,27 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             customer.EmailAddress = model.CustomerModel.EmailAddress;
             customer.Telephone = model.CustomerModel.Telephone;
             return customer;
+        }
+
+        public class Customer_Comparer_By_Id : IEqualityComparer<Customer>
+        {
+            public bool Equals(Customer x, Customer y)
+            {
+                if (x == null || y == null)
+                    return false;
+                if (x.Id == y.Id)
+                    return true;
+                else
+                    return false;
+            }
+
+            public int GetHashCode(Customer obj)
+            {
+                if (obj == null)
+                    return 0;
+                else
+                    return obj.Id.GetHashCode();
+            }
         }
     }
 }
