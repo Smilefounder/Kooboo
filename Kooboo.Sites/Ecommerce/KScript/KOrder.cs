@@ -153,9 +153,17 @@ namespace Kooboo.Sites.Ecommerce.KScript
             foreach (var OrderId in OrderIds)
             {
                 var guid = Lib.Helper.IDHelper.GetGuid(OrderId);
-                if (guid != default(Guid))
+                if (guid != default)
                 {
-                    ChangeOrderStatus(guid, "cancel");
+                    var order = this.service.Get(guid);
+                    if (order != null)
+                    {
+                        if ((int)order.Status < (int)OrderStatus.Paid)
+                        {
+                            order.Status = OrderStatus.Cancel;
+                            this.service.AddOrUpdate(order);
+                        }
+                    }
                 }
             }
         }
@@ -172,38 +180,19 @@ namespace Kooboo.Sites.Ecommerce.KScript
             }
         }
 
-        private void ChangeOrderStatus(Guid OrderId, string status)
+        public void Paid(object paymentRequestId)
         {
-            var order = this.service.Get(OrderId);
-            if (order != null)
+            var guid = Lib.Helper.IDHelper.GetGuid(paymentRequestId);
+            if (guid != default)
             {
-                if (string.Equals(status, "paid", StringComparison.OrdinalIgnoreCase))
+                var order = this.service.Get(guid);
+                if (order != null)
                 {
                     order.Status = OrderStatus.Paid;
-                }
-
-                if (string.Equals(status, "cancel", StringComparison.OrdinalIgnoreCase))
-                {
-                    if ((int)order.Status < (int)OrderStatus.Paid)
-                        order.Status = OrderStatus.Cancel;
-                }
-            }
-
-            this.service.AddOrUpdate(order);
-        }
-
-        public void Paid(object[] OrderIds)
-        {
-            foreach (var OrderId in OrderIds)
-            {
-                var guid = Lib.Helper.IDHelper.GetGuid(OrderId);
-                if (guid != default(Guid))
-                {
-                    ChangeOrderStatus(guid, "paid");
+                    service.AddOrUpdate(order);
                 }
             }
         }
-
         public int GetTotalCount()
         {
             return this.service.Count();
