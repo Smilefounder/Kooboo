@@ -17,7 +17,6 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
         public PagedListViewModel<CustomerForPageViewModel> CustomerList(ApiCall call)
         {
             var sitedb = call.WebSite.SiteDb();
-
             int pagesize = ApiHelper.GetPageSize(call, 50);
             int pagenr = ApiHelper.GetPageNr(call);
 
@@ -30,6 +29,58 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             model.TotalPages = ApiHelper.GetPageCount(model.TotalCount, model.PageSize);
 
             var customerList = customers.OrderByDescending(o => o.LastModified).Skip(model.PageNr * model.PageSize - model.PageSize).Take(model.PageSize).ToList();
+            model.List = customerList.Select(it => MapCustomer(call, it)).ToList();
+
+            return model;
+        }
+
+        public PagedListViewModel<CustomerForPageViewModel> Search(ApiCall call)
+        {
+            string keyword = call.GetValue("keyword");
+            keyword = keyword.Trim();
+
+            var sitedb = call.WebSite.SiteDb();
+            int pagesize = ApiHelper.GetPageSize(call, 50);
+            int pagenr = ApiHelper.GetPageNr(call);
+
+            var items = new List<Customer>();
+            var query = sitedb.Customer.Query;
+
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                items = query.SelectAll();
+            }
+            else
+            {
+                if (keyword.Contains("@"))
+                {
+                    // search by user email
+                    var emailHash = Lib.Security.Hash.ComputeGuidIgnoreCase(keyword);
+                    items = query.Where(o => o.EmailHash == emailHash).SelectAll();
+                }
+                else
+                {
+                    var telhash = Lib.Security.Hash.ComputeGuidIgnoreCase(keyword);
+                    items = query.Where(o => o.TelHash == telhash).SelectAll();
+
+                    var itemsByName = query.Where(o => o.Name == keyword).SelectAll();
+                    var itemsByFirstName = query.Where(o => o.FirstName == keyword).SelectAll();
+                    var itemsByLastName = query.Where(o => o.LastName == keyword).SelectAll();
+
+                    items = items.Union(itemsByName).ToList();
+                    items = items.Union(itemsByFirstName).ToList();
+                    items = items.Union(itemsByLastName).ToList();
+
+                    items = items.Distinct(new Customer_Comparer_By_Id()).ToList();
+                }
+            }
+            PagedListViewModel<CustomerForPageViewModel> model = new PagedListViewModel<CustomerForPageViewModel>();
+            model.PageNr = pagenr;
+            model.PageSize = pagesize;
+            model.TotalCount = items.Count();
+            model.TotalPages = ApiHelper.GetPageCount(model.TotalCount, model.PageSize);
+
+            var customerList = items.OrderByDescending(o => o.LastModified).Skip(model.PageNr * model.PageSize - model.PageSize).Take(model.PageSize).ToList();
             model.List = customerList.Select(it => MapCustomer(call, it)).ToList();
 
             return model;
@@ -115,6 +166,27 @@ namespace Kooboo.Web.Api.Implementation.Ecommerce
             customer.EmailAddress = model.CustomerModel.EmailAddress;
             customer.Telephone = model.CustomerModel.Telephone;
             return customer;
+        }
+
+        public class Customer_Comparer_By_Id : IEqualityComparer<Customer>
+        {
+            public bool Equals(Customer x, Customer y)
+            {
+                if (x == null || y == null)
+                    return false;
+                if (x.Id == y.Id)
+                    return true;
+                else
+                    return false;
+            }
+
+            public int GetHashCode(Customer obj)
+            {
+                if (obj == null)
+                    return 0;
+                else
+                    return obj.Id.GetHashCode();
+            }
         }
     }
 }

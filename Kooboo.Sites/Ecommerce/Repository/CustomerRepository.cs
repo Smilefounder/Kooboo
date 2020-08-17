@@ -12,6 +12,8 @@ namespace Kooboo.Sites.Ecommerce.Repository
             {
                 ObjectStoreParameters para = new ObjectStoreParameters();
                 para.AddIndex<Customer>(o => o.Name);
+                para.AddIndex<Customer>(o => o.FirstName);
+                para.AddIndex<Customer>(o => o.LastName);
                 para.AddIndex<Customer>(o => o.EmailHash);
                 para.AddIndex<Customer>(o => o.TelHash);
                 return para;
