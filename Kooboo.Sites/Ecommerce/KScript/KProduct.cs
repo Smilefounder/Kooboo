@@ -13,12 +13,12 @@ namespace Kooboo.Sites.Ecommerce.KScript
     {
         private RenderContext context { get; set; }
 
-        private ProductService service { get; set; }
+        private IProductService service { get; set; }
 
         public KProduct(RenderContext context)
         {
             this.context = context;
-            this.service = Kooboo.Sites.Ecommerce.ServiceProvider.GetService<ProductService>(this.context);
+            this.service = ServiceProvider.Product(this.context);
         }
         public ProductViewModel[] All(int skip, int take)
         {

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Kooboo.Sites.Ecommerce.Service
 {
-    public class ProductService : ServiceBase<Product>
+    public class ProductService : ServiceBase<Product>, IProductService
     {
         public List<Product> All(int skip = 0, int count = 50)
         {

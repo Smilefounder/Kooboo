@@ -39,9 +39,9 @@ namespace Kooboo.Sites.Ecommerce
             return GetService<CategoryService>(context);
         }
 
-        public static ProductService Product(RenderContext context)
+        public static IProductService Product(RenderContext context)
         {
-            return GetService<ProductService>(context);
+            return GetService<IProductService>(context);
         }
 
         public static ProductVariantsService ProductVariants(RenderContext context)
