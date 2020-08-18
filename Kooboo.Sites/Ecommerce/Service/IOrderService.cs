@@ -16,6 +16,6 @@ namespace Kooboo.Sites.Ecommerce.Service
         List<Order> ListByCustomerId(int skip, int take);
         bool Paid(Guid orderId);
         bool ReturnStock(Guid id);
-        bool UpdateStatus(Guid orderId, OrderStatus status);
+        Order GetOrderByPaymentRequestId(Guid paymentRequestId);
     }
 }

@@ -61,19 +61,16 @@ namespace Kooboo.Sites.Ecommerce.KScript
             return null;
         }
 
-        public Order AddPaymentRequestId(string orderId, string paymentRequestId)
+        public bool SetPaymentRequestId(string orderId, string paymentRequestId)
         {
             if (Guid.TryParse(orderId, out var id) && Guid.TryParse(paymentRequestId, out var paymentRequestIdParsed))
             {
-
                 var order = service.Get(id);
                 order.PaymentRequestId = paymentRequestIdParsed;
                 this.service.AddOrUpdate(order);
-
-                return order;
+                return true;
             }
-
-            return null;
+            return false;
         }
 
         public PaymentCallback GetPaymentCallBack(string paymentRequestId)
@@ -155,15 +152,7 @@ namespace Kooboo.Sites.Ecommerce.KScript
                 var guid = Lib.Helper.IDHelper.GetGuid(OrderId);
                 if (guid != default)
                 {
-                    var order = this.service.Get(guid);
-                    if (order != null)
-                    {
-                        if ((int)order.Status < (int)OrderStatus.Paid)
-                        {
-                            order.Status = OrderStatus.Cancel;
-                            this.service.AddOrUpdate(order);
-                        }
-                    }
+                    service.Cancel(guid);
                 }
             }
         }
@@ -180,19 +169,36 @@ namespace Kooboo.Sites.Ecommerce.KScript
             }
         }
 
-        public void Paid(object paymentRequestId)
+        public Order getOrderByPaymentRequestId(object paymentRequestId)
         {
             var guid = Lib.Helper.IDHelper.GetGuid(paymentRequestId);
             if (guid != default)
             {
-                var order = this.service.Get(guid);
-                if (order != null)
-                {
-                    order.Status = OrderStatus.Paid;
-                    service.AddOrUpdate(order);
-                }
+                return service.GetOrderByPaymentRequestId(guid);
             }
+            return null;
         }
+
+        public bool Paid(object orderId)
+        {
+            var guid = Lib.Helper.IDHelper.GetGuid(orderId);
+            if (guid != default)
+            {
+                return service.Paid(guid);
+            }
+            return false;
+        }
+
+        public bool PaidByPaymentRequestId(object paymentRequestId)
+        {
+            var order = getOrderByPaymentRequestId(paymentRequestId);
+            if(order != null)
+            {
+                Paid(order.Id);
+            }
+            return false;
+        }
+
         public int GetTotalCount()
         {
             return this.service.Count();
