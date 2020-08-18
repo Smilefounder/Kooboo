@@ -11,6 +11,9 @@ namespace Kooboo.Sites.Payment.Methods.Alipay.lib
         public const string CHARSET = "charset";
         public const string PayMethod = "alipay.trade.page.pay";
         public const string ALIPAY_QUERY = "alipay.trade.query";
+        private const string CharsetValue = "UTF-8";
+        private const string SignTypeValue = "RSA2";
+
         /**
         * 跳转支付宝页面直接进行支付
         */
@@ -24,7 +27,7 @@ namespace Kooboo.Sites.Payment.Methods.Alipay.lib
                 request.Add("biz_content", data.ToJson(bizContent));
                 request.Add("notify_url", noticeUrl);
                 request.Add("return_url", returnUrl);
-                request.Add("sign", data.RSASign(request, setting.PrivateKey, setting.Charset, setting.SignType));
+                request.Add("sign", data.RSASign(request, setting.PrivateKey, CharsetValue, SignTypeValue));
 
                 var body = BuildHtmlRequest(request, "POST", setting);
 
@@ -46,9 +49,9 @@ namespace Kooboo.Sites.Payment.Methods.Alipay.lib
                 var request = RequestBase(setting, ALIPAY_QUERY);
                 request.Add("biz_content", data.ToJson(bizContent));
 
-                request.Add("sign", data.RSASign(request, setting.PrivateKey, setting.Charset, setting.SignType));
+                request.Add("sign", data.RSASign(request, setting.PrivateKey, CharsetValue, SignTypeValue));
 
-                var body = HttpService.DoPost(setting.ServerUrl + "?" + CHARSET + "=" + setting.Charset, request, setting.Charset);
+                var body = HttpService.DoPost(setting.ServerUrl + "?" + CHARSET + "=" + CharsetValue, request, CharsetValue);
 
                 return body;
             }
@@ -65,7 +68,7 @@ namespace Kooboo.Sites.Payment.Methods.Alipay.lib
             var sbHtml = new StringBuilder();
             //sbHtml.Append("<head><meta http-equiv=\"Content-Type\" content=\"text/html\" charset= \"" + charset + "\" /></head>");
 
-            sbHtml.Append("<form id='alipaysubmit' name='alipaysubmit' action='" + setting.ServerUrl + "?charset=" + setting.Charset +
+            sbHtml.Append("<form id='alipaysubmit' name='alipaysubmit' action='" + setting.ServerUrl + "?charset=" + CharsetValue +
                           "' method='" + strMethod + "'>");
             ;
             foreach (var temp in dicPara)
@@ -120,7 +123,7 @@ namespace Kooboo.Sites.Payment.Methods.Alipay.lib
             }
 
             //SignType私钥检查
-            if (string.IsNullOrEmpty(setting.SignType))
+            if (string.IsNullOrEmpty(SignTypeValue))
             {
                 throw new AliPayException("您的支付宝配置未能通过检查，详细信息：签名类型未指定！");
             }
@@ -132,7 +135,7 @@ namespace Kooboo.Sites.Payment.Methods.Alipay.lib
             }
 
             //RSA私钥格式检查
-            RSA rsaCsp = AlipaySignature.LoadCertificateString(setting.PrivateKey, setting.SignType);
+            RSA rsaCsp = AlipaySignature.LoadCertificateString(setting.PrivateKey, SignTypeValue);
 
             if (rsaCsp == null)
             {
@@ -142,11 +145,11 @@ namespace Kooboo.Sites.Payment.Methods.Alipay.lib
             var dic = new AopDictionary();
             dic.Add("app_id", setting.APPId);
             dic.Add("method", method);
-            dic.Add("format", setting.Format);
-            dic.Add("charset", setting.Charset);
-            dic.Add("sign_type", setting.SignType);
+            dic.Add("format", "JSON");
+            dic.Add("charset", CharsetValue);
+            dic.Add("sign_type", SignTypeValue);
             dic.Add("timestamp", DateTime.Now);
-            dic.Add("version", setting.Version);
+            dic.Add("version", "1.0");
 
             return dic;
         }

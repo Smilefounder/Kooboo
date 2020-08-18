@@ -9,10 +9,6 @@ namespace Kooboo.Sites.Payment.Methods
         public string Name => "AlipayFormPayment";
 
         public string APPId { get; set; }
-        public string Format { get; set; }
-        public string Charset { get; set; }
-        public string SignType { get; set; }
-        public string Version { get; set; }
         public string ReturnUrl { get; set; }
         public bool UseSandBox { get; set; }
         public string PrivateKey { get; set; }
