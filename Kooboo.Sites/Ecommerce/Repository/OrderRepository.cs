@@ -14,6 +14,7 @@ namespace Kooboo.Sites.Ecommerce.Repository
                 para.AddIndex<Order>(o => o.CustomerId);
                 para.AddColumn<Order>(o => o.Status);
                 para.AddColumn<Order>(o => o.AddressId);
+                para.AddIndex<Order>(o => o.PaymentRequestId);
                 return para;
             }
         } 
