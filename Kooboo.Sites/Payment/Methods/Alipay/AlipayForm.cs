@@ -12,6 +12,9 @@ namespace Kooboo.Sites.Payment.Methods.Alipay
 {
     public class AlipayForm : IPaymentMethod<AlipayFormSetting>
     {
+        private const string CharsetValue = "UTF-8";
+        private const string SignTypeValue = "RSA2";
+
         public string Name => "AlipayForm";
 
         public string DisplayName => Data.Language.Hardcoded.GetValue("alipay", Context);
@@ -84,7 +87,7 @@ var resForm = k.payment.alipayForm.charge(charge);
             if (dic.Count > 0)
             {
                 var data = new AlipayData();
-                bool signVerified = data.RSACheckV1(dic, this.Setting.PublicKey, this.Setting.Charset); //调用SDK验证签名
+                bool signVerified = data.RSACheckV1(dic, this.Setting.PublicKey, CharsetValue); //调用SDK验证签名
                 if (signVerified)
                 {
                     var strPaymentRequestId = context.Request.GetValue("out_trade_no");
@@ -173,7 +176,7 @@ var resForm = k.payment.alipayForm.charge(charge);
                 dic.Add("out_trade_no", request.Id.ToString("N"));
                 var response = AlipayApi.Query(dic, this.Setting);
                 var data = new AlipayData();
-                var res = data.FromJson(response, Setting);
+                var res = data.FromJson(response, Setting, CharsetValue, SignTypeValue);
                 var trade_state = res["trade_status"];
                 //交易状态：WAIT_BUYER_PAY（交易创建，等待买家付款）、TRADE_CLOSED（未付款交易超时关闭，或支付完成后全额退款）、TRADE_SUCCESS（交易支付成功）、TRADE_FINISHED（交易结束，不可退款）
 

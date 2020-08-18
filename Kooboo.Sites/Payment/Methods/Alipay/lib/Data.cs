@@ -69,7 +69,7 @@ namespace Kooboo.Sites.Payment.Methods.Alipay.lib
             return JsonConvert.SerializeObject(dic, Formatting.None, jsetting);
         }
 
-        public IDictionary<string, object> FromJson(string body, AlipayFormSetting setting)
+        public IDictionary<string, object> FromJson(string body, AlipayFormSetting setting, string charsetValue, string signTypeValue)
         {
             var json = JsonConvert.DeserializeObject<IDictionary<string, object>>(body);
 
@@ -86,7 +86,7 @@ namespace Kooboo.Sites.Payment.Methods.Alipay.lib
 
                 if (!string.IsNullOrEmpty(sign) && !string.IsNullOrEmpty(signSourceDate))
                 {
-                    CheckResponseSign(sign, signSourceDate, setting);
+                    CheckResponseSign(sign, signSourceDate, setting, charsetValue, signTypeValue);
 
                     if (json["code"].ToString() != "10000")
                     {
@@ -106,9 +106,9 @@ namespace Kooboo.Sites.Payment.Methods.Alipay.lib
             return json;
         }
 
-        public static void CheckResponseSign(string sign, string signSourceDate, AlipayFormSetting setting)
+        public static void CheckResponseSign(string sign, string signSourceDate, AlipayFormSetting setting, string charsetValue, string signTypeValue)
         {
-            if (string.IsNullOrEmpty(setting.PublicKey) || string.IsNullOrEmpty(setting.Charset))
+            if (string.IsNullOrEmpty(setting.PublicKey) || string.IsNullOrEmpty(charsetValue))
             {
                 throw new AliPayException("public key or charset is Empty!");
             }
@@ -119,7 +119,7 @@ namespace Kooboo.Sites.Payment.Methods.Alipay.lib
             }
 
             var rsaCheckContent = AlipaySignature.RSACheckContent(signSourceDate, sign, setting.PublicKey,
-                setting.Charset, setting.SignType);
+                charsetValue, signTypeValue);
 
             if (!rsaCheckContent)
             {
