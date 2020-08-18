@@ -97,18 +97,6 @@ namespace Kooboo.Sites.Ecommerce.Service
             return this.Repo.Store.Count();
         }
 
-        public bool UpdateStatus(Guid orderId, OrderStatus status)
-        {
-            var order = this.Repo.Get(orderId);
-            if (order != null)
-            {
-                order.Status = status;
-                this.Repo.AddOrUpdate(order);
-                return true;
-            }
-            return false;
-        }
-
         public bool ReturnStock(Guid id)
         {
             var order = this.Repo.Get(id);
@@ -119,6 +107,24 @@ namespace Kooboo.Sites.Ecommerce.Service
                 {
                     variantService.ReturnStock(item.ProductVariantId, item.Quantity);
                 });
+                return true;
+            }
+            return false;
+        }
+
+        public Order GetOrderByPaymentRequestId(Guid paymentRequestId)
+        {
+            var order = this.Repo.Store.Where(it => it.PaymentRequestId == paymentRequestId).FirstOrDefault();
+            return order;
+        }
+
+        private bool UpdateStatus(Guid orderId, OrderStatus status)
+        {
+            var order = this.Repo.Get(orderId);
+            if (order != null)
+            {
+                order.Status = status;
+                this.Repo.AddOrUpdate(order);
                 return true;
             }
             return false;
