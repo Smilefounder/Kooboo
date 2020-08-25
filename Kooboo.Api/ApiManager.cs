@@ -73,7 +73,7 @@ namespace Kooboo.Api
                 var result = new JsonResponse() { Success = false };
                 result.Messages.AddRange(errors);
                 return result;
-            } 
+            }
             try
             {
                 return ExecuteMethod(call, apimethod);
@@ -83,7 +83,7 @@ namespace Kooboo.Api
                 var result = new JsonResponse() { Success = false };
                 result.Messages.Add(ex.Message);
 
-                Kooboo.Data.Log.Instance.Exception.WriteException(ex);  
+                Kooboo.Data.Log.Instance.Exception.WriteException(ex);
 
                 return result;
             }
@@ -91,7 +91,34 @@ namespace Kooboo.Api
 
         private static IResponse ExecuteMethod(ApiCall call, ApiMethod apimethod)
         {
-            var response = Methods.ApiMethodManager.Execute(apimethod, call);
+            object response =null; 
+
+            if (apimethod.ClassInstance is Api)
+            {
+                var instance = Activator.CreateInstance(apimethod.DeclareType) as Api;
+
+                try
+                {
+                    var ok = instance.OnActionExecuting(call);
+                    if (ok)
+                    {
+                        response = Methods.ApiMethodManager.Execute(apimethod, call);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw ex; 
+                }
+                finally
+                {
+                     instance.OnActionExecuted(call);
+                }  
+            }
+            else
+            {
+                response = Methods.ApiMethodManager.Execute(apimethod, call);
+            }
+         
 
             if (apimethod.IsVoid)
             {

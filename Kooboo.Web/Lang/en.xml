@@ -1342,4 +1342,6 @@
   <key id="Finish">Finish</key>
   <key id="Ship">Ship</key>
   <key id="Shopping Cart">Shopping Cart</key>
+  <key id="expandAll">expand</key>
+  <key id="collapseAll">collapse</key>
 </Lang>

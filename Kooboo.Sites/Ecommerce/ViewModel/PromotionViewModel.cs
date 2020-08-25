@@ -1,8 +1,6 @@
 ﻿using Kooboo.Sites.Ecommerce.Promotion;
-using SharpDX.Direct3D11;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Kooboo.Sites.Ecommerce.ViewModel
 {

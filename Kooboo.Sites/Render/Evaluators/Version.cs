@@ -10,8 +10,7 @@ namespace Kooboo.Sites.Render.Evaluators
     public class VersionEvaluator : IEvaluator
     {
         public EvaluatorResponse Evaluate(Node node, EvaluatorOption options)
-        {
-            //Kooboo.Lib.Utilities.DataUriService.isDataUri
+        { 
             if (options.IgnoreEvaluators.HasFlag(EnumEvaluator.Version))
             {
                 return null;

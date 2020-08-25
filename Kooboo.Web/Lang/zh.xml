@@ -1366,4 +1366,6 @@
   <key id="Shopping Cart">购物车</key>
   <key id="Order id">订单编号</key>
   <key id="Create Date">创建时间</key>
+  <key id="expandAll">展开</key>
+  <key id="collapseAll">折叠</key>
 </Lang>

@@ -3,6 +3,7 @@ using Kooboo.Sites.Extensions;
 using Kooboo.Sites.Models;
 using Kooboo.Sites.Service;
 using Kooboo.Sites.Sync;
+using Kooboo.Sites.Sync.Disk;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -36,7 +37,7 @@ namespace Kooboo.Sites.Scripting.Extension
             string api = Data.AppSettings.ConvertApiUrl + "/_api/converter/Convert";
 
             var lastdot = filename.LastIndexOf(".");
-            var extens = filename.Substring(lastdot); 
+            var extens = filename.Substring(lastdot);
 
             filename = Kooboo.Lib.Security.ShortGuid.GetNewShortId() + extens;
 
@@ -50,7 +51,7 @@ namespace Kooboo.Sites.Scripting.Extension
             {
                 MemoryStream zipfile = new MemoryStream(response);
 
-                var manager = DiskSyncHelper.GetSyncManager(this.context.WebSite.Id);
+                var manager = new SyncManager(this.context.WebSite.Id);
 
                 using (var archive = new ZipArchive(zipfile, ZipArchiveMode.Read))
                 {
@@ -64,50 +65,53 @@ namespace Kooboo.Sites.Scripting.Extension
                             MemoryStream memory = new MemoryStream();
                             entry.Open().CopyTo(memory);
                             var bytes = memory.ToArray();
-                             
+
                             if (bytes != null && bytes.Length > 0)
-                            { 
+                            {
                                 var lower = entry.Name.ToLower();
                                 if (lower.EndsWith(".htm") || lower.EndsWith(".html"))
                                 {
                                     if (string.IsNullOrEmpty(html))
                                     {
                                         html = System.Text.Encoding.UTF8.GetString(bytes);
-                                    } 
+                                    }
                                 }
                                 else
                                 {
                                     var mime = Lib.Helper.IOHelper.MimeType(target);
 
-                                    var resultfilename = target; 
+                                    var resultfilename = target;
 
-                                    if (mime !=null && mime.ToLower().Contains("image"))
+                                    if (mime != null)
                                     {
-                                        resultfilename = System.IO.Path.Combine("officeconverter", target);
-                                    } 
+                                        if (mime.ToLower().Contains("image") || mime.ToLower().Contains("css"))
+                                        {
+                                            resultfilename = System.IO.Path.Combine("officeconverter", target);
+                                        }
+                                    }
 
-                                    manager.SyncToDb(resultfilename, sitedb, bytes, false);
+                                    manager.SyncToDb(resultfilename, sitedb, bytes);
 
-                                } 
-                            } 
+                                }
+                            }
                         }
-                    }  
-                } 
+                    }
+                }
             }
 
-            return CorrectImageHtml(html);
+            return CorrectHtmlLink(html);
         }
 
-        private  string CorrectImageHtml(string input)
+        private string CorrectHtmlLink(string input)
         {
-            if(string.IsNullOrWhiteSpace(input))
+            if (string.IsNullOrWhiteSpace(input))
             {
-                return null; 
+                return null;
             }
 
             var dom = Kooboo.Dom.DomParser.CreateDom(input);
 
-            List<SourceUpdate> updates = new List<SourceUpdate>(); 
+            List<SourceUpdate> updates = new List<SourceUpdate>();
 
             var imgurls = Kooboo.Sites.Service.DomUrlService.GetImageSrcs(dom);
 
@@ -121,30 +125,12 @@ namespace Kooboo.Sites.Scripting.Extension
                         continue;
                     }
 
-                    string RelativeUrl = Kooboo.Lib.Helper.UrlHelper.RelativePath(item.Value);
-
-
-                    if (string.IsNullOrWhiteSpace(RelativeUrl))
+                    if (string.IsNullOrWhiteSpace(item.Value))
                     {
-                        continue; 
+                        continue;
                     }
 
-                    // add converter folder. 
-                   /// RelativeUrl = Lib.Helper.UrlHelper.Combine("officeconverter", RelativeUrl); 
-
-                    if (RelativeUrl.StartsWith("/") || RelativeUrl.Contains("/"))
-                    {
-                        RelativeUrl = "/officeconverter" + RelativeUrl; 
-                    }
-                    else if (RelativeUrl.StartsWith("\\") || RelativeUrl.Contains("\\"))
-                    {
-                        RelativeUrl = "\\officeconverter" + RelativeUrl; 
-                    }
-                    else
-                    {
-                        RelativeUrl = "/officeconverter/" + RelativeUrl;
-                    }
-                     
+                    string RelativeUrl = AppendPath(item.Value);
 
                     if (item.Value != RelativeUrl)
                     {
@@ -155,25 +141,152 @@ namespace Kooboo.Sites.Scripting.Extension
                         {
                             StartIndex = item.Key.location.openTokenStartIndex,
                             EndIndex = item.Key.location.openTokenEndIndex,
-                            NewValue = newstring 
+                            NewValue = newstring
                         });
                     }
-                     
+
                 }
             }
 
-             if (updates.Any())
+
+            // for external css link. 
+            var list = dom.getElementsByTagName("link");
+
+            foreach (var item in list.item)
             {
-                return Kooboo.Sites.Service.DomService.UpdateSource(input, updates);  
+                //  < link rel = "stylesheet" href = " " >
+                var rel = item.getAttribute("rel");
+                if (rel != null && rel.ToLower() == "stylesheet")
+                {
+                    var href = item.getAttribute("href");
+                    if (string.IsNullOrWhiteSpace(href))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        string RelativeUrl = AppendPath(href);
+                        if (href != RelativeUrl)
+                        {
+                            string oldstring = Kooboo.Sites.Service.DomService.GetOpenTag(item);
+                            string newstring = oldstring.Replace(href, RelativeUrl);
+
+                            updates.Add(new SourceUpdate()
+                            {
+                                StartIndex = item.location.openTokenStartIndex,
+                                EndIndex = item.location.openTokenEndIndex,
+                                NewValue = newstring
+                            });
+                        }
+                    }
+
+                }
             }
-            return input;  
+
+
+            var embeds = dom.getElementsByTagName("embed");
+            //<embed src = "UpcE1I9h3kCZ1P2oBSKRpw_files/img_01.svg" type = "image/svg+xml" class="stl_03" />
+
+            foreach (var item in embeds.item)
+            {
+                var type = item.getAttribute("type");
+                if (type != null & type.ToLower().Contains("image"))
+                {
+                    var href = item.getAttribute("src");
+                    if (string.IsNullOrWhiteSpace(href))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        string RelativeUrl = AppendPath(href);
+                        if (href != RelativeUrl)
+                        {
+                            var svgatt = new Dom.Attr();
+                            svgatt.name = "pluginspage";
+                            svgatt.value = "http://www.adobe.com/svg/viewer/install/";
+                            item.attributes.Add(svgatt);
+                            string oldstring = Kooboo.Sites.Service.DomService.ReSerializeOpenTag(item);
+                            string newstring = oldstring.Replace(href, RelativeUrl);
+
+                            updates.Add(new SourceUpdate()
+                            {
+                                StartIndex = item.location.openTokenStartIndex,
+                                EndIndex = item.location.openTokenEndIndex,
+                                NewValue = newstring
+                            });
+                        }
+                    }
+                }
+            }
+
+
+            var objs = dom.getElementsByTagName("object");
+            //<embed src = "UpcE1I9h3kCZ1P2oBSKRpw_files/img_01.svg" type = "image/svg+xml" class="stl_03" />
+
+            foreach (var item in objs.item)
+            {
+                var type = item.getAttribute("type");
+                if (type == null || !type.ToLower().Contains("image"))
+                {
+                    continue;
+                }
+
+                var href = item.getAttribute("data");
+                if (string.IsNullOrWhiteSpace(href) || !href.ToLower().EndsWith(".svg"))
+                {
+                    continue;
+                }
+                else
+                {
+                    string RelativeUrl = AppendPath(href);
+                    if (href != RelativeUrl)
+                    {
+                        string oldstring = Kooboo.Sites.Service.DomService.ReSerializeOpenTag(item);
+                        string newstring = oldstring.Replace(href, RelativeUrl);
+
+                        updates.Add(new SourceUpdate()
+                        {
+                            StartIndex = item.location.openTokenStartIndex,
+                            EndIndex = item.location.openTokenEndIndex,
+                            NewValue = newstring
+                        });
+                    }
+                }
+            }
+
+            if (updates.Any())
+            {
+                return Kooboo.Sites.Service.DomService.UpdateSource(input, updates);
+            }
+            return input;
+        }
+
+        private static string AppendPath(string urlpath)
+        {
+            string RelativeUrl = Kooboo.Lib.Helper.UrlHelper.RelativePath(urlpath);
+
+            if (RelativeUrl.StartsWith("/") || RelativeUrl.Contains("/"))
+            {
+                RelativeUrl = "/officeconverter" + RelativeUrl;
+            }
+            else if (RelativeUrl.StartsWith("\\") || RelativeUrl.Contains("\\"))
+            {
+                RelativeUrl = "\\officeconverter" + RelativeUrl;
+            }
+            else
+            {
+                RelativeUrl = "/officeconverter/" + RelativeUrl;
+            }
+
+            return RelativeUrl;
         }
 
         public string OfficeToCleanHTML(byte[] officebytes, string filename)
         {
             var result = officeToHTML(officebytes, filename);
 
-            return Kooboo.Data.Helper.DomHelper.CleanBodyStyle(result); 
+            return Kooboo.Data.Helper.DomHelper.CleanBodyStyle(result);
         }
     }
 }

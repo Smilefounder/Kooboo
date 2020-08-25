@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace Kooboo.Sites.Models
 {
     [Kooboo.Attributes.Diskable(Kooboo.Attributes.DiskType.Text)] 
-    [Attributes.NameAsID]
+    [Attributes.NameAsID] 
     public class Code : CoreObject, ITextObject, IEmbeddable, IExtensionable
     {
         public Code()

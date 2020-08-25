@@ -1,4 +1,5 @@
-﻿using Kooboo.Sites.Render;
+﻿using Kooboo.Render.Customized;
+using Kooboo.Sites.Render;
 using Kooboo.Sites.Render.Evaluators;
 using System.Collections.Generic;
 
@@ -27,12 +28,14 @@ namespace Kooboo.Render.Components
                     _list.Add(new OmitOuterTagEvaluator());
                     _list.Add(new ContentEvaluator());
                     _list.Add(new ComponentEvaluator());
-                    _list.Add(new HeaderEvaluator());
+                  //_list.Add(new HeaderEvaluator());
                     _list.Add(new FormEvaluator());
                     _list.Add(new CommandEvaluator());
                     _list.Add(new KConfigContentEvaluator());
 
-                    _list.Add(new ServerComponentEvaluator()); 
+                    _list.Add(new ServerComponentEvaluator());
+
+                    _list.Add(new AdminVersionEvaluator());
                     //add the 
                 }
                 return _list;

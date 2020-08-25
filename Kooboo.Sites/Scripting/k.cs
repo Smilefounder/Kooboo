@@ -6,10 +6,12 @@ using Kooboo.Data;
 using Kooboo.Data.Attributes;
 using Kooboo.Data.Context;
 using Kooboo.Data.Interface;
+using Kooboo.Data.Models;
 using Kooboo.Sites.Extensions;
 using Kooboo.Sites.Scripting;
 using Kooboo.Sites.Scripting.Global;
 using Kooboo.Sites.Scripting.Global.Mysql;
+using Kooboo.Sites.Scripting.Global.SMS;
 using Kooboo.Sites.Scripting.Global.Sqlite;
 using KScript.KscriptConfig;
 using KScript.Sites;
@@ -65,6 +67,37 @@ namespace KScript
             return new k(newcontext);
         }
 
+        private WebSite _findsite(Guid id)
+        {
+            Guid orgid = this.RenderContext.WebSite.OrganizationId;
+            List<WebSite> allsites = Kooboo.Data.GlobalDb.WebSites.ListByOrg(orgid);
+
+            if (allsites == null || !allsites.Any())
+            {
+                return null;
+            }
+
+            return allsites.Find(o => o.Id == id);
+        }
+
+        public k GetBySiteId(object SiteId)
+        {  
+            Guid id = Kooboo.Lib.Helper.IDHelper.ParseKey(SiteId);
+            WebSite find = _findsite(id); 
+
+            if (find == null)
+            {
+                return null;
+            }
+
+            RenderContext newcontext = new RenderContext();
+            newcontext.Request = this.RenderContext.Request;
+            newcontext.User = this.RenderContext.User;
+            newcontext.WebSite = find;
+            newcontext.IsSiteBinding = true;
+            return new k(newcontext);
+        }
+         
 
         [KIgnore]
         public object this[string key] { get { return ExtensionContainer.Get(key, RenderContext); } set { ExtensionContainer.Set(value); } }
@@ -183,6 +216,15 @@ var value = k.session.key; ")]
             set
             {
                 _dom = value;
+            }
+        }
+
+        [Description("Send SMS notification")]
+        public SMS sms
+        {
+            get
+            {
+                return new SMS(this.RenderContext); 
             }
         }
 

@@ -246,6 +246,7 @@ namespace Kooboo.Sites.Sync
                 return "/" + PathPrefix + "/" + typepath + "/" + name;  
             }
         }
+         
 
         public static string GetNonRoutableFolder(string FullOrRelativePath)
         {
