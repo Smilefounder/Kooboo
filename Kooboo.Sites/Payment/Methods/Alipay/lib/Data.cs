@@ -57,6 +57,7 @@ namespace Kooboo.Sites.Payment.Methods.Alipay.lib
             parameters.Remove("sign");
             parameters.Remove("sign_type");
             var signContent = ToStringContent(parameters);
+            Kooboo.Data.Log.Instance.Payment.Write("signContent:" + signContent);
             return AlipaySignature.RSACheckContent(signContent, sign, publicKeyPem, charset, "RSA2");
         }
 

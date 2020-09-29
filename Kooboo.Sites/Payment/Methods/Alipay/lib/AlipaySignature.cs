@@ -50,8 +50,9 @@ namespace Kooboo.Sites.Payment.Methods.Alipay.lib
                     RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
                     rsa.PersistKeyInCsp = false;
                     RSACryptoServiceProviderExtension.LoadPublicKeyPEM(rsa, sPublicKeyPEM);
-
+                    Kooboo.Data.Log.Instance.Payment.Write("sPublicKeyPEM:" + sPublicKeyPEM);
                     bool bVerifyResultOriginal = rsa.VerifyData(Encoding.GetEncoding(charset).GetBytes(signContent), "SHA256", Convert.FromBase64String(sign));
+                    Kooboo.Data.Log.Instance.Payment.Write("bVerifyResultOriginal:" + bVerifyResultOriginal);
                     return bVerifyResultOriginal;
                 }
                 else
