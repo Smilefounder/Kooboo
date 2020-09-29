@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Text;
 using Kooboo.Data.Attributes;
 using Kooboo.Data.Context;
+using Kooboo.Lib.Helper;
 using Kooboo.Sites.Payment.Methods.Alipay.lib;
 using Kooboo.Sites.Payment.Response;
 
@@ -84,10 +85,22 @@ var resForm = k.payment.alipayForm.charge(charge);
             var dic = GetRequestPost(context);
             if (dic.Count > 0)
             {
-                Kooboo.Data.Log.Instance.Payment.Write("para count>0"); 
+                Kooboo.Data.Log.Instance.Payment.Write("para count>0");
 
                 var data = new AlipayData();
                 bool signVerified = data.RSACheckV1(dic, this.Setting.PublicKey, this.Setting.Charset); //调用SDK验证签名
+
+                Kooboo.Data.Log.Instance.Payment.Write("sign:" + dic["sign"]);
+                Kooboo.Data.Log.Instance.Payment.Write("PublicKey:" + this.Setting.PublicKey);
+                Kooboo.Data.Log.Instance.Payment.Write("Charset:" + this.Setting.Charset);
+                try
+                {
+                    Kooboo.Data.Log.Instance.Payment.Write("all dic:" + JsonHelper.Serialize(dic));
+                }
+                catch (Exception)
+                {
+                }
+
                 if (signVerified)
                 {
                     Kooboo.Data.Log.Instance.Payment.Write("signVerified");
@@ -144,7 +157,7 @@ var resForm = k.payment.alipayForm.charge(charge);
                         //怎么让kooboo的前端打印输出“fail”
                     }
                 }
-                else 
+                else
                 {
                     Kooboo.Data.Log.Instance.Payment.Write("sign failed");
                 }
