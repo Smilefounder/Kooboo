@@ -79,13 +79,19 @@ var resForm = k.payment.alipayForm.charge(charge);
 
         public PaymentCallback Notify(RenderContext context)
         {
+            Kooboo.Data.Log.Instance.Payment.Write("starting notify");
+
             var dic = GetRequestPost(context);
             if (dic.Count > 0)
             {
+                Kooboo.Data.Log.Instance.Payment.Write("para count>0"); 
+
                 var data = new AlipayData();
                 bool signVerified = data.RSACheckV1(dic, this.Setting.PublicKey, this.Setting.Charset); //调用SDK验证签名
                 if (signVerified)
                 {
+                    Kooboo.Data.Log.Instance.Payment.Write("signVerified");
+
                     var strPaymentRequestId = context.Request.GetValue("out_trade_no");
                     Guid paymentRequestId;
                     if (Guid.TryParse(strPaymentRequestId, out paymentRequestId))
@@ -127,6 +133,7 @@ var resForm = k.payment.alipayForm.charge(charge);
                         {
                             callback.Status = PaymentStatus.NotAvailable;
                             //怎么让kooboo的前端打印输出“fail”
+                            Kooboo.Data.Log.Instance.Payment.Write("NotAvailable");
                         }
 
                         return callback;
@@ -136,6 +143,10 @@ var resForm = k.payment.alipayForm.charge(charge);
                         return null;
                         //怎么让kooboo的前端打印输出“fail”
                     }
+                }
+                else 
+                {
+                    Kooboo.Data.Log.Instance.Payment.Write("sign failed");
                 }
             }
 
