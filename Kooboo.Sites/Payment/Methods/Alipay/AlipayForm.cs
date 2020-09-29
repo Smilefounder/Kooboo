@@ -86,10 +86,6 @@ var resForm = k.payment.alipayForm.charge(charge);
             if (dic.Count > 0)
             {
                 Kooboo.Data.Log.Instance.Payment.Write("para count>0");
-
-                var data = new AlipayData();
-                bool signVerified = data.RSACheckV1(dic, this.Setting.PublicKey, this.Setting.Charset); //调用SDK验证签名
-
                 Kooboo.Data.Log.Instance.Payment.Write("sign:" + dic["sign"]);
                 Kooboo.Data.Log.Instance.Payment.Write("PublicKey:" + this.Setting.PublicKey);
                 Kooboo.Data.Log.Instance.Payment.Write("Charset:" + this.Setting.Charset);
@@ -100,6 +96,9 @@ var resForm = k.payment.alipayForm.charge(charge);
                 catch (Exception)
                 {
                 }
+
+                var data = new AlipayData();
+                bool signVerified = data.RSACheckV1(dic, this.Setting.PublicKey, this.Setting.Charset); //调用SDK验证签名
 
                 if (signVerified)
                 {
