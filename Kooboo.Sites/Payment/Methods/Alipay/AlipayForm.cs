@@ -81,85 +81,92 @@ var resForm = k.payment.alipayForm.charge(charge);
         public PaymentCallback Notify(RenderContext context)
         {
             Kooboo.Data.Log.Instance.Payment.Write("starting notify");
-
-            var dic = GetRequestPost(context);
-            if (dic.Count > 0)
+            try
             {
-                Kooboo.Data.Log.Instance.Payment.Write("para count>0");
-                Kooboo.Data.Log.Instance.Payment.Write("sign:" + dic["sign"]);
-                Kooboo.Data.Log.Instance.Payment.Write("PublicKey:" + this.Setting.PublicKey);
-                Kooboo.Data.Log.Instance.Payment.Write("Charset:" + this.Setting.Charset);
-                try
+                var dic = GetRequestPost(context);
+                if (dic.Count > 0)
                 {
-                    Kooboo.Data.Log.Instance.Payment.Write("all dic:" + JsonHelper.Serialize(dic));
-                }
-                catch (Exception)
-                {
-                }
-
-                var data = new AlipayData();
-                bool signVerified = data.RSACheckV1(dic, this.Setting.PublicKey, this.Setting.Charset); //调用SDK验证签名
-
-                if (signVerified)
-                {
-                    Kooboo.Data.Log.Instance.Payment.Write("signVerified");
-
-                    var strPaymentRequestId = context.Request.GetValue("out_trade_no");
-                    Guid paymentRequestId;
-                    if (Guid.TryParse(strPaymentRequestId, out paymentRequestId))
+                    Kooboo.Data.Log.Instance.Payment.Write("para count>0");
+                    Kooboo.Data.Log.Instance.Payment.Write("sign:" + dic["sign"]);
+                    Kooboo.Data.Log.Instance.Payment.Write("PublicKey:" + this.Setting.PublicKey);
+                    Kooboo.Data.Log.Instance.Payment.Write("Charset:" + this.Setting.Charset);
+                    try
                     {
-                        var paymentRequest = PaymentManager.GetRequest(paymentRequestId, context);
+                        Kooboo.Data.Log.Instance.Payment.Write("all dic:" + JsonHelper.Serialize(dic));
+                    }
+                    catch (Exception)
+                    {
+                    }
 
-                        decimal totalAmount = 0;//total amount
-                        decimal.TryParse(context.Request.Get("total_amount"), out totalAmount);
-                        var subject = context.Request.Get("subject");
-                        var paymentStatus = context.Request.Get("trade_status");
+                    var data = new AlipayData();
+                    bool signVerified = data.RSACheckV1(dic, this.Setting.PublicKey, this.Setting.Charset); //调用SDK验证签名
 
-                        if (paymentRequest == null || this.Setting == null)
+                    if (signVerified)
+                    {
+                        Kooboo.Data.Log.Instance.Payment.Write("signVerified");
+
+                        var strPaymentRequestId = context.Request.GetValue("out_trade_no");
+                        Guid paymentRequestId;
+                        if (Guid.TryParse(strPaymentRequestId, out paymentRequestId))
                         {
-                            return null;
-                        }
+                            var paymentRequest = PaymentManager.GetRequest(paymentRequestId, context);
 
-                        var callback = new PaymentCallback()
-                        {
-                            RequestId = paymentRequestId,
-                        };
+                            decimal totalAmount = 0;//total amount
+                            decimal.TryParse(context.Request.Get("total_amount"), out totalAmount);
+                            var subject = context.Request.Get("subject");
+                            var paymentStatus = context.Request.Get("trade_status");
 
-                        if (totalAmount == Math.Round(paymentRequest.TotalAmount, 2) || subject == paymentRequest.Name)
-                        {
-                            if (paymentStatus == TradeStatus.TRADE_CLOSED)
+                            if (paymentRequest == null || this.Setting == null)
                             {
-                                callback.Status = PaymentStatus.Cancelled;
-                            }
-                            else if (paymentStatus == TradeStatus.TRADE_SUCCESS || paymentStatus == TradeStatus.TRADE_FINISHED)
-                            {
-                                callback.Status = PaymentStatus.Paid;
-                            }
-                            else if (paymentStatus == TradeStatus.WAIT_BUYER_PAY)
-                            {
-                                callback.Status = PaymentStatus.Pending;
+                                return null;
                             }
 
+                            var callback = new PaymentCallback()
+                            {
+                                RequestId = paymentRequestId,
+                            };
+
+                            if (totalAmount == Math.Round(paymentRequest.TotalAmount, 2) || subject == paymentRequest.Name)
+                            {
+                                if (paymentStatus == TradeStatus.TRADE_CLOSED)
+                                {
+                                    callback.Status = PaymentStatus.Cancelled;
+                                }
+                                else if (paymentStatus == TradeStatus.TRADE_SUCCESS || paymentStatus == TradeStatus.TRADE_FINISHED)
+                                {
+                                    callback.Status = PaymentStatus.Paid;
+                                }
+                                else if (paymentStatus == TradeStatus.WAIT_BUYER_PAY)
+                                {
+                                    callback.Status = PaymentStatus.Pending;
+                                }
+
+                            }
+                            else
+                            {
+                                callback.Status = PaymentStatus.NotAvailable;
+                                //怎么让kooboo的前端打印输出“fail”
+                                Kooboo.Data.Log.Instance.Payment.Write("NotAvailable");
+                            }
+
+                            return callback;
                         }
                         else
                         {
-                            callback.Status = PaymentStatus.NotAvailable;
+                            return null;
                             //怎么让kooboo的前端打印输出“fail”
-                            Kooboo.Data.Log.Instance.Payment.Write("NotAvailable");
                         }
-
-                        return callback;
                     }
                     else
                     {
-                        return null;
-                        //怎么让kooboo的前端打印输出“fail”
+                        Kooboo.Data.Log.Instance.Payment.Write("sign failed");
                     }
                 }
-                else
-                {
-                    Kooboo.Data.Log.Instance.Payment.Write("sign failed");
-                }
+
+            }
+            catch (Exception ex)
+            {
+                Kooboo.Data.Log.Instance.Payment.WriteException(ex);
             }
 
             return null;
