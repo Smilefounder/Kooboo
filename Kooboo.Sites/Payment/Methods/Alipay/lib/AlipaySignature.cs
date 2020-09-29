@@ -45,9 +45,11 @@ namespace Kooboo.Sites.Payment.Methods.Alipay.lib
                 sPublicKeyPEM += "-----END PUBLIC KEY-----\r\n\r\n";
 
 
+                Kooboo.Data.Log.Instance.Payment.Write("signType:" + signType);
                 if ("RSA2".Equals(signType))
                 {
                     RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+                    Kooboo.Data.Log.Instance.Payment.Write("rsa:" + rsa);
                     rsa.PersistKeyInCsp = false;
                     RSACryptoServiceProviderExtension.LoadPublicKeyPEM(rsa, sPublicKeyPEM);
                     Kooboo.Data.Log.Instance.Payment.Write("sPublicKeyPEM:" + sPublicKeyPEM);
