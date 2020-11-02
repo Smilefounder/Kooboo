@@ -6,6 +6,7 @@ using Kooboo.Sites.Extensions;
 using Kooboo.Lib;
 using Kooboo.Lib.Helper;
 using System;
+using System.Linq;
 
 namespace Kooboo.Sites.Render
 {
@@ -23,12 +24,12 @@ namespace Kooboo.Sites.Render
         }
 
         public static async Task RenderAsync(FrontContext context)
-        { 
+        {
             var file = await context.SiteDb.FilePool.GetAsync(context.Route.objectId);
             if (file == null)
             {
                 return;
-            } 
+            }
             RenderFile(context, file);
         }
 
@@ -49,7 +50,21 @@ namespace Kooboo.Sites.Render
 
             if (file.ContentBytes != null)
             {
-                context.RenderContext.Response.Body = file.ContentBytes;
+                var range = context.RenderContext.Request.Headers.Get("range");
+                if (range != null)
+                {
+                    var arr = range.Substring(6).Split(new[] { "-" }, StringSplitOptions.RemoveEmptyEntries).Select(s => Convert.ToInt32(s)).ToArray();
+                    var start = arr[0];
+                    var end = file.ContentBytes.Length;
+                    if (arr.Length > 1) end = arr[1];
+                    context.RenderContext.Response.Body = file.ContentBytes.Skip(start).Take(end - start + 1).ToArray();
+                    context.RenderContext.Response.Headers.Add("Accept-Ranges", "bytes");
+                    context.RenderContext.Response.Headers.Add("Content-Range", $"bytes {start}-{end}/{file.ContentBytes.Length}");
+                }
+                else
+                {
+                    context.RenderContext.Response.Body = file.ContentBytes;
+                }
             }
             else if (!string.IsNullOrEmpty(file.ContentString))
             {
@@ -57,7 +72,7 @@ namespace Kooboo.Sites.Render
             }
 
             // cache for font.
-            if (contentType !=null)
+            if (contentType != null)
             {
 
                 if (contentType.ToLower().Contains("font"))
@@ -70,7 +85,7 @@ namespace Kooboo.Sites.Render
                     context.RenderContext.Response.Headers.Add("Access-Control-Allow-Headers", "*");
 
                     if (context.RenderContext.WebSite.EnableImageBrowserCache)
-                    { 
+                    {
                         if (context.RenderContext.WebSite.ImageCacheDays > 0)
                         {
                             context.RenderContext.Response.Headers["Expires"] = DateTime.UtcNow.AddDays(context.RenderContext.WebSite.ImageCacheDays).ToString("r");
@@ -88,7 +103,7 @@ namespace Kooboo.Sites.Render
 
                 }
             }
-             
+
 
         }
     }
