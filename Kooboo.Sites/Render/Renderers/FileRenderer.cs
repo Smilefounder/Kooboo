@@ -58,7 +58,9 @@ namespace Kooboo.Sites.Render
                     if (arr.Length > 1)
                     {
                         var end = arr[1];
-                        context.RenderContext.Response.Body = file.ContentBytes.Skip(start).Take(end - start).ToArray();
+                        var buffer = new byte[end - start];
+                        Buffer.BlockCopy(file.ContentBytes, start, buffer, 0, buffer.Length);
+                        context.RenderContext.Response.Body = buffer;
                         context.RenderContext.Response.Headers.Add("Accept-Ranges", "bytes");
                         context.RenderContext.Response.Headers.Add("Content-Range", $"bytes {start}-{end}/{file.ContentBytes.Length}");
                         if (end - start <= 0)
