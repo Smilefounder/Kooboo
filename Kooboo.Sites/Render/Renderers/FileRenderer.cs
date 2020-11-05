@@ -53,11 +53,13 @@ namespace Kooboo.Sites.Render
                 var range = context.RenderContext.Request.Headers.Get("range");
                 if (range != null)
                 {
-                    var arr = range.Substring(6).Split(new[] { "-" }, StringSplitOptions.RemoveEmptyEntries).Select(s => Convert.ToInt32(s)).ToArray();
+                    var arr = range.Substring(6).Split(new[] { "-" }, StringSplitOptions.RemoveEmptyEntries).Select(s => Convert.ToInt64(s)).ToArray();
                     var start = arr[0];
-                    var end = file.ContentBytes.Length;
+                    long end = file.ContentBytes.Length - 1;
                     if (arr.Length > 1) end = arr[1];
-                    context.RenderContext.Response.Body = file.ContentBytes.Skip(start).Take(end - start + 1).ToArray();
+                    var buffer = new byte[end];
+                    file.ContentBytes.CopyTo(buffer, start);
+                    context.RenderContext.Response.Body = buffer;
                     context.RenderContext.Response.Headers.Add("Accept-Ranges", "bytes");
                     context.RenderContext.Response.Headers.Add("Content-Range", $"bytes {start}-{end}/{file.ContentBytes.Length}");
                 }
