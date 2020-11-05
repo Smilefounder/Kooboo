@@ -12,6 +12,7 @@ using Kooboo.Data.Interface;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Render.Renderers;
 using Kooboo.Data.Context;
+using System.IO;
 
 namespace Kooboo.Sites.Systems
 {
@@ -336,14 +337,48 @@ namespace Kooboo.Sites.Systems
                 }
 
                 context.RenderContext.Response.ContentType = contentType;
-                var allbytes = Lib.Helper.IOHelper.ReadAllBytes(fullpath);
+                byte[] allbytes = null;
+
+                var range = context.RenderContext.Request.Headers.Get("range");
+                if (range != null)
+                {
+                    var arr = range.Substring(6).Split(new[] { "-" }, StringSplitOptions.RemoveEmptyEntries).Select(s => Convert.ToInt32(s)).ToArray();
+                    var start = arr[0];
+                    if (arr.Length > 1)
+                    {
+                        var end = arr[1];
+                        var buffer = new byte[end - start];
+
+                        using (var fs = new FileStream(fullpath, FileMode.Open))
+                        {
+                            fs.Position = start;
+                            fs.Read(buffer, 0, buffer.Length);
+                            allbytes = buffer;
+                            context.RenderContext.Response.Headers.Add("Accept-Ranges", "bytes");
+                            context.RenderContext.Response.Headers.Add("Content-Range", $"bytes {start}-{end}/{fs.Length}");
+                        }
+
+                        if (end - start <= 0)
+                        {
+                            context.RenderContext.Response.StatusCode = 206;
+                        }
+                    }
+                    else
+                    {
+                        allbytes = Lib.Helper.IOHelper.ReadAllBytes(fullpath);
+                    }
+                }
+                else
+                {
+                    allbytes = Lib.Helper.IOHelper.ReadAllBytes(fullpath);
+                }
 
                 if (contentType.ToLower().Contains("image"))
                 {
                     allbytes = setImageBytes(context, allbytes);
-                    SetImageCache(context.RenderContext); 
-                } 
-                context.RenderContext.Response.Body = allbytes; 
+                    SetImageCache(context.RenderContext);
+                }
+                context.RenderContext.Response.Body = allbytes;
             }
         }
 
@@ -367,14 +402,14 @@ namespace Kooboo.Sites.Systems
 
             if (System.IO.File.Exists(fullpath))
             {
-                return fullpath; 
+                return fullpath;
             }
 
-            return null;  
+            return null;
         }
 
         public static byte[] setImageBytes(FrontContext context, byte[] currentbyes)
-        { 
+        {
             var width = context.RenderContext.Request.Get("width");
             if (!string.IsNullOrEmpty(width))
             {
@@ -386,23 +421,23 @@ namespace Kooboo.Sites.Systems
                     int intheight = 0;
                     if (int.TryParse(width, out intwidth) && int.TryParse(height, out intheight))
                     {
-                        return Kooboo.Sites.Render.ImageRenderer.GetImageThumbnail(context.RenderContext, currentbyes, intwidth, intheight, 0);   
+                        return Kooboo.Sites.Render.ImageRenderer.GetImageThumbnail(context.RenderContext, currentbyes, intwidth, intheight, 0);
                         //Kooboo.Lib.Compatible.CompatibleManager.Instance.Framework.GetThumbnailImage(currentbyes, intwidth, intheight);
                     }
-                } 
+                }
                 else
                 {
                     int intwidth = 0;
 
                     if (int.TryParse(width, out intwidth))
-                    { 
-                        return Kooboo.Sites.Render.ImageRenderer.GetImageThumbnail(context.RenderContext, currentbyes, intwidth, intwidth, 0); 
-                         //return Kooboo.Lib.Compatible.CompatibleManager.Instance.Framework.GetThumbnailImage(currentbyes, intwidth, intwidth);
+                    {
+                        return Kooboo.Sites.Render.ImageRenderer.GetImageThumbnail(context.RenderContext, currentbyes, intwidth, intwidth, 0);
+                        //return Kooboo.Lib.Compatible.CompatibleManager.Instance.Framework.GetThumbnailImage(currentbyes, intwidth, intwidth);
                     }
                 }
             }
 
-            return currentbyes; 
+            return currentbyes;
         }
 
         public static void SetImageCache(RenderContext context)

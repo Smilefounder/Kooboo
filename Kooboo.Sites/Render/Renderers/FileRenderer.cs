@@ -50,33 +50,7 @@ namespace Kooboo.Sites.Render
 
             if (file.ContentBytes != null)
             {
-                var range = context.RenderContext.Request.Headers.Get("range");
-                if (range != null)
-                {
-                    var arr = range.Substring(6).Split(new[] { "-" }, StringSplitOptions.RemoveEmptyEntries).Select(s => Convert.ToInt32(s)).ToArray();
-                    var start = arr[0];
-                    if (arr.Length > 1)
-                    {
-                        var end = arr[1];
-                        var buffer = new byte[end - start];
-                        Buffer.BlockCopy(file.ContentBytes, start, buffer, 0, buffer.Length);
-                        context.RenderContext.Response.Body = buffer;
-                        context.RenderContext.Response.Headers.Add("Accept-Ranges", "bytes");
-                        context.RenderContext.Response.Headers.Add("Content-Range", $"bytes {start}-{end}/{file.ContentBytes.Length}");
-                        if (end - start <= 0)
-                        {
-                            context.RenderContext.Response.StatusCode = 206;
-                        }
-                    }
-                    else
-                    {
-                        context.RenderContext.Response.Body = file.ContentBytes;
-                    }
-                }
-                else
-                {
-                    context.RenderContext.Response.Body = file.ContentBytes;
-                }
+                context.RenderContext.Response.Body = file.ContentBytes;
             }
             else if (!string.IsNullOrEmpty(file.ContentString))
             {
