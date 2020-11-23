@@ -7,6 +7,9 @@ using System.Text;
 using System.Linq;
 using System.Threading;
 using Kooboo.Mail.Utility;
+using System.Net;
+using System.Threading.Tasks;
+using Kooboo.Lib.Helper;
 
 namespace Kooboo.Mail
 {
@@ -22,6 +25,8 @@ namespace Kooboo.Mail
         {
             "suning@kooboo.com"
         };
+
+        public static string KoobooNodeIP = "Unknown";
 
         static SocketMonitor()
         {
@@ -100,6 +105,15 @@ namespace Kooboo.Mail
             }
         }
 
+        private static async Task<string> GetKoobooNodeIP()
+        {
+            if (KoobooNodeIP != "Unknown")
+                return KoobooNodeIP;
+            
+            KoobooNodeIP = await HttpClientHelper.Client.GetStringAsync("https://ifconfig.co/ip");
+            return KoobooNodeIP;
+        }
+
         private void SendWarning()
         {
             if (_warningTimes >= MaxWarningTimes)
@@ -107,25 +121,37 @@ namespace Kooboo.Mail
 
             Console.WriteLine($"SocketMonitor: send warning {_warningTimes + 1}");
 
-            DoSendWaring();
+            _ = DoSendWaring();
 
             _warningTimes++;
         }
 
-        private void DoSendWaring()
+        private async Task DoSendWaring()
         {
-            var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-            var msg = $"Server {"TBD"} opened files Overflow at {timestamp}(UTC)";
-            foreach (var each in AdminEmails)
+            try
             {
-                var content = ComposeUtility.ComposeTextEmailBody(
-                    AlertAddress, 
-                    each,
-                    $"[KoobooAlert] {msg}",
-                    msg
-                );
-                _ = Transport.Delivery.Send(AlertAddress, each, content);
-                Console.WriteLine($"SocketMonitor: send warning to {each}");
+
+                var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+
+                var ip = await GetKoobooNodeIP();
+
+                var msg = $"Server {ip} opened files Overflow at {timestamp}(UTC)";
+                Console.WriteLine($"SocketMonitor: send warning to {String.Join(";", AdminEmails)} ({msg})");
+
+                foreach (var each in AdminEmails)
+                {
+                    var content = ComposeUtility.ComposeTextEmailBody(
+                        AlertAddress,
+                        each,
+                        $"[KoobooAlert] {msg}",
+                        msg
+                    );
+                    await Transport.Delivery.Send(AlertAddress, each, content);
+                }
+            }
+            catch (Exception ex)
+            {
+                Kooboo.Data.Log.Instance.Exception.Write(DateTime.UtcNow.ToString() + " " + ex.Message + "\r\n" + ex.StackTrace + "\r\n" + ex.Source);
             }
         }
 
