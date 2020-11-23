@@ -42,6 +42,7 @@ namespace Kooboo.Mail
 
         public static void Start()
         {
+            SocketMonitor.Instance.Start();
             Heartbeat.Instance.Start();
             foreach (var each in Workers)
             {
