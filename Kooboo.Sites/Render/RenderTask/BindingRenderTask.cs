@@ -70,10 +70,11 @@ namespace Kooboo.Sites.Render
 
         static string DeleteBrace(string str)
         {
-            if (str.StartsWith("{") && str.EndsWith("}"))
+            var start = str.IndexOf("{");
+            var end = str.LastIndexOf("}");
+            if (start >=0 && end > start)
             {
-                str = str.Substring(1);
-                str = str.Substring(0, str.Length - 1);
+                str = str.Substring(start + 1, end - start - 1);
             }
 
             return str;
