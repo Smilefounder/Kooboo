@@ -2,6 +2,8 @@
 .vs/
 /published/
 /packages/
+.idea/
+/.idea/
 
 
 [Dd]ebug/

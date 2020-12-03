@@ -17,6 +17,7 @@ namespace Kooboo.Lib.Compatible
             TryPath = new List<string>
             {
                 @"../../../Github/Kooboo.Web",
+                @"../../../Kooboo/Kooboo.Web",
                 @"../../../../Kooboo/Kooboo.Web",
                 @"../Kooboo.Web",
                 @"../",
