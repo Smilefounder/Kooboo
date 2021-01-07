@@ -77,7 +77,7 @@
         type: "POST",
         data: data,
         cache: false,
-        contentType: "multipart/form-data",
+        contentType: false,
         processData: false,
         xhr: function() {
           var xhr = new XMLHttpRequest();
