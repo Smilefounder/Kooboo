@@ -9,6 +9,7 @@
       <a
         class="btn green navbar-btn"
         :href="codeCreateUrl"
+      
         v-show="currentTab!== 'all'"
         >{{ createBtnText }}</a
       >
@@ -22,7 +23,7 @@
         <ul class="dropdown-menu" role="menu">
           <template v-for="(item,index) in codeTypes">
             <li :key="index" v-if="item.editUrl">
-              <a :href="item.editUrl">{{ item.displayName }}</a>
+              <a :href="item.editUrl" target="_blank">{{ item.displayName }}</a>
             </li>
           </template>
         </ul>
@@ -119,7 +120,7 @@
             </span>
           </td>
           <td :style="{width: '200px', textAlign: 'right'}">
-            <a class="btn btn-sm blue" :href="getEditUrl(row)" @click.stop>
+            <a class="btn btn-sm blue" :href="getEditUrl(row)" target="_blank" @click.stop>
               {{ Kooboo.text.common.edit }}
             </a>
           </td>

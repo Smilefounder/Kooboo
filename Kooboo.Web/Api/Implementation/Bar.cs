@@ -81,24 +81,24 @@ namespace Kooboo.Web.Api.Implementation
             List<CmsMenuViewModel> menus = new List<CmsMenuViewModel>();
 
 
-            var featureheadline = Hardcoded.GetValue("Feature", call.Context); 
-            var feature = new CmsMenuViewModel("feature", featureheadline); 
+            var featureheadline = Hardcoded.GetValue("Feature", call.Context);
+            var feature = new CmsMenuViewModel("feature", featureheadline);
             feature.Items = MenuContainer.FeatureMenus.Select(o => new CmsMenuViewModel(o, call.Context)).ToList();
 
-            MenuManager.VerifySortSideBar(feature.Items, call.Context); 
+            MenuManager.VerifySortSideBar(feature.Items, call.Context);
 
             if (feature.HasSubItem)
             {
                 menus.Add(feature);
             }
 
-            var advancemenu = SiteBarAdvancedMenu(call); 
+            var advancemenu = SiteBarAdvancedMenu(call);
 
             if (advancemenu.HasSubItem)
             {
                 menus.Add(advancemenu);
             }
-            
+
             return menus;
         }
 
@@ -106,20 +106,20 @@ namespace Kooboo.Web.Api.Implementation
         private CmsMenuViewModel SiteBarAdvancedMenu(ApiCall call)
         {
             var context = call.Context;
-            var advanceheadline = Hardcoded.GetValue("Advance", context); 
+            var advanceheadline = Hardcoded.GetValue("Advance", context);
             var advance = new CmsMenuViewModel(advanceheadline, advanceheadline);
-  
+
             var system = new CmsMenuViewModel(SideBarSection.System.ToString(), Hardcoded.GetValue("System", context)) { Icon = "icon icon-settings" };
             var development = new CmsMenuViewModel(SideBarSection.Development.ToString(), Hardcoded.GetValue("Development", context)) { Icon = "icon fa fa-code" };
             var content = new CmsMenuViewModel(SideBarSection.Contents.ToString(), Hardcoded.GetValue("Contents", context)) { Icon = "icon fa fa-files-o" };
             var database = new CmsMenuViewModel(SideBarSection.Database.ToString(), Hardcoded.GetValue("Database", context)) { Icon = "icon fa fa-database" };
-            var commerce = new CmsMenuViewModel(SideBarSection.Commerce.ToString(), Hardcoded.GetValue("Commerce", context)) { Icon = "icon fa fa-database" };
+            var commerce = new CmsMenuViewModel(SideBarSection.Commerce.ToString(), Hardcoded.GetValue("E-Commerce", context)) { Icon = "icon fa fa-shopping-cart" };
 
             advance.Items.Add(system);
             advance.Items.Add(development);
             advance.Items.Add(content);
             advance.Items.Add(database);
-            // advance.Items.Add(commerce);
+            advance.Items.Add(commerce);
 
             var sitebarmenus = MenuContainer.SideBarMenus;
 
@@ -147,18 +147,18 @@ namespace Kooboo.Web.Api.Implementation
                 }
                 else if (item.Parent == SideBarSection.Commerce)
                 {
-                  //  commerce.Items.Add(new CmsMenuViewModel(item, context));
+                    commerce.Items.Add(new CmsMenuViewModel(item, context));
                 }
             }
-             
-            MenuManager.VerifySortSideBar(advance.Items, call.Context); 
 
-            return advance; 
+            MenuManager.VerifySortSideBar(advance.Items, call.Context);
+
+            return advance;
 
         }
 
-          
-     
+
+
         public List<MenuItem> EmailMenu(ApiCall call)
         {
             var context = call.Context;
@@ -189,7 +189,7 @@ namespace Kooboo.Web.Api.Implementation
 
             return menus;
         }
-         
+
 
         private List<MenuItem> EmailMenu_Addresses(string folderName, IEnumerable<Kooboo.Mail.EmailAddress> addresses)
         {
