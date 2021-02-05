@@ -80,7 +80,11 @@ namespace Kooboo.Sites.Commerce
         {
             return _typeMemberStrings.GetOrAdd(typeof(T), type =>
             {
-                var properties = type.GetProperties().Select(s => s.Name).ToArray();
+                var properties = type.GetProperties()
+                                     .Where(w => w.CustomAttributes.All(a => a.AttributeType != typeof(IgnoreColumnAttribute)))
+                                     .Select(s => s.Name)
+                                     .ToArray();
+
                 return new string[] {
                     string.Join(",",properties.Select(s=>$@"""{s}""")),
                     string.Join(",",properties.Select(s=>$@"""{s}""=@{s}")),

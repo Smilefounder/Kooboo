@@ -15,11 +15,11 @@ namespace Kooboo.Sites.Commerce.Migration.Records
             connection.Execute(@"
 create table ProductCategory
 (
-	Id text not null
+	Id uniqueidentifier not null
 		constraint ProductCategory_pk
 			primary key,
 	Name text not null,
-	Parent text
+	Parent uniqueidentifier
 );
 ");
         }
