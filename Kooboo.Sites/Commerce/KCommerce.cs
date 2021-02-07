@@ -16,13 +16,13 @@ namespace Kooboo.Sites.Commerce
         [KIgnore]
         public RenderContext context { get; set; }
 
-        readonly Lazy<KProductCategory> _productCategory;
+        readonly Lazy<KCategory> _category;
 
-        public KProductCategory ProductCategory => _productCategory.Value;
+        public KCategory Category => _category.Value;
 
         public KCommerce()
         {
-            _productCategory = new Lazy<KProductCategory>(() => new KProductCategory(context), true);
+            _category = new Lazy<KCategory>(() => new KCategory(context), true);
         }
     }
 }

@@ -1,275 +1,144 @@
-$(function() {
+$(function () {
   new Vue({
     el: "#app",
-    data: function() {
+    data: function () {
       self = this;
       return {
         breads: [
           {
-            name: "SITES"
+            name: "SITES",
           },
           {
-            name: "DASHBOARD"
+            name: "DASHBOARD",
           },
           {
-            name: Kooboo.text.common.ProductCategories
-          }
+            name: Kooboo.text.common.ProductCategories,
+          },
         ],
-        defaultLang: "",
-        cultures: "",
-        cultureKeys: [],
-        currentCateNames: "",
-        showMultilingualModal: false,
-        cateData: {},
-        categories: [],
-        currentNode: {},
-        showFunctionBtn: false,
-        isJsTreeChanged: false
+        model: [],
+        currentNode: null,
+        jsTree: null,
       };
     },
-    mounted: function() {
-      $.when(Kooboo.ProductCategory.getList(), Kooboo.Site.Langs()).then(
-        function(r1, r2) {
-          var cateRes = r1[0],
-            langRes = r2[0];
+    mounted: function () {
+      var me = this;
+      Kooboo.ProductCategory.getList().then(function (rsp) {
+        if (!rsp.success) return;
+        me.model = rsp.model;
+        me.jsTree = $("#categories")
+          .jstree({
+            plugins: ["dnd", "types"],
+            types: {
+              default: {
+                icon: "fa fa-tag icon-color-dark",
+              },
+            },
+            core: {
+              strings: {
+                "Loading ...": Kooboo.text.common.loading + " ...",
+              },
+              theme: { name: "proton", responsive: true },
+              check_callback: true,
+              multiple: false,
+              data: function (node, callback) {
+                callback.call(node, me.treeData);
+              },
+            },
+          })
+          .on("select_node.jstree", function (e, data) {
+            self.currentNode = data.selected[0];
+          })
+          .on("create_node.jstree", function (e, data) {
+            me.jsTree.deselect_all();
+            me.jsTree.select_node(data.node);
+          })
+          .data("jstree");
+      });
+    },
+    computed: {
+      treeData: function () {
+        var me = this;
+        function getChildren(parent) {
+          var children = me.model.filter(function (f) {
+            return f.parent == parent;
+          });
 
-          if (cateRes.success && langRes.success) {
-            self.defaultLang = langRes.model.default;
-            self.cultures = langRes.model.cultures;
-            self.cultureKeys = Object.keys(self.cultures);
-            self.cateData = cateRes.model;
-            self._cateData = cateRes.model;
-
-            var jsTreeDom = $("#categories")
-              .jstree({
-                plugins: ["dnd", "types"],
-                types: {
-                  default: {
-                    icon: "fa fa-tag icon-color-dark"
-                  }
-                },
-                core: {
-                  strings: {
-                    "Loading ...": Kooboo.text.common.loading + " ..."
-                  },
-                  theme: { name: "proton", responsive: true },
-                  check_callback: true,
-                  data: function(node, callback) {
-                    callback.call(
-                      node,
-                      self.demappingCategoriesData(self.cateData)
-                    );
-                  }
-                }
-              })
-              .on("ready.jstree", function(e, data) {
-                $(this)
-                  .data("jstree")
-                  .open_all();
-              })
-              .on("select_node.jstree", function(e, selected) {
-                self.showFunctionBtn = true;
-                self.currentNode = selected;
-              })
-              .on("deselect_node.jstree", function() {
-                self.showFunctionBtn = false;
-              })
-              .on("create_node.jstree", function(e, data) {
-                $(this)
-                  .data("jstree")
-                  .open_all();
-                self.isJsTreeChanged = self.compareTags();
-              })
-              .on("delete_node.jstree", function(e, data) {
-                $(this)
-                  .data("jstree")
-                  .open_all();
-                self.showFunctionBtn = false;
-                // self.isJsTreeChanged = self.compareTags();
-              })
-              .on("rename_node.jstree", function(e, data) {
-                $(this)
-                  .data("jstree")
-                  .open_all();
-                self.isJsTreeChanged = self.compareTags();
-                data.node.data.names[self.defaultLang] = data.text;
-              })
-              .on("move_node.jstree", function(e, data) {
-                $(this)
-                  .data("jstree")
-                  .open_all();
-                self.isJsTreeChanged = self.compareTags();
-              });
-
-            jsTree = jsTreeDom.data("jstree");
-          }
+          return children.map(function (m) {
+            return {
+              id: m.id,
+              text: m.name,
+              state: { opened: true },
+              children: getChildren(m.id),
+            };
+          });
         }
-      );
+
+        return getChildren(null);
+      },
     },
     methods: {
-      onHideMultilingualModal: function() {
-        self.showMultilingualModal = false;
-      },
-      onSaveMultilingualModal: function() {
-        self.isJsTreeChanged = !_.isEqual(
-          self.currentNode.node.data.names,
-          self.currentCateNames
-        );
-
-        self.currentNode.node.data.names = self.currentCateNames;
-        self.currentNode.instance.set_text(
-          self.currentNode.node,
-          self.currentCateNames[self.defaultLang]
-        );
-        self.onHideMultilingualModal();
-      },
-      onAddNewCategory: function() {
-        var newNode = jsTree.create_node(null, {
-          id: "id_" + Kooboo.Guid.NewGuid() + "_" + +new Date(),
-          data: { id: Kooboo.Guid.Empty, names: {} },
+      getNode: function () {
+        return {
+          id: Kooboo.Guid.NewGuid(),
           text: Kooboo.text.common.name,
-          subCats: []
-        });
-
-        var inst = $.jstree.reference(newNode);
-        inst.edit(newNode);
+          children: [],
+        };
       },
+      getSaveData: function () {
+        var result = [];
 
-      onAddNewSubCategory: function() {
-        var rel = jsTree.get_selected();
-        var subNode = jsTree.create_node(rel[0], {
-          id: "id_" + Kooboo.Guid.NewGuid() + "_" + +new Date(),
-          data: { id: Kooboo.Guid.Empty, names: {} },
-          text: Kooboo.text.common.name,
-          subCats: []
-        });
+        function addItem(data, parent) {
+          data.forEach(function (m) {
+            result.push({
+              id: m.id,
+              name: m.text,
+              parent: parent,
+            });
 
-        var inst = $.jstree.reference(subNode);
-        inst.edit(subNode);
-      },
-
-      removeCategory: function() {
-        var id = self.currentNode.node.data.id;
-
-        if (id !== Kooboo.Guid.Empty) {
-          Kooboo.ProductCategory.checkProuctCount({
-            id: id
-          }).then(function(res) {
-            if (res.success) {
-              if (res.model) {
-                if (confirm(Kooboo.text.confirm.deleteCategory)) {
-                  self.deleteById(id);
-                }
-              } else {
-                self.deleteById(id);
-              }
-            }
+            if (m.children) addItem(m.children, m.id);
           });
-        } else {
-          jsTree.delete_node(self.currentNode.node);
         }
+
+        addItem(this.jsTree.get_json(), null);
+        return result;
       },
-      deleteById: function(id) {
+      onAddNewCategory: function () {
+        var newNode = this.jsTree.create_node(null, this.getNode());
+        this.jsTree.edit(newNode);
+      },
+      onAddNewSubCategory: function () {
+        var rel = this.jsTree.get_selected();
+        var subNode = this.jsTree.create_node(rel[0], this.getNode());
+        this.jsTree.edit(subNode);
+      },
+      removeCategory: function () {
+        var rel = this.jsTree.get_selected();
+        this.jsTree.delete_node(rel);
+        this.currentNode = null;
+      },
+      deleteById: function (id) {
         Kooboo.ProductCategory.Delete({
-          id: id
-        }).then(function(res) {
+          id: id,
+        }).then(function (res) {
           if (res.success) {
             jsTree.delete_node(self.currentNode.node);
           }
         });
       },
-      onEdit: function() {
-        var id = self.currentNode.selected[0],
-          inst = self.currentNode.instance;
-        if (self.cultureKeys.length > 1) {
-          // 如果有多种，显示弹窗
-          self.currentCateNames = _.cloneDeep(inst._model.data[id].data.names);
-          self.showMultilingualModal = true;
-        } else {
-          // 如果只有一种语言，直接编辑
-          inst.edit(id);
-        }
+      onEdit: function () {
+        var rel = this.jsTree.get_selected();
+        this.jsTree.edit(rel[0]);
       },
-
-      demappingCategoriesData: function(data) {
-        var temps = [];
-
-        data.forEach(function(cate, i) {
-          temps.push({
-            id: "id_" + Kooboo.Guid.NewGuid() + "_" + +new Date(),
-            data: { id: cate.id, names: JSON.parse(cate.values) },
-            state: {},
-            text: cate.name,
-            children:
-              cate.subCats && cate.subCats.length
-                ? self.demappingCategoriesData(cate.subCats)
-                : []
-          });
-        });
-        return temps;
-      },
-
-      saveCategory: function() {
-        Kooboo.ProductCategory.post(this.getSaveData(jsTree.get_json())).then(
-          function(res) {
+      saveCategory: function () {
+        var data = this.getSaveData();
+        Kooboo.ProductCategory.post(data).then(
+          function (res) {
             if (res.success) {
               window.info.show(Kooboo.text.info.save.success, true);
             }
           }
         );
       },
-
-      compareTags: function(origData, newData) {
-        if (!origData) origData = self._cateData;
-        if (!newData) newData = this.getSaveData(jsTree.get_json());
-
-        if (origData.length !== newData.length) {
-          return true;
-        } else {
-          var flag = false;
-          for (var i = 0; i < origData.length; i++) {
-            var origItem = origData[i],
-              newItem = newData[i];
-
-            if (origItem.id !== newItem.id) {
-              flag = true;
-              break;
-            }
-
-            if (origItem.name !== newItem.name) {
-              flag = true;
-              break;
-            }
-
-            if (origItem.subCats.length !== newItem.subCats.length) {
-              flag = true;
-              break;
-            }
-
-            flag = flag || self.compareTags(origItem.subCats, newItem.subCats);
-          }
-
-          return flag;
-        }
-      },
-
-      getSaveData: function(data) {
-        var temps = [];
-
-        data.forEach(function(cate, i) {
-          temps.push({
-            id: cate.data.id,
-            name: cate.text,
-            values: JSON.stringify(cate.data.names || {}),
-            subCats:
-              cate.children && cate.children.length
-                ? self.getSaveData(cate.children)
-                : []
-          });
-        });
-
-        return temps;
-      }
-    }
+    },
   });
 });

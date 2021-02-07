@@ -14,28 +14,28 @@ using System.Text;
 
 namespace Kooboo.Sites.Commerce.KScripts
 {
-    public class KProductCategory
+    public class KCategory
     {
-        readonly Lazy<ProductCategoryService> _productCategoryService;
+        readonly Lazy<CategoryService> _productCategoryService;
         readonly RenderContext _context;
 
-        public KProductCategory(RenderContext context)
+        public KCategory(RenderContext context)
         {
             _context = context;
-            _productCategoryService = new Lazy<ProductCategoryService>(() => new ProductCategoryService(context), true);
+            _productCategoryService = new Lazy<CategoryService>(() => new CategoryService(context), true);
         }
 
-        [KDefineType(Return = typeof(ProductCategory[]))]
+        [KDefineType(Return = typeof(Category[]))]
         public object List()
         {
             var engine = Kooboo.Sites.Scripting.Manager.GetJsEngine(_context);
             return _productCategoryService.Value.List().Select(s => JsValue.FromObject(engine, s)).ToArray();
         }
 
-        [KDefineType(Params = new[] { typeof(ProductCategory[]) })]
+        [KDefineType(Params = new[] { typeof(Category[]) })]
         public void Save(IDictionary<string, object>[] productCategories)
         {
-            var list = productCategories.Select(s => TypeHelper.ToObject<ProductCategory>(s)).ToArray();
+            var list = productCategories.Select(s => TypeHelper.ToObject<Category>(s)).ToArray();
             _productCategoryService.Value.Save(list);
         }
     }

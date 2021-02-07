@@ -22,7 +22,7 @@ namespace Kooboo.Sites.Commerce
             using (var con = DbConnection)
             {
                 con.Open();
-                Migrator.TryMigrate(context.WebSite.Id, con, true);
+                Migrator.TryMigrate(context.WebSite.Id, con, false);
             }
         }
 

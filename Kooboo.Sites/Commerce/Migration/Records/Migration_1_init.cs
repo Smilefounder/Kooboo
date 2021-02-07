@@ -13,7 +13,7 @@ namespace Kooboo.Sites.Commerce.Migration.Records
         public void Migrate(IDbConnection connection)
         {
             connection.Execute(@"
-create table ProductCategory
+create table Category
 (
 	Id uniqueidentifier not null
 		constraint ProductCategory_pk

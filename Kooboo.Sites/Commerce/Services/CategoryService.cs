@@ -8,21 +8,21 @@ using System.Text;
 
 namespace Kooboo.Sites.Commerce.Services
 {
-    public class ProductCategoryService : ServiceBase
+    public class CategoryService : ServiceBase
     {
-        public ProductCategoryService(RenderContext context) : base(context)
+        public CategoryService(RenderContext context) : base(context)
         {
         }
 
-        public ProductCategory[] List()
+        public Category[] List()
         {
             using (var con = DbConnection)
             {
-                return con.Get<ProductCategory>().ToArray();
+                return con.Get<Category>().ToArray();
             }
         }
 
-        public void Save(ProductCategory[] productCategories)
+        public void Save(Category[] productCategories)
         {
             var newIds = productCategories.Select(s => s.Id);
 
