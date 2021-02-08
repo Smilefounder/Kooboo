@@ -10,7 +10,7 @@ namespace Kooboo.Web.Menus.SideBarMenu.Commerce
     {
         public SideBarSection Parent => SideBarSection.Commerce;
 
-        public string Name => "Products";
+        public string Name => "Products management";
 
         public string Icon => "";
 
@@ -22,9 +22,7 @@ namespace Kooboo.Web.Menus.SideBarMenu.Commerce
 
         public string GetDisplayName(RenderContext Context)
         {
-            return Hardcoded.GetValue("Products", Context);
+            return Hardcoded.GetValue("Products management", Context);
         }
     }
 }
-
-//new MenuItem { Name = Hardcoded.GetValue("Code",context), Url = AdminUrl("Development/Code", siteDb), ActionRights = Sites.Authorization.Actions.Developments.Code }

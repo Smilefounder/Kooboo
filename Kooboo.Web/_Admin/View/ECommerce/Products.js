@@ -24,17 +24,17 @@ $(function() {
       };
     },
     mounted: function() {
-      Kooboo.ProductType.getList().then(function(res) {
-        if (res.success) {
-          self.productTypes = res.model.map(function(t) {
-            return {
-              id: t.id,
-              name: t.name
-            };
-          });
-          self.getListByPage();
-        }
-      });
+      // Kooboo.ProductType.getList().then(function(res) {
+      //   if (res.success) {
+      //     self.productTypes = res.model.map(function(t) {
+      //       return {
+      //         id: t.id,
+      //         name: t.name
+      //       };
+      //     });
+      //     self.getListByPage();
+      //   }
+      // });
     },
     methods: {
       getListByPage: function(page) {
