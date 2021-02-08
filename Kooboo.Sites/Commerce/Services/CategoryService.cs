@@ -22,20 +22,21 @@ namespace Kooboo.Sites.Commerce.Services
             }
         }
 
-        public void Save(Category[] productCategories)
+        public void Save(Category category)
         {
-            var newIds = productCategories.Select(s => s.Id);
-
             using (var con = DbConnection)
             {
-                con.Open();
-                var tran = con.BeginTransaction();
-                var list = List();
-                var oldIds = list.Select(s => s.Id);
-                con.Delete(list.Where(w => !newIds.Contains(w.Id)));
-                con.Insert(productCategories.Where(w => !oldIds.Contains(w.Id)));
-                con.Update(productCategories.Where(w => oldIds.Contains(w.Id)));
-                tran.Commit();
+                var entity = con.Get<Category>(category.Id);
+                if (entity != null) con.Update(category);
+                else con.Insert(category);
+            }
+        }
+
+        public void Delete(Guid[] ids)
+        {
+            using (var con = DbConnection)
+            {
+                con.Delete<Category>(ids);
             }
         }
     }

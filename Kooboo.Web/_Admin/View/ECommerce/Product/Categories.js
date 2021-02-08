@@ -15,19 +15,19 @@ $(function () {
             name: Kooboo.text.common.ProductCategories,
           },
         ],
-        model: [],
         currentNode: null,
         jsTree: null,
+        showEditModal: false,
+        editData: null,
       };
     },
     mounted: function () {
       var me = this;
       Kooboo.ProductCategory.getList().then(function (rsp) {
         if (!rsp.success) return;
-        me.model = rsp.model;
         me.jsTree = $("#categories")
           .jstree({
-            plugins: ["dnd", "types"],
+            plugins: ["types"],
             types: {
               default: {
                 icon: "fa fa-tag icon-color-dark",
@@ -41,7 +41,7 @@ $(function () {
               check_callback: true,
               multiple: false,
               data: function (node, callback) {
-                callback.call(node, me.treeData);
+                callback.call(node, me.getTreeData(rsp.model));
               },
             },
           })
@@ -55,89 +55,181 @@ $(function () {
           .data("jstree");
       });
     },
-    computed: {
-      treeData: function () {
+    methods: {
+      getSelectedNode: function () {
+        var rel = this.jsTree.get_selected();
+        return this.jsTree.get_node(rel[0]);
+      },
+      getParentNames: function (node, includeSelf) {
+        var me = this;
+        var names = [];
+        if (includeSelf) names.push(node.text);
+
+        node.parents.forEach(function (f) {
+          names.push(me.jsTree.get_node(f).text);
+        });
+
+        return names.reverse();
+      },
+      onAddNewCategory: function () {
+        this.editData = {
+          parent: null,
+          isEdit: false,
+          id: Kooboo.Guid.NewGuid(),
+          text: "",
+          attributes: [],
+          specifications: [],
+        };
+        this.showEditModal = true;
+      },
+      onAddNewSubCategory: function () {
+        var node = this.getSelectedNode();
+        var parentNames = this.getParentNames(node, true);
+        this.editData = {
+          parent: node.id,
+          parentName: parentNames.join(" / "),
+          isEdit: false,
+          id: Kooboo.Guid.NewGuid(),
+          text: "",
+          attributes: [],
+          specifications: [],
+        };
+
+        this.showEditModal = true;
+      },
+      removeCategory: function () {
+        var me = this;
+        var node = me.getSelectedNode();
+        var deleteIds = [];
+
+        function getId(currentNode) {
+          deleteIds.push(currentNode.id);
+          currentNode.children.forEach(function (f) {
+            getId(me.jsTree.get_node(f));
+          });
+        }
+
+        getId(node);
+        if (deleteIds.length == 0) return;
+        if (!confirm(Kooboo.text.confirm.deleteItems)) return;
+
+        Kooboo.ProductCategory.Delete(deleteIds).then(function (res) {
+          if (res.success) {
+            me.jsTree.delete_node(node);
+          }
+        });
+
+        var rel = this.jsTree.get_selected();
+        this.jsTree.delete_node(rel);
+        this.currentNode = null;
+      },
+      onEdit: function () {
+        var node = this.getSelectedNode();
+
+        var model = {
+          parent: null,
+          parentName: parentNames,
+          isEdit: true,
+          id: node.id,
+          text: node.text,
+          attributes: node.data.attributes,
+          specifications: node.data.specifications,
+        };
+
+        if (node.parent != "#") {
+          model.parent = node.parent;
+          var parentNames = this.getParentNames(node);
+          model.parentName = parentNames.join(" / ");
+        }
+
+        this.editData = JSON.parse(JSON.stringify(model));
+        this.showEditModal = true;
+      },
+      saveCategory: function () {
+        var me = this;
+
+        var model = {
+          parent: me.editData.parent,
+          id: me.editData.id,
+          name: me.editData.text,
+          attributes: JSON.stringify(me.editData.attributes),
+          specifications: JSON.stringify(me.editData.specifications),
+        };
+
+        Kooboo.ProductCategory.post(model).then(function (res) {
+          if (res.success) {
+            window.info.show(Kooboo.text.info.save.success, true);
+
+            if (me.editData.isEdit) {
+              var node = me.getSelectedNode();
+              me.jsTree.rename_node(node, me.editData.text);
+              node.data = {
+                attributes: me.editData.attributes,
+                specifications: me.editData.specifications,
+              };
+            } else {
+              me.jsTree.create_node(
+                me.editData.parent,
+                me.modelToTreeData(model)
+              );
+            }
+
+            me.showEditModal = false;
+          }
+        });
+      },
+      getTreeData: function (model) {
         var me = this;
         function getChildren(parent) {
-          var children = me.model.filter(function (f) {
+          var children = model.filter(function (f) {
             return f.parent == parent;
           });
 
           return children.map(function (m) {
-            return {
-              id: m.id,
-              text: m.name,
-              state: { opened: true },
-              children: getChildren(m.id),
-            };
+            var result = me.modelToTreeData(m);
+            result.children = getChildren(m.id);
+            return result;
           });
         }
 
         return getChildren(null);
       },
-    },
-    methods: {
-      getNode: function () {
-        return {
+      addItem: function (items) {
+        items.push({
           id: Kooboo.Guid.NewGuid(),
-          text: Kooboo.text.common.name,
-          children: [],
-        };
-      },
-      getSaveData: function () {
-        var result = [];
-
-        function addItem(data, parent) {
-          data.forEach(function (m) {
-            result.push({
-              id: m.id,
-              name: m.text,
-              parent: parent,
-            });
-
-            if (m.children) addItem(m.children, m.id);
-          });
-        }
-
-        addItem(this.jsTree.get_json(), null);
-        return result;
-      },
-      onAddNewCategory: function () {
-        var newNode = this.jsTree.create_node(null, this.getNode());
-        this.jsTree.edit(newNode);
-      },
-      onAddNewSubCategory: function () {
-        var rel = this.jsTree.get_selected();
-        var subNode = this.jsTree.create_node(rel[0], this.getNode());
-        this.jsTree.edit(subNode);
-      },
-      removeCategory: function () {
-        var rel = this.jsTree.get_selected();
-        this.jsTree.delete_node(rel);
-        this.currentNode = null;
-      },
-      deleteById: function (id) {
-        Kooboo.ProductCategory.Delete({
-          id: id,
-        }).then(function (res) {
-          if (res.success) {
-            jsTree.delete_node(self.currentNode.node);
-          }
+          name: "",
+          type: 0,
+          editingItem: "",
+          options: [],
         });
       },
-      onEdit: function () {
-        var rel = this.jsTree.get_selected();
-        this.jsTree.edit(rel[0]);
+      rmoveItem: function (items, item) {
+        var index = items.indexOf(item);
+        items.splice(index, 1);
       },
-      saveCategory: function () {
-        var data = this.getSaveData();
-        Kooboo.ProductCategory.post(data).then(
-          function (res) {
-            if (res.success) {
-              window.info.show(Kooboo.text.info.save.success, true);
-            }
-          }
-        );
+      addOption: function (item) {
+        if (!item.editingItem.trim()) return;
+
+        item.options.push({
+          id: Kooboo.Guid.NewGuid(),
+          value: item.editingItem,
+        });
+
+        item.editingItem = "";
+      },
+      modelToTreeData(model) {
+        return {
+          id: model.id,
+          text: model.name,
+          state: { opened: true },
+          children: [],
+          data: {
+            attributes: model.attributes ? JSON.parse(model.attributes) : [],
+            specifications: model.specifications
+              ? JSON.parse(model.specifications)
+              : [],
+          },
+        };
       },
     },
   });

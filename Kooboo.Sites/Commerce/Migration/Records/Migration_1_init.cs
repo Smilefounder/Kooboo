@@ -19,7 +19,9 @@ create table Category
 		constraint ProductCategory_pk
 			primary key,
 	Name text not null,
-	Parent uniqueidentifier
+	Parent uniqueidentifier,
+    Attributes text not null,
+    Specifications text not null
 );
 ");
         }

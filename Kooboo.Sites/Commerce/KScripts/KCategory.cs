@@ -32,11 +32,11 @@ namespace Kooboo.Sites.Commerce.KScripts
             return _productCategoryService.Value.List().Select(s => JsValue.FromObject(engine, s)).ToArray();
         }
 
-        [KDefineType(Params = new[] { typeof(Category[]) })]
-        public void Save(IDictionary<string, object>[] productCategories)
-        {
-            var list = productCategories.Select(s => TypeHelper.ToObject<Category>(s)).ToArray();
-            _productCategoryService.Value.Save(list);
-        }
+        //[KDefineType(Params = new[] { typeof(Category[]) })]
+        //public void Save(IDictionary<string, object>[] productCategories)
+        //{
+        //    var list = productCategories.Select(s => TypeHelper.ToObject<Category>(s)).ToArray();
+        //    _productCategoryService.Value.Save(list);
+        //}
     }
 }

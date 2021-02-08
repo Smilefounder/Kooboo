@@ -8,7 +8,7 @@ namespace Kooboo.Sites.Commerce.Entities
     {
         public string Name { get; set; }
         public Guid? Parent { get; set; }
-        public string Properties { get; set; }
+        public string Attributes { get; set; }
         public string Specifications { get; set; }
     }
 }
