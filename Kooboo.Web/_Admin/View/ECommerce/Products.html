@@ -6,16 +6,28 @@
   <kb-breadcrumb :breads="breads"></kb-breadcrumb>
   <div class="navbar navbar-default">
     <div class="container-fluid">
-      <a class="btn green navbar-btn" :href="Kooboo.Route.Get(Kooboo.Route.Product.DetailPage)">Add product</a>
-      <a class="btn red navbar-btn" v-show="selected.length>0" @click="onDelete">Delete</a>
+      <a class="btn green navbar-btn" @click="addProduct">Add product</a>
+      <a class="btn red navbar-btn">Delete</a>
     </div>
   </div>
-  <kb-table :data="tableData" show-select :selected.sync="selected" class="table-bordered">
-    <kb-table-column v-for="(column, index) in defaultColumns" :label="column" :prop="column" :key="index">
+  <!-- <kb-table
+    :data="tableData"
+    show-select
+    :selected.sync="selected"
+    class="table-bordered"
+  >
+    <kb-table-column
+      v-for="(column, index) in defaultColumns"
+      :label="column"
+      :prop="column"
+      :key="index"
+    >
     </kb-table-column>
     <kb-table-column :label="Kooboo.text.common.ProductType">
       <template v-slot="row">
-        <span :class="['label', row.productType.class]">{{ row.productType.text }}</span>
+        <span :class="['label', row.productType.class]"
+          >{{ row.productType.text }}</span
+        >
       </template>
     </kb-table-column>
     <kb-table-column head-class="table-action" body-class="table-action">
@@ -26,7 +38,12 @@
       </template>
     </kb-table-column>
   </kb-table>
-  <kb-pager :page-nr="pager.pageNr" :total-pages="pager.totalPages" @change="changePage"></kb-pager>
+  <kb-pager
+    :page-nr="pager.pageNr"
+    :total-pages="pager.totalPages"
+    @change="changePage"
+  ></kb-pager> -->
+  <kb-category-modal v-model="showCategoryModal" @start="startAddProduct" />
 </div>
 <script>
   (function () {
@@ -34,7 +51,8 @@
       "/_Admin/Scripts/kooboo/Guid.js",
       "/_Admin/Scripts/components/kbTable.js",
       "/_Admin/Scripts/components/kbBreadcrumb.js",
-      "/_Admin/Scripts/components/kbPager.js"
+      "/_Admin/Scripts/components/kbPager.js",
+      "/_Admin/Scripts/components/ECommerce/kb-category-modal.js",
     ]);
   })();
 </script>

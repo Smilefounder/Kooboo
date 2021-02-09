@@ -1,29 +1,24 @@
-$(function() {
-  var self;
+$(function () {
   new Vue({
     el: "#app",
-    data: function() {
-      self = this;
+    data: function () {
       return {
         breads: [
           {
-            name: "SITES"
+            name: "SITES",
           },
           {
-            name: "DASHBOARD"
+            name: "DASHBOARD",
           },
           {
-            name: Kooboo.text.common.ProductManagement
-          }
+            name: Kooboo.text.common.ProductManagement,
+          },
         ],
-        productTypes: [],
-        pager: {},
-        tableData: [],
-        selected: [],
-        defaultColumns: []
+        selectedCategory: null,
+        showCategoryModal: false,
       };
     },
-    mounted: function() {
+    mounted: function () {
       // Kooboo.ProductType.getList().then(function(res) {
       //   if (res.success) {
       //     self.productTypes = res.model.map(function(t) {
@@ -37,23 +32,32 @@ $(function() {
       // });
     },
     methods: {
-      getListByPage: function(page) {
+      addProduct: function () {
+        this.selectedCategory = null;
+        this.showCategoryModal = true;
+      },
+      startAddProduct: function (id) {
+        location.href = Kooboo.Route.Get(Kooboo.Route.Product.DetailPage, {
+          category: id,
+        });
+      },
+      getListByPage: function (page) {
         Kooboo.Product.getList({
-          page: page || 1
-        }).then(function(res) {
+          page: page || 1,
+        }).then(function (res) {
           if (res.success) {
             self.handleData(res.model);
           }
         });
       },
-      changePage: function(page) {
+      changePage: function (page) {
         self.getListByPage(page);
       },
-      handleData: function(data) {
+      handleData: function (data) {
         self.pager = data;
-        self.tableData = data.list.map(function(d) {
+        self.tableData = data.list.map(function (d) {
           var date = new Date(d.lastModified);
-          var type = _.find(self.productTypes, function(t) {
+          var type = _.find(self.productTypes, function (t) {
             return t.id == d.productTypeId;
           });
 
@@ -64,15 +68,15 @@ $(function() {
               online: d.online,
               productType: {
                 text: type ? type.name : "",
-                class: "label-sm " + (type ? "blue" : "label-default")
+                class: "label-sm " + (type ? "blue" : "label-default"),
               },
               edit: {
                 text: Kooboo.text.common.edit,
                 url: Kooboo.Route.Get(Kooboo.Route.Product.DetailPage, {
                   id: d.id,
-                  type: d.productTypeId
-                })
-              }
+                  type: d.productTypeId,
+                }),
+              },
             },
             d.values
           );
@@ -82,16 +86,16 @@ $(function() {
           self.defaultColumns = Object.keys(data.list[0].values);
         }
       },
-      onDelete: function() {
+      onDelete: function () {
         if (confirm(Kooboo.text.confirm.deleteItems)) {
-          var ids = self.selected.map(function(row) {
+          var ids = self.selected.map(function (row) {
             return row.id;
           });
           Kooboo.Product.Deletes({
-            ids: JSON.stringify(ids)
-          }).then(function(res) {
+            ids: JSON.stringify(ids),
+          }).then(function (res) {
             if (res.success) {
-              self.tableData = _.filter(self.tableData, function(row) {
+              self.tableData = _.filter(self.tableData, function (row) {
                 return ids.indexOf(row.id) === -1;
               });
               self.selected = [];
@@ -99,7 +103,7 @@ $(function() {
             }
           });
         }
-      }
-    }
+      },
+    },
   });
 });

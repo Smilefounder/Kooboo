@@ -1,0 +1,24 @@
+<div
+  v-kb-modal="show"
+  class="modal fade"
+  data-backdrop="static"
+  data-keyboard="fasle"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button @click="show=false" class="close">
+          <i class="fa fa-close"></i>
+        </button>
+        <h4 class="modal-title">Select<span>Category</span></h4>
+      </div>
+      <div class="modal-body" v-if="show">
+        <div id="categories"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn green" :disabled="!currentNode" @click="start">Start</button>
+        <button @click="show=false" class="btn gray">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>

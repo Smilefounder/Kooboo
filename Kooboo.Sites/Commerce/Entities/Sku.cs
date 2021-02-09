@@ -6,12 +6,9 @@ namespace Kooboo.Sites.Commerce.Entities
 {
     public class Sku : EntityBase
     {
-        public string Name { get; set; }
-
-        public string Properties { get; set; }
-
         public Guid ProductId { get; set; }
-
-        public string Thumbnails { get; set; }
+        public string Name { get; set; }
+        public string Specifications { get; set; }
+        public string Thumbnail { get; set; }
     }
 }

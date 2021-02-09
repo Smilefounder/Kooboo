@@ -14,6 +14,14 @@ namespace Kooboo.Sites.Commerce.Services
         {
         }
 
+        public Category Get(Guid id)
+        {
+            using (var con = DbConnection)
+            {
+                return con.Get<Category>(id);
+            }
+        }
+
         public Category[] List()
         {
             using (var con = DbConnection)

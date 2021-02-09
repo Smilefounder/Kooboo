@@ -44,8 +44,8 @@
           <button @click="showEditModal=false" class="close">
             <i class="fa fa-close"></i>
           </button>
-          <h4 class="modal-title" v-if="editData&&editData.isEdit">Edit</h4>
-          <h4 class="modal-title" v-else>Create</h4>
+          <h4 class="modal-title" v-if="editData&&editData.isEdit">Edit<span>Category</span></h4>
+          <h4 class="modal-title" v-else>Create<span>Category</span></h4>
         </div>
         <div class="modal-body" v-if="showEditModal">
           <form class="form-horizontal">

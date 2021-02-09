@@ -17,20 +17,22 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public Category[] List(ApiCall apiCall)
         {
-            var productCategoryService = new CategoryService(apiCall.Context);
-            return productCategoryService.List();
+            return new CategoryService(apiCall.Context).List();
+        }
+
+        public Category Get(ApiCall apiCall,Guid id)
+        {
+            return new CategoryService(apiCall.Context).Get(id);
         }
 
         public void Post(Category category, ApiCall apiCall)
         {
-            var categoryService = new CategoryService(apiCall.Context);
-            categoryService.Save(category);
+            new CategoryService(apiCall.Context).Save(category);
         }
 
         public void Delete(Guid[] ids, ApiCall apiCall)
         {
-            var categoryService = new CategoryService(apiCall.Context);
-            categoryService.Delete(ids);
+            new CategoryService(apiCall.Context).Delete(ids);
         }
     }
 }
