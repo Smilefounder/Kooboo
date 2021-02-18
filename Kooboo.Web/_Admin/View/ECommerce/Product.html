@@ -1,5 +1,4 @@
 <!-- #layout name=default -->
-
 <style>
   .options-container {
     display: flex;
@@ -8,6 +7,21 @@
 
   .options-container > * {
     margin: 5px;
+  }
+  .images {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    margin: 0 5px 5px 0px;
+    background-size: contain;
+    position: relative;
+  }
+  .images i {
+    color: #ddd;
   }
 </style>
 <div id="main" class="clearfix">
@@ -20,12 +34,48 @@
         <div class="form-group">
           <label class="control-label col-md-2">Title</label>
           <div class="col-md-10">
-            <input class="form-control" />
+            <input class="form-control" v-model="title" />
           </div>
         </div>
         <div class="form-group">
           <label class="control-label col-md-2">Images</label>
-          <div class="col-md-10"> </div>
+          <div class="col-md-10" style="display: flex; flex-wrap: wrap">
+            <div
+              class="images"
+              v-for="(item,index) in imagesDisplay"
+              :key="index"
+              style="border: 1px #ddd solid"
+              :style="{backgroundImage: item}"
+            >
+              <i
+                class="fa fa-close"
+                style="
+                  position: absolute;
+                  top: 3px;
+                  right: 3px;
+                  color: rgb(136, 135, 135);
+                "
+                @click="images.splice(index,1)"
+              ></i>
+            </div>
+            <div
+              class="images"
+              @click="showMediaDialog"
+              style="border: 1px #ddd dashed"
+            >
+              <i class="fa fa-plus"></i>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-2">Description</label>
+          <div class="col-md-10">
+            <textarea
+              v-model="description"
+              v-kb-richeditor="richeditor"
+              style="opacity: 0"
+            ></textarea>
+          </div>
         </div>
       </div>
     </fieldset>
@@ -40,12 +90,16 @@
       <div class="row">
         <template class="form-group" v-for="attribute in category.attributes">
           <label
-            style="text-align: right;padding-top: 7px;"
+            style="text-align: right; padding-top: 7px"
             class="control-label col-md-2"
             :key="attribute.id"
             >{{attribute.name}}</label
           >
-          <div class="col-md-4" :key="attribute.id" style="margin-bottom: 5px;">
+          <div
+            class="col-md-4"
+            :key="attribute.id+'e'"
+            style="margin-bottom: 5px"
+          >
             <input v-if="attribute.type==0" class="form-control" />
             <select v-if="attribute.type==1" class="form-control">
               <option
@@ -60,7 +114,10 @@
       </div>
     </fieldset>
 
-    <fieldset class="margin-bottom-15 clearfix">
+    <fieldset
+      class="margin-bottom-15 clearfix"
+      v-if="category&&category.attributes.length>0"
+    >
       <legend>
         <div class="pull-left">Specifications</div>
       </legend>
@@ -137,10 +194,16 @@
       </div>
       <a class="btn gray">Cancel</a>
     </div>
+
+    <kb-media-dialog :data.sync="mediaDialogData"></kb-media-dialog>
   </div>
 </div>
 
 <script>
-  Kooboo.loadJS(["/_Admin/Scripts/Kooboo/Guid.js"]);
+  Kooboo.loadJS([
+    "/_Admin/Scripts/Kooboo/Guid.js",
+    "/_Admin/Scripts/components/kb-media-dialog.js",
+    "/_Admin/Scripts/kooboo-web-editor/richEditor.min.js",
+  ]);
 </script>
 <script src="/_Admin/View/ECommerce/Product.js"></script>
