@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using Kooboo.IndexedDB; 
 using System.Linq;
 
-namespace Kooboo.Mail.Repositories
+namespace Kooboo.Mail.Repositories.KoobooDb
 {
-    public class EmailAddressRepository : RepositoryBase<EmailAddress>
+    public class EmailAddressRepository : RepositoryBase<EmailAddress>, IEmailAddressRepository
     {
         private OrgDb orgdb { get; set; }
 
@@ -52,7 +52,7 @@ namespace Kooboo.Mail.Repositories
 
             var maildb = Kooboo.Mail.Factory.DBFactory.UserMailDb(item.UserId, this.orgdb.OrganizationId); 
              
-            var all = maildb.Messages.Query().UseColumnData().Where(o => o.AddressId == id).SelectAll();
+            var all = ((maildb as MailDb).Messages as MessageRepository).Query().UseColumnData().Where(o => o.AddressId == id).SelectAll();
 
             foreach (var msg in all)
             {

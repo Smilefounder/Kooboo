@@ -2,6 +2,7 @@
 //All rights reserved.
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks; 
@@ -13,7 +14,6 @@ namespace Kooboo.Mail
     {
         public Message()
         { 
-  
         } 
 
         public int Id { get; set; }
@@ -115,6 +115,7 @@ namespace Kooboo.Mail
             }
         }
 
+        [NotMapped]
         public bool Draft
         {
             get 
@@ -124,7 +125,9 @@ namespace Kooboo.Mail
         }
 
         private List<Models.Attachment> _attachments; 
-        public List<Models.Attachment> Attachments {
+        [NotMapped]
+        public List<Models.Attachment> Attachments
+        {
             get
             {
                 if (_attachments ==  null)
@@ -139,6 +142,7 @@ namespace Kooboo.Mail
             }
         } 
 
+        [NotMapped]
         public bool HasAttachment
         {
             get

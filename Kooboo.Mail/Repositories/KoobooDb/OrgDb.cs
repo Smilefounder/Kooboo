@@ -10,9 +10,9 @@ using Kooboo.Data;
 using Kooboo.IndexedDB;
 using Kooboo.Mail.Repositories;
 
-namespace Kooboo.Mail
+namespace Kooboo.Mail.Repositories.KoobooDb
 {
-    public   class OrgDb : IDisposable
+    public class OrgDb : IOrgDb
     {
         public OrgDb(Guid organizationId)
         {
@@ -26,7 +26,7 @@ namespace Kooboo.Mail
          
         public Database Db { get; set; }  
  
-        public EmailAddressRepository EmailAddress
+        public IEmailAddressRepository EmailAddress
         {
             get; private set;
         }
@@ -35,7 +35,5 @@ namespace Kooboo.Mail
         {
             this.Db.Close();
         }
-
-
     }
 }

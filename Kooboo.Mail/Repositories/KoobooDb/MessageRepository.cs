@@ -6,7 +6,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace Kooboo.Mail.Repositories
+namespace Kooboo.Mail.Repositories.KoobooDb
 {
     public class MessageRepository : RepositoryBase<Message>
     {

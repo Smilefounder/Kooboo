@@ -12,17 +12,19 @@ namespace Kooboo.Mail.Factory
 {
     public static class DBFactory
     {
-        private static Dictionary<Guid, MailDb> _maildbs = new Dictionary<Guid, MailDb>();
-        private static Dictionary<Guid, OrgDb> _orgdbs = new Dictionary<Guid, OrgDb>();
+        private static Dictionary<Guid, IMailDb> _maildbs = new Dictionary<Guid, IMailDb>();
+        private static Dictionary<Guid, IOrgDb> _orgdbs = new Dictionary<Guid, IOrgDb>();
 
         private static object _dbCreateLock = new object();
 
-        public static MailDb UserMailDb(Guid userId, Guid OrganizationId)
+        public static Repositories.IDbFactory Factory { get; set; } = new Repositories.KoobooDb.DbFactory();
+
+        public static IMailDb UserMailDb(Guid userId, Guid OrganizationId)
         {
             string key = userId.ToString() + OrganizationId.ToString();
             Guid guidkey = Lib.Security.Hash.ComputeGuidIgnoreCase(key);
 
-            MailDb result;
+            IMailDb result;
             if (_maildbs.TryGetValue(guidkey, out result))
 
                 return result;
@@ -32,13 +34,13 @@ namespace Kooboo.Mail.Factory
                 if (_maildbs.TryGetValue(guidkey, out result))
                     return result;
 
-                result = new MailDb(userId, OrganizationId);
+                result = Factory.CreateMailDb(userId, OrganizationId);
                 _maildbs[guidkey] = result;
             }
             return result;
         }
 
-        public static MailDb UserMailDb(User user)
+        public static IMailDb UserMailDb(User user)
         {
             return UserMailDb(user.Id, user.CurrentOrgId);
         }
@@ -49,9 +51,9 @@ namespace Kooboo.Mail.Factory
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static OrgDb OrgDb(Guid organizationId)
+        public static IOrgDb OrgDb(Guid organizationId)
         {
-            OrgDb result;
+            IOrgDb result;
             if (_orgdbs.TryGetValue(organizationId, out result))
                 return result;
 
@@ -59,7 +61,7 @@ namespace Kooboo.Mail.Factory
             {
                 if (_orgdbs.TryGetValue(organizationId, out result))
                     return result;
-                result = new OrgDb(organizationId);
+                result = Factory.CreateOrgDb(organizationId);
                 _orgdbs[organizationId] = result;
             }
             return result;
@@ -77,7 +79,7 @@ namespace Kooboo.Mail.Factory
         }
 
         // this is for email. 
-        public static OrgDb OrgDb(string emailAddress)
+        public static IOrgDb OrgDb(string emailAddress)
         {
             string domainName = GetDomain(emailAddress);
 

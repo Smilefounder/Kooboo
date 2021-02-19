@@ -1,0 +1,1 @@
+dotnet ef migrations script %~1% --output update.sql

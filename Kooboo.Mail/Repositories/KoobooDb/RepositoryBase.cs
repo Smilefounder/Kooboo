@@ -4,7 +4,7 @@ using Kooboo.IndexedDB;
 using Kooboo.IndexedDB.Query;
 using System.Collections.Generic;
 
-namespace Kooboo.Mail.Repositories
+namespace Kooboo.Mail.Repositories.KoobooDb
 {
     public abstract class RepositoryBase<TValue> : IRepository<TValue> where
         TValue : class, IMailObject

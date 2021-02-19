@@ -31,11 +31,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Repositories\Sqlite\history.json" />
+		<EmbeddedResource Include="Repositories\Sqlite\scripts\20210219152404.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="1.60.6">
+      <NoWarn>NU1701</NoWarn>
+    </PackageReference>
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.112" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Kooboo.Data\Kooboo.Data.csproj" />
     <ProjectReference Include="..\Kooboo.Dom\Kooboo.Dom.csproj" />
     <ProjectReference Include="..\Kooboo.IndexedDB\Kooboo.IndexedDB.csproj" />
     <ProjectReference Include="..\Kooboo.Lib\Kooboo.Lib.csproj" />
     <ProjectReference Include="..\Kooboo.Search\Kooboo.Search.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Repositories\Sqlite\scripts\" />
   </ItemGroup>
 
 </Project>

@@ -5,9 +5,9 @@ using Kooboo.IndexedDB;
 using Kooboo.Data;
 using Kooboo.Mail.Repositories;
 
-namespace Kooboo.Mail
+namespace Kooboo.Mail.Repositories.KoobooDb
 {
-    public  class MailDb : IDisposable
+    public  class MailDb : IMailDb
     {
         private object _lock = new object();
    
@@ -26,7 +26,7 @@ namespace Kooboo.Mail
         public Database Db { get; set; }
 
         private FolderRepository _folders;
-        public FolderRepository Folders
+        public IFolderRepository Folders
         {
             get
             {
@@ -45,7 +45,7 @@ namespace Kooboo.Mail
         }
 
         private MessageRepository _messages;
-        public MessageRepository Messages
+        public IMessageRepository Messages
         {
             get
             {
@@ -64,7 +64,7 @@ namespace Kooboo.Mail
         }
 
         private TargetAddressRepository _targetAddresses;
-        public TargetAddressRepository TargetAddresses
+        public ITargetAddressRepository TargetAddresses
         {
             get
             {

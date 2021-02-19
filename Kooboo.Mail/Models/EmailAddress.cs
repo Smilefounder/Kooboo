@@ -2,6 +2,7 @@
 //All rights reserved.
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,6 +30,7 @@ namespace Kooboo.Mail
 
         // this does not save into db.  No need for this data because address only saved in one orgdb. 
         [Kooboo.IndexedDB.CustomAttributes.KoobooIgnore]
+        [NotMapped]
         public Guid OrgId { get; set; }
 
         /// <summary>
@@ -41,6 +43,7 @@ namespace Kooboo.Mail
         public string ForwardAddress { get; set; }
 
         private List<string> _members;
+        [NotMapped]
         public List<string> Members
         {
             get

@@ -5,9 +5,9 @@ using System.Linq;
 using System.Collections.Generic;
 using Kooboo.IndexedDB;
 
-namespace Kooboo.Mail.Repositories
+namespace Kooboo.Mail.Repositories.KoobooDb
 {
-    public  class FolderRepository : RepositoryBase<Folder>
+    public  class FolderRepository : RepositoryBase<Folder>, IFolderRepository
     {
         private MailDb maildb { get; set; }
 

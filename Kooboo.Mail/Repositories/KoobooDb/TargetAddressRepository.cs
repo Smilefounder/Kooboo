@@ -4,7 +4,7 @@ using System;
 using Kooboo.Extensions;
 using Kooboo.IndexedDB;
 
-namespace Kooboo.Mail.Repositories
+namespace Kooboo.Mail.Repositories.KoobooDb
 {
   public  class TargetAddressRepository : RepositoryBase<TargetAddress>
     {

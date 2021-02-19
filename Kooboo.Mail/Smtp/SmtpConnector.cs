@@ -1,4 +1,4 @@
-//Copyright (c) 2018 Yardi Technology Limited. Http://www.kooboo.com 
+//Copyright (c) 2018 Yardi Technology Limited. Http://www.kooboo.com
 //All rights reserved.
 using System;
 using System.Threading.Tasks;
@@ -95,7 +95,7 @@ namespace Kooboo.Mail.Smtp
                         break;
                     }
 
-                    // When enter the session state, read till the end . 
+                    // When enter the session state, read till the end .
                     if (session.State == SmtpSession.CommandState.Data)
                     {
                         var externalto = AddressUtility.GetExternalRcpts(session);
@@ -220,6 +220,11 @@ namespace Kooboo.Mail.Smtp
                 _cancellationTokenSource.Cancel();
                 _reader.Dispose();
                 _writer.Dispose();
+                var sslStream = _stream as SslStream;
+                if (sslStream != null)
+                {
+                    sslStream.Dispose();
+                }
                 _client.Close();
             }
         }

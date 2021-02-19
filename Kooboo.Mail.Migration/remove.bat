@@ -1,0 +1,1 @@
+dotnet-ef migrations remove -s ./ -p ../Kooboo.Mail.Migration -c MyDbContext
