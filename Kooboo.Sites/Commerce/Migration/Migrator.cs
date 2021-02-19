@@ -46,13 +46,16 @@ namespace Kooboo.Sites.Commerce.Migration
             var lastVersion = connection.QueryFirstOrDefault<int?>("select max(ver) from _migration") ?? 0;
             var appends = _migrationRecords.Where(w => w.Version > lastVersion).OrderBy(o => o.Version);
 
+            var tran = connection.BeginTransaction();
+
             foreach (var item in appends)
             {
-                var tran = connection.BeginTransaction();
                 item.Migrate(connection);
                 connection.Execute($"INSERT INTO _migration (ver) VALUES({item.Version});");
-                tran.Commit();
             }
+
+            if (lastVersion == 0) Seed.Insert(connection);
+            tran.Commit();
         }
     }
 }

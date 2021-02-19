@@ -1,6 +1,6 @@
 <!-- #layout name=blank-->
 <style>
-  .dynamic-items>* {
+  .dynamic-items > * {
     margin-bottom: 5px;
   }
 
@@ -11,9 +11,8 @@
     flex-wrap: wrap;
   }
 
-  .options-container>* {
+  .options-container > * {
     margin: 5px;
-
   }
 </style>
 
@@ -25,11 +24,28 @@
 
   <div class="panel panel-default panel-small">
     <div class="panel-heading">
-      <a href="javascript:;" class="btn navbar-btn green" @click="onAddNewCategory">Add new category</a>
+      <a
+        href="javascript:;"
+        class="btn navbar-btn green"
+        @click="onAddNewCategory"
+        >Add new category</a
+      >
       <template v-if="currentNode">
-        <a href="javascript:;" class="btn navbar-btn green" @click="onAddNewSubCategory">Add sub-category</a>
-        <a href="javascript:;" class="btn navbar-btn green" @click="onEdit">Edit</a>
-        <a href="javascript:;" class="btn navbar-btn red" @click="removeCategory">Delete</a>
+        <a
+          href="javascript:;"
+          class="btn navbar-btn green"
+          @click="onAddNewSubCategory"
+          >Add sub-category</a
+        >
+        <a href="javascript:;" class="btn navbar-btn green" @click="onEdit"
+          >Edit</a
+        >
+        <a
+          href="javascript:;"
+          class="btn navbar-btn red"
+          @click="removeCategory"
+          >Delete</a
+        >
       </template>
     </div>
     <div class="panel-body">
@@ -37,14 +53,21 @@
     </div>
   </div>
 
-  <div v-kb-modal="showEditModal" class="modal fade" data-backdrop="static" data-keyboard="fasle">
+  <div
+    v-kb-modal="showEditModal"
+    class="modal fade"
+    data-backdrop="static"
+    data-keyboard="fasle"
+  >
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button @click="showEditModal=false" class="close">
             <i class="fa fa-close"></i>
           </button>
-          <h4 class="modal-title" v-if="editData&&editData.isEdit">Edit<span>Category</span></h4>
+          <h4 class="modal-title" v-if="editData&&editData.isEdit"
+            >Edit<span>Category</span></h4
+          >
           <h4 class="modal-title" v-else>Create<span>Category</span></h4>
         </div>
         <div class="modal-body" v-if="showEditModal">
@@ -52,13 +75,17 @@
             <div class="form-group" v-if="editData.parent">
               <label class="col-sm-3 control-label">Parent</label>
               <div class="col-sm-9">
-                <input class="form-control" v-model="editData.parentName" readonly />
+                <input
+                  class="form-control"
+                  v-model="editData.parentName"
+                  readonly
+                />
               </div>
             </div>
             <div class="form-group">
               <label class="col-sm-3 control-label">Name</label>
               <div class="col-sm-9">
-                <input class="form-control" v-model="editData.text">
+                <input class="form-control" v-model="editData.text" />
               </div>
             </div>
             <div class="form-group">
@@ -66,31 +93,50 @@
               <div class="col-sm-9 dynamic-items">
                 <div v-for="item in editData.attributes" :key="item.id">
                   <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Name" v-model="item.name">
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="Name"
+                      v-model="item.name"
+                    />
                     <span class="input-group-addon">:</span>
                     <select class="form-control" v-model="item.type">
                       <option :value="0">Text</option>
                       <option :value="1">Options</option>
                     </select>
-                    <span class="input-group-addon" style="cursor: pointer;" @click="rmoveItem(item)">
+                    <span
+                      class="input-group-addon"
+                      style="cursor: pointer"
+                      @click="removeItem(editData.attributes,item)"
+                    >
                       <i class="fa fa-minus-circle"></i>
                     </span>
                   </div>
                   <div v-if="item.type==1" class="options-container">
-                    <button type="button" class="btn btn-sm" v-for="option in item.options" :key="option.id"
-                      @click="rmoveItem(item.options,option)">
+                    <button
+                      type="button"
+                      class="btn btn-sm"
+                      v-for="option in item.options"
+                      :key="option.id"
+                      @click="removeItem(item.options,option)"
+                    >
                       {{option.value}}
                       <i class="fa fa-close"></i>
                     </button>
-                    <div style="display: inline-flex; align-items: center;">
-                      <input class="form-control" style="display: inline; width: 80px;margin-right: 3px;"
-                        v-model="item.editingItem" />
-                      <button type="button" class="btn btn-sm blue" @click=" addOption(item)">
-                        <i class="fa fa-save"></i></button>
-                    </div>
+                    <input
+                      class="form-control"
+                      style="display: inline; width: 80px; margin-right: 3px"
+                      v-model="item.editingItem"
+                      @blur="addOption(item)"
+                      @keydown.enter="addOption(item)"
+                    />
                   </div>
                 </div>
-                <a href="javascript:;" class="btn dark" @click="addItem(editData.attributes)">
+                <a
+                  href="javascript:;"
+                  class="btn dark"
+                  @click="addItem(editData.attributes)"
+                >
                   <i class="fa fa-plus"></i>
                 </a>
               </div>
@@ -100,31 +146,54 @@
               <div class="col-sm-9 dynamic-items">
                 <div v-for="item in editData.specifications" :key="item.id">
                   <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Name" v-model="item.name">
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="Name"
+                      v-model="item.name"
+                    />
                     <span class="input-group-addon">:</span>
-                    <select class="form-control" v-model="item.type">
+                    <select
+                      class="form-control"
+                      v-model="item.type"
+                      @change="item.options=[]"
+                    >
                       <option :value="0">Text</option>
                       <option :value="1">Options</option>
                     </select>
-                    <span class="input-group-addon" style="cursor: pointer;" @click="rmoveItem(item)">
+                    <span
+                      class="input-group-addon"
+                      style="cursor: pointer"
+                      @click="removeItem(editData.specifications,item)"
+                    >
                       <i class="fa fa-minus-circle"></i>
                     </span>
                   </div>
                   <div v-if="item.type==1" class="options-container">
-                    <button type="button" class="btn btn-sm" v-for="option in item.options" :key="option.id"
-                      @click="rmoveItem(item.options,option)">
+                    <button
+                      type="button"
+                      class="btn btn-sm"
+                      v-for="option in item.options"
+                      :key="option.id"
+                      @click="removeItem(item.options,option)"
+                    >
                       {{option.value}}
                       <i class="fa fa-close"></i>
                     </button>
-                    <div style="display: inline-flex; align-items: center;">
-                      <input class="form-control" style="display: inline; width: 80px;margin-right: 3px;"
-                        v-model="item.editingItem" />
-                      <button type="button" class="btn btn-sm blue" @click=" addOption(item)">
-                        <i class="fa fa-save"></i></button>
-                    </div>
+                    <input
+                      class="form-control"
+                      style="display: inline; width: 80px; margin-right: 3px"
+                      v-model.trim="item.editingItem"
+                      @blur="addOption(item)"
+                      @keydown.enter="addOption(item)"
+                    />
                   </div>
                 </div>
-                <a href="javascript:;" class="btn dark" @click="addItem(editData.specifications)">
+                <a
+                  href="javascript:;"
+                  class="btn dark"
+                  @click="addItem(editData.specifications)"
+                >
                   <i class="fa fa-plus"></i>
                 </a>
               </div>
@@ -142,9 +211,10 @@
 <script>
   (function () {
     Kooboo.loadJS([
+      "/_Admin/Scripts/lib/uuidv3.min.js",
       "/_Admin/Scripts/kooboo/Guid.js",
       "/_Admin/Scripts/lib/jstree.min.js",
-      "/_Admin/Scripts/components/kbBreadcrumb.js"
+      "/_Admin/Scripts/components/kbBreadcrumb.js",
     ]);
     Kooboo.loadCSS(["/_Admin/Styles/jstree/style.min.css"]);
   })();

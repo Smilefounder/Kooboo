@@ -13,7 +13,7 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public bool RequireSite => true;
 
-        public bool RequireUser => false;
+        public bool RequireUser => true;
 
         public Category[] List(ApiCall apiCall)
         {

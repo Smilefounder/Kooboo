@@ -23,6 +23,21 @@
   .images i {
     color: #ddd;
   }
+
+  .table-input {
+    outline: 0;
+    border: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+  }
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
 </style>
 <div id="main" class="clearfix">
   <div class="col-md-8 col-md-offset-2">
@@ -80,15 +95,12 @@
       </div>
     </fieldset>
 
-    <fieldset
-      class="margin-bottom-15 clearfix"
-      v-if="category&&category.attributes.length>0"
-    >
+    <fieldset class="margin-bottom-15 clearfix" v-if="attributes.length>0">
       <legend>
         <div class="pull-left">Category<span>Attributes</span></div>
       </legend>
       <div class="row">
-        <template class="form-group" v-for="attribute in category.attributes">
+        <template class="form-group" v-for="attribute in attributes">
           <label
             style="text-align: right; padding-top: 7px"
             class="control-label col-md-2"
@@ -114,16 +126,13 @@
       </div>
     </fieldset>
 
-    <fieldset
-      class="margin-bottom-15 clearfix"
-      v-if="category&&category.attributes.length>0"
-    >
+    <fieldset class="margin-bottom-15 clearfix" v-if="specifications.length>0">
       <legend>
         <div class="pull-left">Specifications</div>
       </legend>
       <div
         class="form-horizontal"
-        v-for="specification in category.specifications"
+        v-for="specification in specifications"
         :key="specification.id"
       >
         <div class="form-group">
@@ -140,20 +149,13 @@
                 {{option.value}}
                 <i class="fa fa-close"></i>
               </button>
-              <div style="display: inline-flex; align-items: center">
-                <input
-                  class="form-control"
-                  style="display: inline; width: 80px; margin-right: 3px"
-                  v-model="specification.editingItem"
-                />
-                <button
-                  type="button"
-                  class="btn btn-sm blue"
-                  @click=" addOption(item)"
-                >
-                  <i class="fa fa-save"></i
-                ></button>
-              </div>
+              <input
+                class="form-control"
+                style="display: inline; width: 80px; margin-right: 3px"
+                v-model.trim="specification.editingItem"
+                @blur="addOption(specification)"
+                @keydown.enter="addOption(specification)"
+              />
             </div>
             <div v-if="specification.type==1" class="options-container">
               <button
@@ -162,11 +164,13 @@
                 v-for="option in specification.options"
                 :key="option.id"
                 style="display: flex; align-items: center"
+                @click.stop="switchOption(option)"
               >
                 <input
                   type="checkbox"
+                  :checked="option.checked"
                   class="form-control"
-                  style="width: 12px; height: 12px; margin-right: 5px"
+                  style="width: 12px; height: 12px; margin: 0 5px"
                 />
                 <span>{{option.value}}</span>
               </button>
@@ -174,11 +178,64 @@
           </div>
         </div>
       </div>
+      <table
+        class="table table-bordered"
+        style="margin-top: 15px; text-align: center"
+        v-if="skus.length"
+      >
+        <thead>
+          <tr>
+            <td v-for="specification in specifications" :key="specification.id"
+              >{{specification.name}}</td
+            >
+            <td style="width: 80px">Price</td>
+            <td style="width: 80px">Tax</td>
+            <td style="width: 120px">SKU</td>
+            <td style="width: 80px">Status</td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="sku in skus">
+            <td v-for="item in sku.specifications">{{item.value}}</td>
+            <td
+              ><input
+                type="number"
+                v-model.number="sku.price"
+                class="table-input"
+            /></td>
+            <td
+              ><input
+                type="number"
+                v-model.number="sku.tax"
+                class="table-input"
+            /></td>
+            <td><input v-model="sku.name" class="table-input" /></td>
+            <td>
+              <span
+                v-if="sku.enable"
+                class="label green"
+                style="cursor: pointer"
+                @click="sku.enable=false"
+                >上架</span
+              >
+              <span
+                v-else
+                class="label gray"
+                @click="sku.enable=true"
+                style="cursor: pointer"
+                >下架</span
+              >
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </fieldset>
 
     <div class="page-buttons">
       <div class="btn-group dropup">
-        <button class="btn green" style="margin: 0">Save &amp; Return</button>
+        <button class="btn green" style="margin: 0" @click="saveAndReturn"
+          >Save &amp; Return</button
+        >
         <a
           class="btn green dropdown-toggle"
           data-toggle="dropdown"
@@ -188,22 +245,25 @@
         </a>
         <ul class="dropdown-menu" role="menu">
           <li>
-            <a href="javascript:;">Save</a>
+            <a href="javascript:;" @click="save">Save</a>
           </li>
         </ul>
       </div>
-      <a class="btn gray">Cancel</a>
+      <a class="btn gray" :href="productsUrl">Cancel</a>
     </div>
 
     <kb-media-dialog :data.sync="mediaDialogData"></kb-media-dialog>
+    <kb-media-dialog :data.sync="richeditor.mediaDialogData"></kb-media-dialog>
   </div>
 </div>
 
 <script>
   Kooboo.loadJS([
+    "/_Admin/Scripts/lib/uuidv3.min.js",
     "/_Admin/Scripts/Kooboo/Guid.js",
     "/_Admin/Scripts/components/kb-media-dialog.js",
     "/_Admin/Scripts/kooboo-web-editor/richEditor.min.js",
+    "/_Admin/Scripts/components/tinymceMonaco/plugin.min.js",
   ]);
 </script>
 <script src="/_Admin/View/ECommerce/Product.js"></script>

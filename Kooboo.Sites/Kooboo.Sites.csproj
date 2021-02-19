@@ -103,7 +103,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Commerce\ViewModels\" />
     <Folder Include="Ecommerce\Events\" />
     <Folder Include="Ecommerce\Search\" />
     <Folder Include="Ecommerce\Recommendation\" />

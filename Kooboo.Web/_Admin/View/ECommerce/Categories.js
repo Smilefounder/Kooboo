@@ -100,20 +100,12 @@ $(function () {
       removeCategory: function () {
         var me = this;
         var node = me.getSelectedNode();
-        var deleteIds = [];
 
-        function getId(currentNode) {
-          deleteIds.push(currentNode.id);
-          currentNode.children.forEach(function (f) {
-            getId(me.jsTree.get_node(f));
-          });
+        if (node.children.length > 0) {
+          if (!confirm(Kooboo.text.confirm.deleteItems)) return;
         }
 
-        getId(node);
-        if (deleteIds.length == 0) return;
-        if (!confirm(Kooboo.text.confirm.deleteItems)) return;
-
-        Kooboo.ProductCategory.Delete(deleteIds).then(function (res) {
+        Kooboo.ProductCategory.Delete([node.id]).then(function (res) {
           if (res.success) {
             me.jsTree.delete_node(node);
           }
@@ -148,12 +140,15 @@ $(function () {
       saveCategory: function () {
         var me = this;
 
+        var attributes = me.standardizationId(me.editData.attributes);
+        var specifications = me.standardizationId(me.editData.specifications);
+
         var model = {
           parent: me.editData.parent,
           id: me.editData.id,
           name: me.editData.text,
-          attributes: JSON.stringify(me.editData.attributes),
-          specifications: JSON.stringify(me.editData.specifications),
+          attributes: JSON.stringify(attributes),
+          specifications: JSON.stringify(specifications),
         };
 
         Kooboo.ProductCategory.post(model).then(function (res) {
@@ -203,12 +198,12 @@ $(function () {
           options: [],
         });
       },
-      rmoveItem: function (items, item) {
+      removeItem: function (items, item) {
         var index = items.indexOf(item);
         items.splice(index, 1);
       },
       addOption: function (item) {
-        if (!item.editingItem.trim()) return;
+        if (!item.editingItem) return;
 
         item.options.push({
           id: Kooboo.Guid.NewGuid(),
@@ -217,7 +212,7 @@ $(function () {
 
         item.editingItem = "";
       },
-      modelToTreeData(model) {
+      modelToTreeData: function (model) {
         return {
           id: model.id,
           text: model.name,
@@ -230,6 +225,21 @@ $(function () {
               : [],
           },
         };
+      },
+      standardizationId: function (items) {
+        var me = this;
+        var coped = JSON.parse(JSON.stringify(items));
+
+        coped.forEach(function (f) {
+          f.id = Kooboo.Guid.computeGuid(me.editData.id + f.name);
+          if (f.options) {
+            f.options.forEach(function (o) {
+              o.id = Kooboo.Guid.computeGuid(f.id + o.value);
+            });
+          }
+        });
+
+        return coped;
       },
     },
   });

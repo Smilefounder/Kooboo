@@ -35,6 +35,7 @@ namespace Kooboo.Sites.Commerce
 
         public static void Insert<T>(this IDbConnection connection, IEnumerable<T> entities) where T : EntityBase
         {
+            if (!entities.Any()) return;
             string[] strs = GetTypeMemberString<T>();
             connection.Execute($"INSERT INTO {typeof(T).Name} ({strs[0]}) VALUES ({strs[2]})", entities);
         }
@@ -49,6 +50,7 @@ namespace Kooboo.Sites.Commerce
 
         public static void Update<T>(this IDbConnection connection, IEnumerable<T> entities) where T : EntityBase
         {
+            if (!entities.Any()) return;
             string[] strs = GetTypeMemberString<T>();
             connection.Execute($"UPDATE {typeof(T).Name} SET {strs[1]} WHERE Id =@Id", entities);
         }
@@ -65,14 +67,16 @@ namespace Kooboo.Sites.Commerce
             connection.Execute($"DELETE FROM {typeof(T).Name} WHERE Id =@Id", entity);
         }
 
-        public static void Delete<T>(this IDbConnection connection, IEnumerable<Guid> entity) where T : EntityBase
+        public static void Delete<T>(this IDbConnection connection, IEnumerable<Guid> ids) where T : EntityBase
         {
-            connection.Execute($"DELETE FROM {typeof(T).Name} WHERE Id IN (@Id)", entity.Select(s => new { Id = s }));
+            if (!ids.Any()) return;
+            connection.Execute($"DELETE FROM {typeof(T).Name} WHERE Id IN (@Id)", ids.Select(s => new { Id = s }));
         }
 
-        public static void Delete<T>(this IDbConnection connection, IEnumerable<T> entity) where T : EntityBase
+        public static void Delete<T>(this IDbConnection connection, IEnumerable<T> entities) where T : EntityBase
         {
-            connection.Execute($"DELETE FROM {typeof(T).Name} WHERE Id IN (@Id)", entity);
+            if (!entities.Any()) return;
+            connection.Execute($"DELETE FROM {typeof(T).Name} WHERE Id IN (@Id)", entities);
         }
         #endregion
 
