@@ -225,7 +225,7 @@ namespace Kooboo.Mail.Imap
 
             var orgdb = Factory.DBFactory.OrgDb(user.CurrentOrgId);
 
-            var address = orgdb.EmailAddress.Query().Where(o => o.UserId == user.Id).SelectAll();
+            var address = orgdb.EmailAddress.ByUser(user.Id);
 
             var defaults = GetDefaultFolders(address);
 

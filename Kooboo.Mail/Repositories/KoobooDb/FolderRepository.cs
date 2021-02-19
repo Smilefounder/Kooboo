@@ -59,7 +59,7 @@ namespace Kooboo.Mail.Repositories.KoobooDb
                 return; // folder already exists. 
             } 
             this.AddOrUpdate(newfolder); 
-            var allmessage = this.maildb.Messages.Query().Where(o => o.FolderId == folder.Id).SelectAll();
+            var allmessage = this.maildb.Messages.ByFolder(folder.Id, 0);
             foreach (var item in allmessage)
             {
                 item.FolderId = newfolder.Id;

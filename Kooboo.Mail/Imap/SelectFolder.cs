@@ -70,13 +70,7 @@ namespace Kooboo.Mail.Imap
              \Deleted flag set.  See the description of the EXPUNGE
              response for further explanation.
      */   
-            var query = this.mailDb.Messages.Query().UseColumnData().Where(o => o.FolderId == this.FolderId).Where(o => o.Deleted == true); 
-             
-            if (this.AddressId != default(int))
-            {
-                query.Where(o => o.AddressId == this.AddressId); 
-            } 
-            var all = query.SelectAll();
+            var all = this.mailDb.Messages.ByFolder(FolderId, AddressId, true); 
 
             List<int> result = new List<int>();
 

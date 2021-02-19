@@ -78,8 +78,8 @@ namespace Kooboo.Mail.Repositories.KoobooDb
             }
         }
 
-        private Sequence<string> _msgbody; 
-        public Kooboo.IndexedDB.Sequence<string> MsgBody
+        private BodyRepository _msgbody; 
+        public override IBodyRepository MsgBody
         {
             get
             {
@@ -87,7 +87,7 @@ namespace Kooboo.Mail.Repositories.KoobooDb
                 {
                     lock(_lock)
                     {
-                        _msgbody = this.Db.GetSequenceOld<string>("MessageSource"); 
+                        _msgbody = new BodyRepository(this); 
                     }
                 }
                 return _msgbody;

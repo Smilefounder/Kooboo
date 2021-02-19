@@ -16,9 +16,13 @@ namespace Kooboo.Mail.Repositories
 
         bool AddOrUpdate(Message value);
 
+        List<Message> ByFolder(int folderId, int addressId, bool? deleted = null);
+
         List<Message> ByFolder(string FolderName);
 
         List<Message> ByUidRange(string folderName, int minId, int maxId);
+
+        List<Message> ByCreationTimeRange(string folderName, long minTick, long maxTick);
 
         Message GetBySeqNo(string FolderName, int LastMaxId, int MessageCount, int SeqNo);
 

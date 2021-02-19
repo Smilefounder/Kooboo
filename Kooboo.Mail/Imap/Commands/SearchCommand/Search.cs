@@ -81,7 +81,7 @@ namespace Kooboo.Mail.Imap.Commands.SearchCommand
         {
             if (item == null || item.Name == null)
             {
-                return maildb.Messages.FolderQuery(Folder.Folder).SelectAll();
+                return maildb.Messages.ByFolder(Folder.Folder);
             }
 
             if (item.Name == "LARGER" || item.Name == "SMALLER")
@@ -97,11 +97,11 @@ namespace Kooboo.Mail.Imap.Commands.SearchCommand
 
                 if (item.Name == "LARGER")
                 {
-                    return maildb.Messages.FolderQuery(Folder.Folder).Where(o => o.Id > msg.Id).SelectAll();
+                    return maildb.Messages.ByUidRange(Folder.Folder, msg.Id, Int32.MaxValue);
                 }
                 else if (item.Name == "SMALLER")
                 {
-                    return maildb.Messages.FolderQuery(Folder.Folder).Where(o => o.Id < msg.Id).SelectAll();
+                    return maildb.Messages.ByUidRange(Folder.Folder, 0, msg.Id);
                 }
             }
             else if (item.Name == "UID")
@@ -130,13 +130,13 @@ namespace Kooboo.Mail.Imap.Commands.SearchCommand
                 {
                     var date = (DateTime)item.Parameters["DATE"];
                     var tick = date.Ticks; 
-                    return maildb.Messages.FolderQuery(Folder.Folder).Where(o => o.CreationTimeTick < tick).SelectAll(); 
+                    return maildb.Messages.ByCreationTimeRange(Folder.Folder, 0, tick); 
                 } 
                else if (item.Name == "SENTSINCE" || item.Name == "SINCE")
                 {
                     var date = (DateTime)item.Parameters["DATE"];
                     var tick = date.Ticks;
-                    return maildb.Messages.FolderQuery(Folder.Folder).Where(o => o.CreationTimeTick > tick).SelectAll();
+                    return maildb.Messages.ByCreationTimeRange(Folder.Folder, tick, Int64.MaxValue);
                 }
                 else if (item.Name == "ON" || item.Name == "SENTON")
                 {
@@ -145,7 +145,7 @@ namespace Kooboo.Mail.Imap.Commands.SearchCommand
                     var before = date.AddDays(-1);
                     var after = date.AddDays(1);
                     
-                   var allmessages = maildb.Messages.FolderQuery(Folder.Folder).Where(o => o.CreationTimeTick > before.Ticks && o.CreationTimeTick < after.Ticks).SelectAll();
+                   var allmessages = maildb.Messages.ByCreationTimeRange(Folder.Folder, before.Ticks, after.Ticks);
 
                     if (allmessages !=null && allmessages.Count() > 0)
                     {
@@ -158,7 +158,7 @@ namespace Kooboo.Mail.Imap.Commands.SearchCommand
             }
 
             // not collection found, loop all.   
-            return maildb.Messages.FolderQuery(Folder.Folder).SelectAll(); 
+            return maildb.Messages.ByFolder(Folder.Folder); 
         }
 
         public static SearchItem FindStartCollectionItems(ref List<SearchItem> items)

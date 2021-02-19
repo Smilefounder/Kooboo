@@ -68,17 +68,17 @@ namespace Kooboo.Mail.Repositories.KoobooDb
         {
             // this is strange for now, and should be solved by database.
 
-            var columnMsg = this.Store.GetFromColumns(value.Id); 
-            if (columnMsg !=null)
+            var columnMsg = this.Store.GetFromColumns(value.Id);
+            if (columnMsg != null)
             {
                 value.Read = columnMsg.Read;
                 value.Flagged = columnMsg.Flagged;
                 value.Answered = columnMsg.Answered;
                 value.Deleted = columnMsg.Deleted;
-                value.Recent = columnMsg.Recent;  
+                value.Recent = columnMsg.Recent;
             }
             return base.AddOrUpdate(value);
-      
+
         }
 
         public override bool Update(Message value)
@@ -90,9 +90,19 @@ namespace Kooboo.Mail.Repositories.KoobooDb
                 value.Flagged = columnMsg.Flagged;
                 value.Answered = columnMsg.Answered;
                 value.Deleted = columnMsg.Deleted;
-                value.Recent = columnMsg.Recent; 
+                value.Recent = columnMsg.Recent;
             }
             return base.Update(value);
+        }
+
+        public List<Message> ByFolder(int folderId, int addressId, bool? deleted = null)
+        {
+            var query = FolderQuery(folderId, addressId);
+            if (deleted != null)
+            {
+                query = query.UseColumnData().Where(o => o.Deleted == deleted.Value);
+            }
+            return query.SelectAll();
         }
 
         public List<Message> ByFolder(string FolderName)
@@ -100,16 +110,20 @@ namespace Kooboo.Mail.Repositories.KoobooDb
             return FolderQuery(FolderName).SelectAll();
         }
 
+        public WhereFilter<int, Message> FolderQuery(int folderId, int addressId)
+        {
+            var query = this.Query().OrderByDescending(o => o.Id).Where(o => o.FolderId == folderId);
+            if (addressId != default(int))
+            {
+                query.Where(o => o.AddressId == addressId);
+            }
+            return query;
+        }
+
         public WhereFilter<int, Message> FolderQuery(string FolderName)
         {
             var model = Kooboo.Mail.Utility.FolderUtility.ParseFolder(FolderName);
-
-            var query = this.Query().OrderByDescending(o => o.Id).Where(o => o.FolderId == model.FolderId);
-            if (model.AddressId != default(int))
-            {
-                query.Where(o => o.AddressId == model.AddressId);
-            }
-            return query;
+            return FolderQuery(model.FolderId, model.AddressId);
         }
 
         public List<Message> ByUidRange(string folderName, int minId, int maxId)
@@ -118,6 +132,13 @@ namespace Kooboo.Mail.Repositories.KoobooDb
                 .Where(o => o.Id >= minId)
                 .Where(o => o.Id <= maxId)
                 .Take(Int32.MaxValue);
+        }
+
+        public List<Message> ByCreationTimeRange(string folderName, long minTick, long maxTick)
+        {
+            return FolderQuery(folderName)
+                .Where(o => o.CreationTimeTick > minTick)
+                .Where(o => o.CreationTimeTick < maxTick).SelectAll();
         }
 
         public Message GetBySeqNo(string FolderName, int LastMaxId, int MessageCount, int SeqNo)
