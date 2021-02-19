@@ -8,11 +8,11 @@ using System.Collections.Generic;
 
 namespace Kooboo.Mail.Repositories.KoobooDb
 {
-    public class MessageRepository : RepositoryBase<Message>
+    public class MessageRepository : RepositoryBase<Message>, IMessageRepository
     {
         private MailDb maildb { get; set; }
 
-        public MessageRepository(MailDb db) : base(db.Db)
+        public MessageRepository(MailDb db) : base((db as MailDbImpl).Db)
         {
             this.maildb = db;
         }
@@ -45,7 +45,6 @@ namespace Kooboo.Mail.Repositories.KoobooDb
             Message.Id = 0; // to reset the message id. 
             var bodyposition = this.maildb.MsgBody.Add(MessageBody);
             Message.BodyPosition = bodyposition;
-            this.maildb.MsgBody.Close();
             this.Add(Message);
         }
 
@@ -53,7 +52,6 @@ namespace Kooboo.Mail.Repositories.KoobooDb
         {
             var bodyposition = this.maildb.MsgBody.Add(MessageBody);
             Message.BodyPosition = bodyposition;
-            this.maildb.MsgBody.Close();
             this.Update(Message);
         }
 

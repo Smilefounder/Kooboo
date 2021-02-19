@@ -12,26 +12,24 @@ using Kooboo.Mail.Repositories;
 
 namespace Kooboo.Mail.Repositories.KoobooDb
 {
-    public class OrgDb : IOrgDb
+    public class OrgDbImpl : OrgDb
     {
-        public OrgDb(Guid organizationId)
+        public OrgDbImpl(Guid organizationId)
+            : base(organizationId)
         {
-            OrganizationId = organizationId;
             var dbName = Kooboo.Data.AppSettings.GetMailDbName(OrganizationId);
             Db = DB.GetDatabase(dbName);
             EmailAddress = new EmailAddressRepository(this);
         }
 
-        public Guid OrganizationId { get; set; }
-         
         public Database Db { get; set; }  
  
-        public IEmailAddressRepository EmailAddress
+        public override IEmailAddressRepository EmailAddress
         {
-            get; private set;
+            get; 
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             this.Db.Close();
         }

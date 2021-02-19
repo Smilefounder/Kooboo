@@ -18,18 +18,6 @@ namespace Kooboo.Mail.Repositories
 
         List<Message> ByFolder(string FolderName);
 
-        public WhereFilter<int, Message> FolderQuery(string FolderName)
-        {
-            var model = Kooboo.Mail.Utility.FolderUtility.ParseFolder(FolderName);
-
-            var query = this.Query().OrderByDescending(o => o.Id).Where(o => o.FolderId == model.FolderId);
-            if (model.AddressId != default(int))
-            {
-                query.Where(o => o.AddressId == model.AddressId);
-            }
-            return query;
-        }
-
         List<Message> ByUidRange(string folderName, int minId, int maxId);
 
         Message GetBySeqNo(string FolderName, int LastMaxId, int MessageCount, int SeqNo);

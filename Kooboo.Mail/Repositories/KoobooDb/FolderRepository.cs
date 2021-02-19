@@ -12,7 +12,7 @@ namespace Kooboo.Mail.Repositories.KoobooDb
         private MailDb maildb { get; set; }
 
         public FolderRepository(MailDb db) 
-            : base(db.Db)
+            : base((db as MailDbImpl).Db)
         {
             this.maildb = db; 
         }

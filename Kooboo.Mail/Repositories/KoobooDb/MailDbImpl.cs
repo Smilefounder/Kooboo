@@ -7,26 +7,22 @@ using Kooboo.Mail.Repositories;
 
 namespace Kooboo.Mail.Repositories.KoobooDb
 {
-    public  class MailDb : IMailDb
+    public  class MailDbImpl : MailDb
     {
         private object _lock = new object();
    
-        public MailDb(Guid UserId, Guid OrganizationId)
+        public MailDbImpl(Guid UserId, Guid OrganizationId)
+            : base(UserId, OrganizationId)
         {
-            this.UserId = UserId;
             string folder = AppSettings.GetMailDbName(OrganizationId);
             string dbname = System.IO.Path.Combine(folder, UserId.ToString());
             Db = DB.GetDatabase(dbname);
         }
 
-        public Guid OrganizationId { get; set; }
-
-        public Guid UserId { get; set; }
-
         public Database Db { get; set; }
 
         private FolderRepository _folders;
-        public IFolderRepository Folders
+        public override IFolderRepository Folders
         {
             get
             {
@@ -45,7 +41,7 @@ namespace Kooboo.Mail.Repositories.KoobooDb
         }
 
         private MessageRepository _messages;
-        public IMessageRepository Messages
+        public override IMessageRepository Messages
         {
             get
             {
@@ -64,7 +60,7 @@ namespace Kooboo.Mail.Repositories.KoobooDb
         }
 
         private TargetAddressRepository _targetAddresses;
-        public ITargetAddressRepository TargetAddresses
+        public override ITargetAddressRepository TargetAddresses
         {
             get
             {
@@ -97,8 +93,8 @@ namespace Kooboo.Mail.Repositories.KoobooDb
                 return _msgbody;
             }
         }
-          
-        public void Dispose()
+
+        public override void Dispose()
         {
             this.Db.Close(); 
         }

@@ -12,7 +12,7 @@ namespace Kooboo.Mail.Repositories.KoobooDb
         private OrgDb orgdb { get; set; }
 
         public EmailAddressRepository(OrgDb db)
-            : base(db.Db)
+            : base((db as OrgDbImpl).Db)
         {
             this.orgdb = db; 
         }

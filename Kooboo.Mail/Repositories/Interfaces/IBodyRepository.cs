@@ -6,7 +6,7 @@ namespace Kooboo.Mail.Repositories
 {
     public interface IBodyRepository
     {
-        long Set(string body);
+        long Add(string body);
 
         string Get(long pos);
     }

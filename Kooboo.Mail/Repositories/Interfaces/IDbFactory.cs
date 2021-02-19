@@ -6,8 +6,8 @@ namespace Kooboo.Mail.Repositories
 {
     public interface IDbFactory
     {
-        IOrgDb CreateOrgDb(Guid orgId);
+        OrgDb CreateOrgDb(Guid orgId);
 
-        IMailDb CreateMailDb(Guid userId, Guid orgId);
+        MailDb CreateMailDb(Guid userId, Guid orgId);
     }
 }
