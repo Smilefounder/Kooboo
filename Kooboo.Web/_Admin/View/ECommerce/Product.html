@@ -57,10 +57,12 @@
           <div class="col-md-10" style="display: flex; flex-wrap: wrap">
             <div
               class="images"
-              v-for="(item,index) in imagesDisplay"
+              :class="{'primary-img':item.isPrimary}"
+              v-for="(item,index) in images"
               :key="index"
               style="border: 1px #ddd solid"
-              :style="{backgroundImage: item}"
+              :style="{backgroundImage: imgUrlWrap(item.url),borderColor:item.isPrimary?'#00c249':'#ddd'}"
+              @click="setIsPrimary(item)"
             >
               <i
                 class="fa fa-close"
@@ -70,7 +72,7 @@
                   right: 3px;
                   color: rgb(136, 135, 135);
                 "
-                @click="images.splice(index,1)"
+                @click.stop="removeImage(item)"
               ></i>
             </div>
             <div
@@ -112,8 +114,16 @@
             :key="attribute.id+'e'"
             style="margin-bottom: 5px"
           >
-            <input v-if="attribute.type==0" class="form-control" />
-            <select v-if="attribute.type==1" class="form-control">
+            <input
+              v-if="attribute.type==0"
+              v-model="attribute.value"
+              class="form-control"
+            />
+            <select
+              v-if="attribute.type==1"
+              class="form-control"
+              v-model="attribute.value"
+            >
               <option
                 v-for="option in attribute.options"
                 :key="option.id"
@@ -190,6 +200,7 @@
             >
             <td style="width: 80px">Price</td>
             <td style="width: 80px">Tax</td>
+            <td style="width: 80px">Stock</td>
             <td style="width: 120px">SKU</td>
             <td style="width: 80px">Status</td>
           </tr>
@@ -207,6 +218,12 @@
               ><input
                 type="number"
                 v-model.number="sku.tax"
+                class="table-input"
+            /></td>
+            <td
+              ><input
+                type="number"
+                v-model.number="sku.stock"
                 class="table-input"
             /></td>
             <td><input v-model="sku.name" class="table-input" /></td>

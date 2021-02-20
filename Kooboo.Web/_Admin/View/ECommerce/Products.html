@@ -1,4 +1,12 @@
 <!-- #layout name=blank-->
+<style>
+  .product-item {
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    display: flex;
+  }
+</style>
+
 <div id="app" v-cloak>
   <div class="page-header">
     <h1 class="title">Products management</h1>
@@ -8,6 +16,32 @@
     <div class="container-fluid">
       <a class="btn green navbar-btn" @click="addProduct">Add product</a>
       <a class="btn red navbar-btn">Delete</a>
+    </div>
+  </div>
+  <div class="product-item" v-for="product in list" :key="product.id">
+    <div
+      class="image"
+      style="width: 120px"
+      :style="{backgroundImage:getPrimaryImg(product.images)}"
+    ></div>
+    <div style="flex: 1">
+      <h3>{{product.title}}</h3>
+      <div>
+        <div>库存：<span>{{product.stock}}</span></div>
+        <div>销量：<span>{{product.sales}}</span></div>
+      </div>
+    </div>
+    <div
+      style="
+        width: 100px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <a class="btn blue" target="_blank" :href="editProduct(product)"
+        >Setting</a
+      >
     </div>
   </div>
   <!-- <kb-table
@@ -43,6 +77,11 @@
     :total-pages="pager.totalPages"
     @change="changePage"
   ></kb-pager> -->
+  <kb-pager
+    :page-nr="pager.pageNr"
+    :total-pages="pager.totalPages"
+    @change="changePage"
+  ></kb-pager>
   <kb-category-modal v-model="showCategoryModal" @start="startAddProduct" />
 </div>
 <script>

@@ -7,6 +7,7 @@ namespace Kooboo.Sites.Commerce.Entities
     public class Stock : EntityBase
     {
         public Guid SkuId { get; set; }
+        public Guid ProductId { get; set; }
         public int Quantity { get; set; }
         public StockType StockType { get; set; }
         public DateTime DateTime { get; set; }

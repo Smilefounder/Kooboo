@@ -11,5 +11,6 @@ namespace Kooboo.Sites.Commerce.Entities
         public string Description { get; set; }
         public string Attributes { get; set; }
         public Guid CategoryId { get; set; }
+        public bool Enable { get; set; }
     }
 }

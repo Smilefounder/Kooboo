@@ -44,7 +44,9 @@ create table Product
 	CategoryId uniqueidentifier not null
 		constraint Product_CategoryId_Category_Id_fk
 			references ""Category""
-				on delete cascade
+				on delete cascade,
+
+	Enable int not null
 );
 
 create table Sku
@@ -75,6 +77,11 @@ create table Stock
 	SkuId uniqueidentifier not null
 		constraint Stock_SkuId_Sku_Id_fk
 			references ""Sku""
+				on delete cascade,
+
+	ProductId uniqueidentifier not null
+		constraint Stock_ProductId_Product_Id_fk
+			references ""Product""
 				on delete cascade,
 
 	Quantity int not null,

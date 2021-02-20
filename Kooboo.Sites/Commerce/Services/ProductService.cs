@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using static Kooboo.Sites.Commerce.ViewModels.SaveProductViewModel;
+using static Kooboo.Sites.Commerce.ViewModels.ProductViewModel;
 
 namespace Kooboo.Sites.Commerce.Services
 {
@@ -16,12 +16,13 @@ namespace Kooboo.Sites.Commerce.Services
         {
         }
 
-        public void Save(SaveProductViewModel viewModel)
+        public void Save(ProductViewModel viewModel)
         {
             var stockChangedSkus = viewModel.Skus.Where(w => w.Stock != 0).ToArray();
 
             using (var con = DbConnection)
             {
+                var product = con.QueryFirstOrDefault<ProductViewModel>("select * from Product where Id=@Id LIMIT 1", viewModel);
                 var oldSkus = con.Query<Sku>("select * from Sku where ProductId=@Id", viewModel);
                 var oldSkuIds = oldSkus.Select(s => s.Id).ToArray();
                 var newSkus = viewModel.Skus;
@@ -29,20 +30,23 @@ namespace Kooboo.Sites.Commerce.Services
                 con.Open();
                 var tran = con.BeginTransaction();
 
-                if (oldSkus.Any())
+                if (product == null)
                 {
-                    con.Update<Entities.Product>(viewModel);
-                    con.Insert(newSkus.Where(w => !oldSkuIds.Contains(w.Id)));
-                    con.Delete(oldSkus.Where(w => !newSkuIds.Contains(w.Id)));
-                    con.Update(newSkus.Where(w => oldSkuIds.Contains(w.Id)));
+                    con.Insert<Product>(viewModel);
+                    con.Insert<Sku>(newSkus);
                 }
                 else
                 {
-                    con.Insert<Entities.Product>(viewModel);
-                    con.Insert<Sku>(newSkus);
+                    con.Update<Product>(viewModel);
+                    con.Insert<Sku>(newSkus.Where(w => !oldSkuIds.Contains(w.Id)));
+                    con.Delete(oldSkus.Where(w => !newSkuIds.Contains(w.Id)));
+                    con.Update<Sku>(newSkus.Where(w => oldSkuIds.Contains(w.Id)));
                 }
 
-                var stocks = con.Query<Stock>("select max(SkuId) as 'SkuId',sum(Quantity) as 'Quantity' from Stock where SkuId in (@Id) group by SkuId", stockChangedSkus);
+                var stocks = con.Query<Stock>(
+                    "select SkuId,sum(Quantity) as 'Quantity' from Stock where SkuId in @Ids group by SkuId",
+                    new { Ids = stockChangedSkus.Select(s => s.Id) });
+
                 var InsertStocks = new List<Stock>();
 
                 foreach (var item in stockChangedSkus)
@@ -55,6 +59,7 @@ namespace Kooboo.Sites.Commerce.Services
                         DateTime = DateTime.UtcNow,
                         Quantity = item.Stock,
                         SkuId = item.Id,
+                        ProductId = viewModel.Id,
                         StockType = StockType.Adjust
                     });
                 }
@@ -64,14 +69,17 @@ namespace Kooboo.Sites.Commerce.Services
             }
         }
 
-        public SaveProductViewModel Query(Guid id)
+        public ProductViewModel Query(Guid id)
         {
             using (var con = DbConnection)
             {
                 var skus = con.Query<SkuViewModel>("select * from Sku where ProductId=@Id", new { Id = id });
-                var product = con.QueryFirstOrDefault<SaveProductViewModel>("select * from Product where Id=@Id LIMIT 1", new { Id = id });
+                var product = con.QueryFirstOrDefault<ProductViewModel>("select * from Product where Id=@Id LIMIT 1", new { Id = id });
                 if (!skus.Any() || product == null) throw new Exception("Not find product");
-                var stocks = con.Query<Stock>("select max(SkuId) as 'SkuId',sum(Quantity) as 'Quantity' from Stock where SkuId in (@Id) group by SkuId", skus);
+
+                var stocks = con.Query<Stock>(
+                     "select SkuId,sum(Quantity) as 'Quantity' from Stock where SkuId in @Ids group by SkuId",
+                     new { Ids = skus.Select(s => s.Id) });
 
                 foreach (var item in skus)
                 {
@@ -80,6 +88,59 @@ namespace Kooboo.Sites.Commerce.Services
 
                 product.Skus = skus.ToArray();
                 return product;
+            }
+        }
+
+
+        public PagedListViewModel<ProductListViewModel> Query(PagingQueryViewModel viewModel)
+        {
+            var result = new PagedListViewModel<ProductListViewModel>();
+            result.List = new List<ProductListViewModel>();
+
+            using (var con = DbConnection)
+            {
+                var count = con.QuerySingle<long>("select count(1) from Product");
+                result.SetPageInfo(viewModel, count);
+
+                var products = con.Query<Product>("select Id,Title,Images,Enable,CategoryId from Product limit @Size offset @Offset", new
+                {
+                    Size = viewModel.Size,
+                    Offset = result.GetOffset(viewModel.Size)
+                });
+
+                var stocks = con.Query<dynamic>(@"
+                select ProductId,sum(Quantity) as Stock,sum(case when StockType = 1 or StockType=2 then Quantity else 0 end) as Sales
+                from Stock
+                where ProductId in @Ids
+                group by ProductId
+                ", new
+                {
+                    Ids = products.Select(s => s.Id)
+                });
+
+                foreach (var item in products)
+                {
+                    var product = new ProductListViewModel
+                    {
+                        Id = item.Id,
+                        Enable = item.Enable,
+                        Title = item.Title,
+                        Images = item.Images,
+                        CategoryId = item.CategoryId
+                    };
+
+                    var stock = stocks.FirstOrDefault(f => f.ProductId == item.Id);
+
+                    if (stock != null)
+                    {
+                        product.Sales = stock.Sales;
+                        product.Stock = stock.Stock;
+                    }
+
+                    result.List.Add(product);
+                }
+
+                return result;
             }
         }
     }

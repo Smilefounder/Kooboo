@@ -1,11 +1,11 @@
 $(function () {
-  var SITE_ID_QUERY_STRING = "?SiteId=" + Kooboo.getQueryString("SiteId");
   var self;
   new Vue({
     el: "#main",
     data: function () {
       self = this;
       return {
+        querySiteId: "?SiteId=" + Kooboo.getQueryString("SiteId"),
         categoryId: Kooboo.getQueryString("category"),
         id: Kooboo.getQueryString("id"),
         mediaDialogData: {},
@@ -26,27 +26,22 @@ $(function () {
       };
     },
     mounted: function () {
-      if (!self.id) self.id = Kooboo.Guid.NewGuid();
-      Kooboo.ProductCategory.executeGet("get", {
-        id: self.categoryId,
-      }).then(function (rsp) {
-        if (!rsp.success) return;
-        var attributes = JSON.parse(rsp.model.attributes);
-        var specifications = JSON.parse(rsp.model.specifications);
+      if (self.id) {
+        $.when(
+          Kooboo.ProductCategory.Get({
+            id: self.categoryId,
+          }),
+          Kooboo.Product.Get({ id: self.id })
+        ).then(self.initData);
+      } else {
+        self.id = Kooboo.Guid.NewGuid();
 
-        specifications.forEach(function (f) {
-          if (f.type == 0) f.editingItem = "";
-
-          if (f.type == 1) {
-            f.options.forEach(function (o) {
-              o.checked = false;
-            });
-          }
-        });
-
-        self.specifications = specifications;
-        self.attributes = attributes;
-      });
+        $.when(
+          Kooboo.ProductCategory.Get({
+            id: self.categoryId,
+          })
+        ).then(self.initData);
+      }
 
       Kooboo.EventBus.subscribe("ko/style/list/pickimage/show", function (ctx) {
         Kooboo.Media.getList().then(function (res) {
@@ -54,7 +49,10 @@ $(function () {
             res.model["show"] = true;
             res.model["context"] = ctx;
             res.model["onAdd"] = function (selected) {
-              self.images.push(selected.url);
+              self.images.push({
+                url: selected.url,
+                isPrimary: self.images.length == 0,
+              });
             };
             self.mediaDialogData = res.model;
           }
@@ -91,13 +89,22 @@ $(function () {
           title: self.title,
           images: JSON.stringify(self.images),
           description: self.description,
-          attributes: JSON.stringify(self.attributes),
+          attributes: JSON.stringify(
+            self.attributes.map(function (m) {
+              return {
+                id: m.id,
+                name: m.name,
+                value: m.value,
+              };
+            })
+          ),
           categoryId: self.categoryId,
         };
 
         var skus = JSON.parse(JSON.stringify(self.skus));
 
         skus.forEach(function (f) {
+          f.stock = f.stock - f.lastStock;
           f.specifications = JSON.stringify(f.specifications);
         });
 
@@ -132,8 +139,6 @@ $(function () {
             if (next) {
               recursion(next, coped);
             } else {
-              coped.lastStock = 0;
-              coped.stock = 0;
               var id = Kooboo.Guid.computeGuid(
                 self.id +
                   coped.specifications
@@ -149,7 +154,6 @@ $(function () {
                 })[0] || coped;
 
               sku.id = id;
-              sku.productId = self.id;
               skus.push(sku);
             }
           });
@@ -161,6 +165,9 @@ $(function () {
           tax: 0,
           enable: true,
           name: "",
+          productId: self.id,
+          stock: 0,
+          lastStock: 0,
         });
 
         self.skus = skus;
@@ -173,12 +180,63 @@ $(function () {
           });
         }
       },
-    },
-    computed: {
-      imagesDisplay: function () {
-        return this.images.map(function (m) {
-          return "url('" + m + SITE_ID_QUERY_STRING + "')";
+      initData: function (category, product) {
+        var isNew = typeof product == "string";
+
+        if (isNew) {
+          product = null;
+        } else {
+          category = category[0];
+          product = product[0];
+          self.title = product.model.title;
+          self.images = JSON.parse(product.model.images);
+          self.description = product.model.description;
+        }
+        var attributes = JSON.parse(category.model.attributes);
+        var specifications = JSON.parse(category.model.specifications);
+        var productAttributes = product
+          ? JSON.parse(product.model.attributes)
+          : [];
+
+        attributes.forEach(function (f) {
+          var productAttribute = productAttributes.filter(function (a) {
+            return a.id == f.id;
+          })[0];
+
+          f.value = productAttribute ? productAttribute.value : "";
         });
+
+        specifications.forEach(function (f) {
+          if (f.type == 0) f.editingItem = "";
+
+          if (f.type == 1) {
+            f.options.forEach(function (o) {
+              o.checked = false;
+            });
+          }
+        });
+
+        self.specifications = specifications;
+        self.attributes = attributes;
+      },
+      imgUrlWrap: function (url) {
+        return "url('" + url + self.querySiteId + "')";
+      },
+      setIsPrimary: function (item) {
+        this.images.forEach(function (f) {
+          f.isPrimary = false;
+        });
+
+        item.isPrimary = true;
+      },
+      removeImage: function (item) {
+        self.images = self.images.filter(function (f) {
+          return f != item;
+        });
+
+        if (self.images.length && item.isPrimary) {
+          self.images[0].isPrimary = true;
+        }
       },
     },
   });

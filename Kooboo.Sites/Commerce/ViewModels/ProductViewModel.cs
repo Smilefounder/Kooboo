@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Kooboo.Sites.Commerce.ViewModels
 {
-    public class SaveProductViewModel : Entities.Product
+    public class ProductViewModel : Entities.Product
     {
         public class SkuViewModel : Sku
         {

@@ -1691,13 +1691,6 @@
   function Product() {
     this.name = "Product";
 
-    this.getEdit = function (para) {
-      return this.executeGet("GetEdit", para);
-    };
-
-    this.getList = function (para) {
-      return this.executeGet("ProductList", para);
-    };
   }
   extend(Product, BaseModel);
 
