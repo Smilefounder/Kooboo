@@ -51,12 +51,7 @@ namespace Kooboo.Web.Api.Implementation.Mails
 
             var folderid = Folder.ToId(call.GetValue("Folder"));
 
-            var query = maildb.Messages.Query().Where(o => o.FolderId == folderid);
-            if (addressid != 0)
-            {
-                query.Where(o => o.AddressId == addressid);
-            } 
-            var list = query.OrderByDescending(o => o.Id).Take(PageSize);
+            var list = maildb.Messages.ByFolder(folderid, addressid, null, PageSize);
 
             MarkStatus(maildb, list);
 
@@ -90,13 +85,8 @@ namespace Kooboo.Web.Api.Implementation.Mails
                 messageid = int.MaxValue;
             }
 
-            var query = maildb.Messages.Query().Where(o => o.FolderId == folderid && o.Id < messageid);
+            var list = maildb.Messages.ByUidRange(folderid, addressid, 0, messageid, PageSize);
            // var list = maildb.Messages.Query().Where(o => o.AddressId == addressid && o.FolderId == folderid && o.Id < messageid).OrderByDescending(o => o.Id).Take(PageSize);
-            if (addressid != 0)
-            {
-                query.Where(o => o.AddressId == addressid);
-            } 
-            var list = query.OrderByDescending(o => o.Id).Take(PageSize);
               
             MarkStatus(maildb, list);
 
@@ -107,7 +97,7 @@ namespace Kooboo.Web.Api.Implementation.Mails
         {
             foreach (var item in msgs)
             {
-                var status = maildb.Messages.Store.GetFromColumns(item.Id);
+                var status = maildb.Messages.GetStatus(item.Id);
                 if (status != null)
                 {
                     item.Read = status.Read;

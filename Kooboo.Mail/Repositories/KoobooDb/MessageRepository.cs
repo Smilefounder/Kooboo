@@ -95,19 +95,21 @@ namespace Kooboo.Mail.Repositories.KoobooDb
             return base.Update(value);
         }
 
-        public List<Message> ByFolder(int folderId, int addressId, bool? deleted = null)
+        public List<Message> ByFolder(int folderId, int addressId, bool? deleted = null, int? pageSize = null)
         {
             var query = FolderQuery(folderId, addressId);
             if (deleted != null)
             {
                 query = query.UseColumnData().Where(o => o.Deleted == deleted.Value);
             }
-            return query.SelectAll();
-        }
-
-        public List<Message> ByFolder(string FolderName)
-        {
-            return FolderQuery(FolderName).SelectAll();
+            if (pageSize != null)
+            {
+                return query.Take(pageSize.Value);
+            }
+            else
+            {
+                return query.SelectAll();
+            }
         }
 
         public WhereFilter<int, Message> FolderQuery(int folderId, int addressId)
@@ -126,12 +128,19 @@ namespace Kooboo.Mail.Repositories.KoobooDb
             return FolderQuery(model.FolderId, model.AddressId);
         }
 
-        public List<Message> ByUidRange(string folderName, int minId, int maxId)
+        public List<Message> ByUidRange(int folderId, int addressId, int minId, int maxId, int? pageSize)
         {
-            return FolderQuery(folderName)
+            var query = FolderQuery(folderId, addressId)
                 .Where(o => o.Id >= minId)
-                .Where(o => o.Id <= maxId)
-                .Take(Int32.MaxValue);
+                .Where(o => o.Id <= maxId);
+            if (pageSize != null)
+            {
+                return query.Take(pageSize.Value);
+            }
+            else
+            {
+                return query.SelectAll();
+            }
         }
 
         public List<Message> ByCreationTimeRange(string folderName, long minTick, long maxTick)
@@ -194,7 +203,11 @@ namespace Kooboo.Mail.Repositories.KoobooDb
             }
             return null;
         }
-         
+
+        public Message GetStatus(int id)
+        {
+            return Store.GetFromColumns(id);
+        }
 
         public void MarkAsRead(int MsgId, bool read = true)
         {

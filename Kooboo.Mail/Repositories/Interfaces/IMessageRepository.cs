@@ -5,6 +5,7 @@ using Kooboo.IndexedDB.Query;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Kooboo.Mail.Repositories;
 
 namespace Kooboo.Mail.Repositories
 {
@@ -14,13 +15,9 @@ namespace Kooboo.Mail.Repositories
 
         void Update(Message Message, string MessageBody);
 
-        bool AddOrUpdate(Message value);
+        List<Message> ByFolder(int folderId, int addressId, bool? deleted = null, int? pageSize = null);
 
-        List<Message> ByFolder(int folderId, int addressId, bool? deleted = null);
-
-        List<Message> ByFolder(string FolderName);
-
-        List<Message> ByUidRange(string folderName, int minId, int maxId);
+        List<Message> ByUidRange(int folderId, int addressId, int minId, int maxId, int? pageSize = null);
 
         List<Message> ByCreationTimeRange(string folderName, long minTick, long maxTick);
 
@@ -31,6 +28,8 @@ namespace Kooboo.Mail.Repositories
         int GetSeqNo(string FolderName, int LastMaxId, int MessagetCount, int MsgId);
 
         string GetContent(int id);
+
+        Message GetStatus(int id);
 
         void MarkAsRead(int MsgId, bool read = true);
 
@@ -52,5 +51,23 @@ namespace Kooboo.Mail.Repositories
         void ReplaceFlags(int msgid, string[] flags);
 
         void RemoveFlags(int msgid, string[] flags);
+    }
+}
+
+namespace Kooboo.Mail
+{
+    public static class IMessageRepositoryExtensions
+    {
+        public static List<Message> ByFolder(this IMessageRepository repo, string folderName, bool? deleted = null, int? pageSize = null)
+        {
+            var model = Kooboo.Mail.Utility.FolderUtility.ParseFolder(folderName);
+            return repo.ByFolder(model.FolderId, model.AddressId, deleted, pageSize);
+        }
+
+        public static List<Message> ByUidRange(this IMessageRepository repo, string folderName, int minId, int maxId, int? pageSize = null)
+        {
+            var model = Kooboo.Mail.Utility.FolderUtility.ParseFolder(folderName);
+            return repo.ByUidRange(model.FolderId, model.AddressId, minId, maxId, pageSize);
+        }
     }
 }

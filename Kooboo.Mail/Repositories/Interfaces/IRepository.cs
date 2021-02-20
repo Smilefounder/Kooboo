@@ -13,6 +13,8 @@ namespace Kooboo.Mail.Repositories
     {
         bool Add(TValue value);
 
+        bool AddOrUpdate(TValue value);
+
         bool Update(TValue value);
 
         bool Delete(Int32 id);

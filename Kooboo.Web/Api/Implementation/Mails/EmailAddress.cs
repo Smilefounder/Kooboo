@@ -56,7 +56,7 @@ namespace Kooboo.Web.Api.Implementation.Mails
             var user = apiCall.Context.User;
             var orgdb = Kooboo.Mail.Factory.DBFactory.OrgDb(user.CurrentOrgId);
 
-            var addlist = orgdb.EmailAddress.Query().Where(o => o.UserId == user.Id).SelectAll();
+            var addlist = orgdb.EmailAddress.ByUser(user.Id);
 
             List<AddressItemModel> result = new List<AddressItemModel>();
 
