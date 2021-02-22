@@ -5,7 +5,8 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; 
+using System.Threading.Tasks;
+using Kooboo.IndexedDB.CustomAttributes;
 using Kooboo.Mail;
 
 namespace Kooboo.Mail
@@ -154,7 +155,9 @@ namespace Kooboo.Mail
                 return false; 
             }
         }
-        
+
+        [KoobooIgnore]
+        public EmailAddress Address { get; set; }
     }
 
    
