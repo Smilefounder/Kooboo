@@ -48,6 +48,7 @@ namespace Kooboo.Mail.Transport
             Kooboo.Data.Log.Instance.Email.Write("-- sending \r\n"); 
             Data.Log.Instance.Email.Write(MailFrom +" to: " + RcptTo);
 
+            //setting = new SendSetting { HostName="kooboo.com", OkToSend = true, UseKooboo = true, KoobooServerIp = "127.0.0.1", Port = 26, LocalIp= System.Net.IPAddress.Any };
             if (!setting.OkToSend)
             {
                 return new ActionResponse() { Success = false, Message = setting.ErrorMessage, ShouldRetry = false };
