@@ -1688,6 +1688,12 @@
   }
   extend(ProductCategory, BaseModel);
 
+  function ProductType() {
+    this.name = "ProductType";
+
+  }
+  extend(ProductType, BaseModel);
+
   function Product() {
     this.name = "Product";
 
@@ -1813,6 +1819,7 @@
     Relation: new Relation(),
     Page: new Page(),
     Product: new Product(),
+    ProductType:new ProductType(),
     ProductCategory: new ProductCategory(),
     Profile: new Profile(),
     Publish: new Publish(),

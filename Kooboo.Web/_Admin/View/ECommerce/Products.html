@@ -1,9 +1,32 @@
 <!-- #layout name=blank-->
 <style>
   .product-item {
-    border: 1px solid #ddd;
-    margin-bottom: 15px;
+    border-bottom: 1px solid #ddd;
     display: flex;
+    padding: 10px;
+    height: 80px;
+  }
+  .product-item:hover {
+    background-color: rgba(221, 221, 221, 0.2);
+  }
+
+  .product-img {
+    width: 80px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: 1px solid #ddd;
+  }
+  .product-detail {
+    box-sizing: border-box;
+    flex: 1;
+    padding: 0 10px;
+  }
+  .product-ctrl {
+    width: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 </style>
 
@@ -14,75 +37,60 @@
   <kb-breadcrumb :breads="breads"></kb-breadcrumb>
   <div class="navbar navbar-default">
     <div class="container-fluid">
-      <a class="btn green navbar-btn" @click="addProduct">Add product</a>
+      <div class="btn-group navbar-btn"
+        ><button data-toggle="dropdown" class="btn green" aria-expanded="false"
+          ><span>Add product</span> <i class="fa fa-angle-down"></i
+        ></button>
+        <ul class="dropdown-menu">
+          <li v-for="type in types" :key="type.id">
+            <a href="javascript:void()" @click="startAddProduct(type.id)"
+              >{{type.name}}</a
+            >
+          </li>
+          <li v-if="!types.length">
+            <a href="javascript:void()" @click="showModal=true"
+              >Create a new type first</a
+            >
+          </li>
+        </ul></div
+      >
       <a class="btn red navbar-btn">Delete</a>
     </div>
   </div>
   <div class="product-item" v-for="product in list" :key="product.id">
     <div
-      class="image"
-      style="width: 120px"
-      :style="{backgroundImage:getPrimaryImg(product.images)}"
-    ></div>
-    <div style="flex: 1">
-      <h3>{{product.title}}</h3>
-      <div>
-        <div>库存：<span>{{product.stock}}</span></div>
-        <div>销量：<span>{{product.sales}}</span></div>
-      </div>
-    </div>
-    <div
       style="
-        width: 100px;
         display: flex;
-        justify-content: center;
+        height: 100%;
         align-items: center;
+        margin-right: 10px;
       "
     >
-      <a class="btn blue" target="_blank" :href="editProduct(product)"
-        >Setting</a
-      >
+      <input type="checkbox" />
+    </div>
+    <div
+      class="product-img"
+      :style="{backgroundImage:getPrimaryImg(product.images)}"
+    ></div>
+    <div class="product-detail">
+      <p style="font-size: 15px">{{product.title}}</p>
+      <div style="display: flex">
+        <div style="flex: 1">状态：<span>{{product.stock}}</span></div>
+        <div style="flex: 1">库存：<span>{{product.stock}}</span></div>
+        <div style="flex: 1">销量：<span>{{product.sales}}</span></div>
+      </div>
+    </div>
+    <div class="product-ctrl">
+      <a class="btn blue" target="_blank" :href="editProduct(product)">Edit</a>
+      <a class="btn btn-default" target="_blank">下架</a>
     </div>
   </div>
-  <!-- <kb-table
-    :data="tableData"
-    show-select
-    :selected.sync="selected"
-    class="table-bordered"
-  >
-    <kb-table-column
-      v-for="(column, index) in defaultColumns"
-      :label="column"
-      :prop="column"
-      :key="index"
-    >
-    </kb-table-column>
-    <kb-table-column :label="Kooboo.text.common.ProductType">
-      <template v-slot="row">
-        <span :class="['label', row.productType.class]"
-          >{{ row.productType.text }}</span
-        >
-      </template>
-    </kb-table-column>
-    <kb-table-column head-class="table-action" body-class="table-action">
-      <template v-slot="row">
-        <a class="btn btn-sm blue" :href="row.edit.url" @click.stop>
-          {{ row.edit.text }}
-        </a>
-      </template>
-    </kb-table-column>
-  </kb-table>
-  <kb-pager
-    :page-nr="pager.pageNr"
-    :total-pages="pager.totalPages"
-    @change="changePage"
-  ></kb-pager> -->
   <kb-pager
     :page-nr="pager.pageNr"
     :total-pages="pager.totalPages"
     @change="changePage"
   ></kb-pager>
-  <kb-category-modal v-model="showCategoryModal" @start="startAddProduct" />
+  <kb-product-type-modal v-model="showModal" @ok="startAddProduct" />
 </div>
 <script>
   (function () {
@@ -91,7 +99,7 @@
       "/_Admin/Scripts/components/kbTable.js",
       "/_Admin/Scripts/components/kbBreadcrumb.js",
       "/_Admin/Scripts/components/kbPager.js",
-      "/_Admin/Scripts/components/ECommerce/kb-category-modal.js",
+      "/_Admin/Scripts/components/ECommerce/kb-product-type-modal.js",
     ]);
   })();
 </script>

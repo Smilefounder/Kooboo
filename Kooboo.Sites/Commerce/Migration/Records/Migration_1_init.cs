@@ -30,6 +30,17 @@ create table Category
     Specifications text not null
 );
 
+create table ProductType
+(
+	Id uniqueidentifier not null
+		constraint ProductType_pk
+			primary key,
+	
+	Name text not null,
+	Attributes text not null,
+    Specifications text not null
+);
+
 create table Product
 (
 	Id uniqueidentifier not null
@@ -41,9 +52,9 @@ create table Product
 	Description text not null,
 	Attributes text not null,
 
-	CategoryId uniqueidentifier not null
-		constraint Product_CategoryId_Category_Id_fk
-			references ""Category""
+	TypeId uniqueidentifier not null
+		constraint Product_TypeId_ProductType_Id_fk
+			references ""ProductType""
 				on delete cascade,
 
 	Enable int not null

@@ -1,13 +1,5 @@
 <!-- #layout name=default -->
 <style>
-  .options-container {
-    display: flex;
-    flex-wrap: wrap;
-  }
-
-  .options-container > * {
-    margin: 5px;
-  }
   .images {
     width: 80px;
     height: 80px;
@@ -61,7 +53,7 @@
               v-for="(item,index) in images"
               :key="index"
               style="border: 1px #ddd solid"
-              :style="{backgroundImage: imgUrlWrap(item.url),borderColor:item.isPrimary?'#00c249':'#ddd'}"
+              :style="{backgroundImage: imgUrlWrap(item.thumbnail),borderColor:item.isPrimary?'#00c249':'#ddd'}"
               @click="setIsPrimary(item)"
             >
               <i
@@ -140,51 +132,44 @@
       <legend>
         <div class="pull-left">Specifications</div>
       </legend>
-      <div
-        class="form-horizontal"
-        v-for="specification in specifications"
-        :key="specification.id"
-      >
-        <div class="form-group">
+      <div class="form-horizontal">
+        <div
+          class="form-group"
+          v-for="specification in specifications"
+          :key="specification.id"
+        >
           <label class="control-label col-md-2">{{specification.name}}</label>
           <div class="col-md-8">
-            <div v-if="specification.type==0" class="options-container">
-              <button
-                type="button"
-                class="btn btn-sm"
-                v-for="option in specification.options"
-                :key="option.id"
-                @click="rmoveItem(specification.options,option)"
-              >
-                {{option.value}}
-                <i class="fa fa-close"></i>
-              </button>
-              <input
-                class="form-control"
-                style="display: inline; width: 80px; margin-right: 3px"
-                v-model.trim="specification.editingItem"
-                @blur="addOption(specification)"
-                @keydown.enter="addOption(specification)"
+            <template v-if="specification.type==0">
+              <kb-options-editor
+                :list.sync="specification.options"
+                @update:list="rebuildSkus"
               />
-            </div>
-            <div v-if="specification.type==1" class="options-container">
-              <button
-                type="button"
-                class="btn btn-sm"
-                v-for="option in specification.options"
-                :key="option.id"
-                style="display: flex; align-items: center"
-                @click.stop="switchOption(option)"
-              >
-                <input
-                  type="checkbox"
-                  :checked="option.checked"
-                  class="form-control"
-                  style="width: 12px; height: 12px; margin: 0 5px"
-                />
-                <span>{{option.value}}</span>
-              </button>
-            </div>
+            </template>
+            <template v-if="specification.type==1">
+              <div style="display: flex; flex-wrap: wrap">
+                <button
+                  type="button"
+                  class="btn btn-sm"
+                  v-for="option in specification.options"
+                  :key="option.id"
+                  style="
+                    display: flex;
+                    align-items: center;
+                    margin: 5px 5px 5px 0;
+                  "
+                  @click.stop="switchOption(option)"
+                >
+                  <input
+                    type="checkbox"
+                    :checked="option.checked"
+                    class="form-control"
+                    style="width: 12px; height: 12px; margin: 0 5px"
+                  />
+                  <span>{{option.value}}</span>
+                </button>
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -207,7 +192,7 @@
         </thead>
         <tbody>
           <tr v-for="sku in skus">
-            <td v-for="item in sku.specifications">{{item.value}}</td>
+            <td v-for="item in sku.specifications">{{item.valueDisplay}}</td>
             <td
               ><input
                 type="number"
@@ -281,6 +266,7 @@
     "/_Admin/Scripts/components/kb-media-dialog.js",
     "/_Admin/Scripts/kooboo-web-editor/richEditor.min.js",
     "/_Admin/Scripts/components/tinymceMonaco/plugin.min.js",
+    "/_Admin/Scripts/components/ECommerce/kb-options-editor.js",
   ]);
 </script>
 <script src="/_Admin/View/ECommerce/Product.js"></script>

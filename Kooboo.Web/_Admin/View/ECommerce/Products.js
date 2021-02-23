@@ -17,13 +17,13 @@ $(function () {
             name: Kooboo.text.common.ProductManagement,
           },
         ],
-        selectedCategory: null,
-        showCategoryModal: false,
+        showModal: false,
         pager: {
           pageNr: 1,
           totalPages: 200,
         },
         list: [],
+        types: [],
       };
     },
     mounted: function () {
@@ -32,20 +32,22 @@ $(function () {
           self.list = res.model.list;
         }
       });
+
+      Kooboo.ProductType.getList({ index: 1, size: 5 }).then(function (res) {
+        if (res.success) {
+          self.types = res.model;
+        }
+      });
     },
     methods: {
-      addProduct: function () {
-        this.selectedCategory = null;
-        this.showCategoryModal = true;
-      },
       startAddProduct: function (id) {
         location.href = Kooboo.Route.Get(Kooboo.Route.Product.DetailPage, {
-          category: id,
+          type: id,
         });
       },
       editProduct: function (product) {
         return Kooboo.Route.Get(Kooboo.Route.Product.DetailPage, {
-          category: product.categoryId,
+          type: product.categoryId,
           id: product.id,
         });
       },
@@ -59,7 +61,7 @@ $(function () {
 
         return "url('" + item.url + self.querySiteId + "')";
       },
-      changePage: function () {},
+      changePage() {},
     },
     computed: {},
   });

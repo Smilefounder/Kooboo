@@ -80,6 +80,13 @@ namespace Kooboo.Sites.Commerce
         }
         #endregion
 
+        #region Exist
+        public static bool Exist<T>(this IDbConnection connection, Guid id) where T : EntityBase
+        {
+            return connection.QuerySingleOrDefault<bool?>($"SELECT 1 FROM {typeof(T).Name} WHERE Id =@Id LIMIT 1", new { Id = id }) ?? false;
+        }
+        #endregion
+
         private static string[] GetTypeMemberString<T>() where T : EntityBase
         {
             return _typeMemberStrings.GetOrAdd(typeof(T), type =>

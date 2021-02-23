@@ -30,10 +30,16 @@ namespace Kooboo.Sites.Commerce.Migration
             {
                 if (rebuild)
                 {
-                    foreach (var item in connection.Query<string>("select name from sqlite_master where type='table'"))
-                    {
-                        connection.Execute("drop table " + item);
-                    }
+                    var tran = connection.BeginTransaction();
+                    connection.Execute(@"
+                        drop table if exists 'Stock';
+                        drop table if exists 'Sku';
+                        drop table if exists 'Product';
+                        drop table if exists 'ProductType';
+                        drop table if exists 'Category';
+                        drop table if exists '_migration';
+                    ");
+                    tran.Commit();
                 }
 
                 Migrate(connection);

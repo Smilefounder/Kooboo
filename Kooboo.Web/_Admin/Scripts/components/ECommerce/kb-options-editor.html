@@ -1,0 +1,65 @@
+<div style="display: flex; flex-wrap: wrap">
+  <div
+    v-for="item in innerList"
+    :key="item.key"
+    style="display: inline-flex; align-items: center"
+  >
+    <template v-if="item.editing">
+      <input
+        class="form-control"
+        style="width: 80px; margin-right: 3px"
+        v-model.trim="item.editingValue"
+        @keydown.enter="saveOption(item)"
+      />
+      <button class="btn btn-sm btn-primary" @click="saveOption(item)"
+        ><i class="fa fa-check"></i
+      ></button>
+      <button class="btn btn-sm btn-default" @click="cancelEdit(item)"
+        ><i class="fa fa-close"></i
+      ></button>
+    </template>
+
+    <template v-else>
+      <button
+        type="button"
+        class="btn btn-sm"
+        @click="editOption(item)"
+        style="margin: 5px 5px 5px 0"
+      >
+        {{item.value}}
+        <i
+          v-if="!hasDependent"
+          class="fa fa-close"
+          @click.stop="removeOption(item)"
+        ></i>
+      </button>
+    </template>
+  </div>
+
+  <div style="display: inline-flex; align-items: center; margin: 5px 5px 5px 0">
+    <template v-if="newOption">
+      <input
+        class="form-control"
+        style="width: 80px; margin-right: 3px"
+        v-model.trim="newOption.editingValue"
+        @keydown.enter="saveNewOption"
+      />
+      <button class="btn btn-sm btn-primary" @click="saveNewOption"
+        ><i class="fa fa-check"></i
+      ></button>
+      <button class="btn btn-sm btn-default" @click="newOption=null"
+        ><i class="fa fa-close"></i
+      ></button>
+    </template>
+    <template v-else>
+      <button
+        v-if="!hasDependent"
+        type="button"
+        class="btn btn-sm btn-default"
+        @click.stop="addOption"
+      >
+        <i class="fa fa-plus"></i>
+      </button>
+    </template>
+  </div>
+</div>

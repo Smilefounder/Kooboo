@@ -1,0 +1,54 @@
+<!-- #layout name=blank-->
+
+<div id="app" v-cloak>
+  <div class="page-header">
+    <h1 class="title">Product Types</h1>
+  </div>
+  <kb-breadcrumb :breads="breads"></kb-breadcrumb>
+  <div class="navbar navbar-default">
+    <div class="container-fluid">
+      <a class="btn green navbar-btn" @click="add">Add a new type</a>
+      <a class="btn red navbar-btn" v-if="selectedRows.length" @click="deletes"
+        >Delete</a
+      >
+    </div>
+  </div>
+
+  <kb-table v-if="list" :data="list" show-select :selected.sync="selectedRows">
+    <kb-table-column :label="Kooboo.text.common.name" prop="name">
+    </kb-table-column>
+
+    <kb-table-column label="属性">
+      <template v-slot="row">
+        {{row.attributes.map(m=>m.name).join(",")}}
+      </template>
+    </kb-table-column>
+
+    <kb-table-column label="规格">
+      <template v-slot="row">
+        {{row.specifications.map(m=>m.name).join(",")}}
+      </template>
+    </kb-table-column>
+
+    <kb-table-column align="right" width="100px">
+      <template v-slot="row">
+        <a class="btn blue" @click.stop="edit(row.id)"
+          >{{ Kooboo.text.common.setting }}</a
+        >
+      </template>
+    </kb-table-column>
+  </kb-table>
+
+  <kb-product-type-modal v-model="showModal" :id="id" @ok="getList" />
+</div>
+<script>
+  (function () {
+    Kooboo.loadJS([
+      "/_Admin/Scripts/kooboo/Guid.js",
+      "/_Admin/Scripts/components/kbTable.js",
+      "/_Admin/Scripts/components/kbBreadcrumb.js",
+      "/_Admin/Scripts/components/ECommerce/kb-product-type-modal.js",
+    ]);
+  })();
+</script>
+<script src="/_Admin/View/ECommerce/ProductTypes.js"></script>

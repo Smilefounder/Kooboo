@@ -1,0 +1,134 @@
+<div
+  v-kb-modal="show"
+  class="modal fade"
+  data-backdrop="static"
+  data-keyboard="fasle"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button @click="show=false" class="close">
+          <i class="fa fa-close"></i>
+        </button>
+        <h4 class="modal-title">
+          <template v-if="isEdit">Edit</template>
+          <template v-else>Create</template>
+        </h4>
+      </div>
+      <div class="modal-body" v-if="show&&editData">
+        <kb-form :model="editData" :rules="editDataRules" ref="form">
+          <kb-form-item prop="name">
+            <label class="col-sm-3 control-label">Name</label>
+            <div class="col-sm-9">
+              <input class="form-control" v-model="editData.name" />
+            </div>
+          </kb-form-item>
+          <kb-form-item>
+            <label class="col-sm-3 control-label">Attributes</label>
+            <div class="col-sm-9">
+              <div
+                v-for="(item) in editData.attributes"
+                :key="item.id"
+                style="margin-bottom: 5px"
+              >
+                <div class="input-group">
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Name"
+                    v-model="item.name"
+                  />
+                  <span class="input-group-addon">:</span>
+                  <select
+                    class="form-control"
+                    v-model="item.type"
+                    :disabled="editData.hasDependent"
+                  >
+                    <option :value="0">Text</option>
+                    <option :value="1">Options</option>
+                  </select>
+                  <span
+                    class="input-group-addon"
+                    style="cursor: pointer"
+                    @click="editData.attributes=editData.attributes.filter(f=>f!=item)"
+                    v-if="!editData.hasDependent"
+                  >
+                    <i class="fa fa-minus-circle"></i>
+                  </span>
+                </div>
+                <kb-options-editor
+                  :has-dependent="editData.hasDependent"
+                  v-if="item.type==1"
+                  :list.sync="item.options"
+                  style="border: 1px solid #e5e5e5; border-top: 0; padding: 5px"
+                />
+              </div>
+              <a
+                href="javascript:;"
+                class="btn dark"
+                @click="addItem(editData.attributes)"
+                v-if="!editData.hasDependent"
+              >
+                <i class="fa fa-plus"></i>
+              </a>
+            </div>
+          </kb-form-item>
+          <kb-form-item>
+            <label class="col-sm-3 control-label">Specifications</label>
+            <div class="col-sm-9">
+              <div
+                v-for="(item,index) in editData.specifications"
+                :key="item.index"
+                style="margin-bottom: 5px"
+              >
+                <div class="input-group">
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Name"
+                    v-model="item.name"
+                  />
+                  <span class="input-group-addon">:</span>
+                  <select
+                    class="form-control"
+                    v-model="item.type"
+                    :disabled="editData.hasDependent"
+                  >
+                    <option :value="0">Text</option>
+                    <option :value="1">Options</option>
+                  </select>
+                  <span
+                    class="input-group-addon"
+                    style="cursor: pointer"
+                    @click="editData.specifications=editData.specifications.filter(f=>f!=item)"
+                    v-if="!editData.hasDependent"
+                  >
+                    <i class="fa fa-minus-circle"></i>
+                  </span>
+                </div>
+                <kb-options-editor
+                  :has-dependent="editData.hasDependent"
+                  v-if="item.type==1"
+                  :list.sync="item.options"
+                  style="border: 1px solid #e5e5e5; border-top: 0; padding: 5px"
+                />
+              </div>
+              <a
+                href="javascript:;"
+                class="btn dark"
+                @click="addItem(editData.specifications)"
+                v-if="!editData.hasDependent"
+              >
+                <i class="fa fa-plus"></i>
+              </a>
+            </div>
+          </kb-form-item>
+        </kb-form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn green" @click="save">Save</button>
+        <button @click="show=false" class="btn gray">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>

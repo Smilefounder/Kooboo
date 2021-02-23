@@ -16,7 +16,7 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public bool RequireUser => true;
 
-        public void Post(ProductViewModel viewModel, ApiCall apiCall)
+        public void Post(Kooboo.Sites.Commerce.ViewModels.Product.ProductViewModel viewModel, ApiCall apiCall)
         {
             new ProductService(apiCall.Context).Save(viewModel);
         }

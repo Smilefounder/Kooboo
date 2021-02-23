@@ -16,31 +16,29 @@ namespace Kooboo.Sites.Commerce.Services
         {
         }
 
-        public void Save(ProductViewModel viewModel)
+        public void Save(Kooboo.Sites.Commerce.ViewModels.Product.ProductViewModel viewModel)
         {
             var stockChangedSkus = viewModel.Skus.Where(w => w.Stock != 0).ToArray();
 
             using (var con = DbConnection)
             {
-                var product = con.QueryFirstOrDefault<ProductViewModel>("select * from Product where Id=@Id LIMIT 1", viewModel);
-                var oldSkus = con.Query<Sku>("select * from Sku where ProductId=@Id", viewModel);
-                var oldSkuIds = oldSkus.Select(s => s.Id).ToArray();
-                var newSkus = viewModel.Skus;
+                var oldSkuIds = con.Query<Guid>("select Id from Sku where ProductId=@Id", viewModel);
+                var newSkus = viewModel.ToSkus();
                 var newSkuIds = newSkus.Select(s => s.Id).ToArray();
                 con.Open();
                 var tran = con.BeginTransaction();
 
-                if (product == null)
+                if (!con.Exist<Product>(viewModel.Id))
                 {
-                    con.Insert<Product>(viewModel);
-                    con.Insert<Sku>(newSkus);
+                    con.Insert(viewModel.ToProduct());
+                    con.Insert(viewModel.ToSkus());
                 }
                 else
                 {
-                    con.Update<Product>(viewModel);
-                    con.Insert<Sku>(newSkus.Where(w => !oldSkuIds.Contains(w.Id)));
-                    con.Delete(oldSkus.Where(w => !newSkuIds.Contains(w.Id)));
-                    con.Update<Sku>(newSkus.Where(w => oldSkuIds.Contains(w.Id)));
+                    con.Update(viewModel.ToProduct());
+                    con.Insert(newSkus.Where(w => !oldSkuIds.Contains(w.Id)));
+                    con.Delete<Sku>(oldSkuIds.Where(w => !newSkuIds.Contains(w)));
+                    con.Update(newSkus.Where(w => oldSkuIds.Contains(w.Id)));
                 }
 
                 var stocks = con.Query<Stock>(
@@ -102,7 +100,7 @@ namespace Kooboo.Sites.Commerce.Services
                 var count = con.QuerySingle<long>("select count(1) from Product");
                 result.SetPageInfo(viewModel, count);
 
-                var products = con.Query<Product>("select Id,Title,Images,Enable,CategoryId from Product limit @Size offset @Offset", new
+                var products = con.Query<Product>("select Id,Title,Images,Enable,TypeId from Product limit @Size offset @Offset", new
                 {
                     Size = viewModel.Size,
                     Offset = result.GetOffset(viewModel.Size)
@@ -126,7 +124,7 @@ namespace Kooboo.Sites.Commerce.Services
                         Enable = item.Enable,
                         Title = item.Title,
                         Images = item.Images,
-                        CategoryId = item.CategoryId
+                        CategoryId = item.TypeId
                     };
 
                     var stock = stocks.FirstOrDefault(f => f.ProductId == item.Id);

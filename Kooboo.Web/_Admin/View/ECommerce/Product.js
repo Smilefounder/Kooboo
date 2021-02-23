@@ -6,7 +6,7 @@ $(function () {
       self = this;
       return {
         querySiteId: "?SiteId=" + Kooboo.getQueryString("SiteId"),
-        categoryId: Kooboo.getQueryString("category"),
+        typeId: Kooboo.getQueryString("type"),
         id: Kooboo.getQueryString("id"),
         mediaDialogData: {},
         title: "",
@@ -23,13 +23,15 @@ $(function () {
         },
         productsUrl: Kooboo.Route.Product.ListPage,
         skus: [],
+        enable: true,
+        categories: [],
       };
     },
-    mounted: function () {
+    mounted() {
       if (self.id) {
         $.when(
-          Kooboo.ProductCategory.Get({
-            id: self.categoryId,
+          Kooboo.ProductType.Get({
+            id: self.typeId,
           }),
           Kooboo.Product.Get({ id: self.id })
         ).then(self.initData);
@@ -37,8 +39,8 @@ $(function () {
         self.id = Kooboo.Guid.NewGuid();
 
         $.when(
-          Kooboo.ProductCategory.Get({
-            id: self.categoryId,
+          Kooboo.ProductType.Get({
+            id: this.typeId,
           })
         ).then(self.initData);
       }
@@ -50,8 +52,13 @@ $(function () {
             res.model["context"] = ctx;
             res.model["onAdd"] = function (selected) {
               self.images.push({
+                id: selected.id,
                 url: selected.url,
                 isPrimary: self.images.length == 0,
+                thumbnail: selected.thumbnail.substr(
+                  0,
+                  selected.thumbnail.indexOf("?")
+                ),
               });
             };
             self.mediaDialogData = res.model;
@@ -60,22 +67,6 @@ $(function () {
       });
     },
     methods: {
-      rmoveItem: function (items, item) {
-        var index = items.indexOf(item);
-        items.splice(index, 1);
-        self.rebuildSkus();
-      },
-      addOption: function (item) {
-        if (!item.editingItem) return;
-
-        item.options.push({
-          id: Kooboo.Guid.computeGuid(self.id + item.id + item.editingItem),
-          value: item.editingItem,
-        });
-
-        item.editingItem = "";
-        self.rebuildSkus();
-      },
       switchOption: function (option) {
         option.checked = !option.checked;
         self.rebuildSkus();
@@ -87,28 +78,21 @@ $(function () {
         var model = {
           id: self.id,
           title: self.title,
-          images: JSON.stringify(self.images),
+          images: self.images,
           description: self.description,
-          attributes: JSON.stringify(
-            self.attributes.map(function (m) {
-              return {
-                id: m.id,
-                name: m.name,
-                value: m.value,
-              };
-            })
-          ),
-          categoryId: self.categoryId,
+          attributes: self.attributes.map((m) => ({
+            key: m.id,
+            value: m.value,
+          })),
+          typeId: self.typeId,
+          enable: self.enable,
+          categories: self.categories,
+          skus: JSON.parse(JSON.stringify(self.skus)),
         };
 
-        var skus = JSON.parse(JSON.stringify(self.skus));
-
-        skus.forEach(function (f) {
+        model.skus.forEach((f) => {
           f.stock = f.stock - f.lastStock;
-          f.specifications = JSON.stringify(f.specifications);
         });
-
-        model.skus = skus;
 
         Kooboo.Product.post(model).then(function (res) {
           if (res.success) {
@@ -131,30 +115,21 @@ $(function () {
             var coped = JSON.parse(JSON.stringify(item));
 
             coped.specifications.push({
-              id: o.id,
-              name: specification.name,
-              value: o.value,
+              key: specification.id,
+              value: o.key,
+              valueDisplay: o.value,
             });
 
             if (next) {
               recursion(next, coped);
             } else {
-              var id = Kooboo.Guid.computeGuid(
-                self.id +
-                  coped.specifications
-                    .map(function (m) {
-                      return m.id;
-                    })
-                    .join("")
+              coped.id = Kooboo.Guid.computeGuid(
+                self.id + coped.specifications.map((m) => m.value).join("")
               );
 
-              var sku =
-                self.skus.filter(function (f) {
-                  return f.id == id;
-                })[0] || coped;
-
-              sku.id = id;
-              skus.push(sku);
+              var old = self.skus.find((f) => f.id == coped.id);
+              if (old) old.specifications = coped.specifications;
+              skus.push(old || coped);
             }
           });
         }
@@ -180,33 +155,34 @@ $(function () {
           });
         }
       },
-      initData: function (category, product) {
+      initData(type, product) {
         var isNew = typeof product == "string";
 
         if (isNew) {
           product = null;
         } else {
-          category = category[0];
+          type = type[0];
           product = product[0];
           self.title = product.model.title;
           self.images = JSON.parse(product.model.images);
           self.description = product.model.description;
+          self.enable = product.model.enable;
         }
-        var attributes = JSON.parse(category.model.attributes);
-        var specifications = JSON.parse(category.model.specifications);
-        var productAttributes = product
-          ? JSON.parse(product.model.attributes)
-          : [];
 
-        attributes.forEach(function (f) {
-          var productAttribute = productAttributes.filter(function (a) {
-            return a.id == f.id;
-          })[0];
+        var attributes = type.model.attributes;
+        var specifications = type.model.specifications;
+        var productAttributes = product ? product.model.attributes : [];
+debugger
+        attributes.forEach((f) => {
+          var attribute = productAttributes.find((a) => a.key == f.id);
+          f.value = attribute ? attribute.value : "";
 
-          f.value = productAttribute ? productAttribute.value : "";
+          if (isNew && f.type == 1 && f.options.length) {
+            f.value = f.options[0].id;
+          }
         });
 
-        specifications.forEach(function (f) {
+        specifications.forEach((f) => {
           if (f.type == 0) f.editingItem = "";
 
           if (f.type == 1) {
