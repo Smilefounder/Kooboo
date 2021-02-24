@@ -305,34 +305,6 @@ namespace Kooboo.Mail.Repositories.KoobooDb
             return result;
         }
 
-        public string[] GetFlags(int MsgId)
-        {
-            var msg = this.Store.GetFromColumns(MsgId);
-              
-            var flags = new List<string>();
-            if (msg.Recent)
-            {
-                flags.Add("Recent");
-            }
-            if (msg.Read)
-            {
-                flags.Add("Seen");
-            }
-            if (msg.Answered)
-            {
-                flags.Add("Answered");
-            }
-            if (msg.Flagged)
-            {
-                flags.Add("Flagged");
-            }
-            if (msg.Deleted)
-            {
-                flags.Add("Deleted");
-            }
-            return flags.ToArray();
-        }
-
         public void AddFlags(int MsgId, string[] flags)
         {
             var msg = this.Store.GetFromColumns(MsgId);

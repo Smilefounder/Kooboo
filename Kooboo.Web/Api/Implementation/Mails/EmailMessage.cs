@@ -8,10 +8,10 @@ using Kooboo.Mail.ViewModel;
 
 namespace Kooboo.Web.Api.Implementation.Mails
 {
-    public class EmailMessageApi : IApi
+    public class EmailMessageApi : Kooboo.Api.Api
     {
         public const int PageSize = 30;
-        public string ModelName
+        public override string ModelName
         {
             get
             {
@@ -19,7 +19,7 @@ namespace Kooboo.Web.Api.Implementation.Mails
             }
         }
 
-        public bool RequireSite
+        public override bool RequireSite
         {
             get
             {
@@ -27,7 +27,7 @@ namespace Kooboo.Web.Api.Implementation.Mails
             }
         }
 
-        public bool RequireUser
+        public override bool RequireUser
         {
             get
             {

@@ -8,12 +8,12 @@ using Kooboo.Api;
 
 namespace Kooboo.Web.Api.Implementation.Mails
 {
-    public class EmailDraft : IApi
+    public class EmailDraft : Kooboo.Api.Api
     {
         private const int MaxAttachmentSize = 10 * 1024 * 1024;
         private const int MaxImageSize = 1 * 1024 * 1024;
 
-        public   string ModelName
+        public override string ModelName
         {
             get
             {
@@ -21,7 +21,7 @@ namespace Kooboo.Web.Api.Implementation.Mails
             }
         }
          
-        public   bool RequireSite
+        public override bool RequireSite
         {
             get
             {
@@ -29,7 +29,7 @@ namespace Kooboo.Web.Api.Implementation.Mails
             }
         }
 
-        public   bool RequireUser
+        public override bool RequireUser
         {
             get
             {

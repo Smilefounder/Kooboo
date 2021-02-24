@@ -44,8 +44,6 @@ namespace Kooboo.Mail.Repositories
 
         Models.MessageStat GetStat(int FolderId, int AddressId = 0);
 
-        string[] GetFlags(int MsgId);
-
         void AddFlags(int MsgId, string[] flags);
 
         void ReplaceFlags(int msgid, string[] flags);
@@ -68,6 +66,34 @@ namespace Kooboo.Mail
         {
             var model = Kooboo.Mail.Utility.FolderUtility.ParseFolder(folderName);
             return repo.ByUidRange(model.FolderId, model.AddressId, minId, maxId, pageSize);
+        }
+
+        public static string[] GetFlags(this IMessageRepository repo, int MsgId)
+        {
+            var msg = repo.GetStatus(MsgId);
+
+            var flags = new List<string>();
+            if (msg.Recent)
+            {
+                flags.Add("Recent");
+            }
+            if (msg.Read)
+            {
+                flags.Add("Seen");
+            }
+            if (msg.Answered)
+            {
+                flags.Add("Answered");
+            }
+            if (msg.Flagged)
+            {
+                flags.Add("Flagged");
+            }
+            if (msg.Deleted)
+            {
+                flags.Add("Deleted");
+            }
+            return flags.ToArray();
         }
     }
 }

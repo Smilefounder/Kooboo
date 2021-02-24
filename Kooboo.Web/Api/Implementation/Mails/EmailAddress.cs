@@ -11,9 +11,9 @@ using Newtonsoft.Json.Converters;
 
 namespace Kooboo.Web.Api.Implementation.Mails
 {
-    public class EmailAddressApi : IApi
+    public class EmailAddressApi : Kooboo.Api.Api
     {
-        public string ModelName
+        public override string ModelName
         {
             get
             {
@@ -21,7 +21,7 @@ namespace Kooboo.Web.Api.Implementation.Mails
             }
         }
 
-        public bool RequireSite
+        public override bool RequireSite
         {
             get
             {
@@ -29,7 +29,7 @@ namespace Kooboo.Web.Api.Implementation.Mails
             }
         }
 
-        public bool RequireUser
+        public override bool RequireUser
         {
             get
             {
