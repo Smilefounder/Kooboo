@@ -88,10 +88,17 @@ $(function () {
           enable: self.enable,
           categories: self.categories,
           skus: JSON.parse(JSON.stringify(self.skus)),
+          specifications: [],
         };
 
         model.skus.forEach((f) => {
           f.stock = f.stock - f.lastStock;
+        });
+
+        self.specifications.forEach((f) => {
+          if (f.type == 0) {
+            model.specifications.push(...f.options);
+          }
         });
 
         Kooboo.Product.post(model).then(function (res) {
@@ -164,7 +171,7 @@ $(function () {
           type = type[0];
           product = product[0];
           self.title = product.model.title;
-          self.images = JSON.parse(product.model.images);
+          self.images = product.model.images;
           self.description = product.model.description;
           self.enable = product.model.enable;
         }
@@ -172,28 +179,48 @@ $(function () {
         var attributes = type.model.attributes;
         var specifications = type.model.specifications;
         var productAttributes = product ? product.model.attributes : [];
-debugger
-        attributes.forEach((f) => {
-          var attribute = productAttributes.find((a) => a.key == f.id);
-          f.value = attribute ? attribute.value : "";
+        var productSpecifications = product ? product.model.specifications : [];
+        var skus = product ? product.model.skus : [];
+        var skuSpecifications = [];
 
-          if (isNew && f.type == 1 && f.options.length) {
-            f.value = f.options[0].id;
+        for (const sku of skus) {
+          sku.lastStock = sku.stock;
+          skuSpecifications.push(...sku.specifications);
+        }
+
+        for (const attribute of attributes) {
+          var attributeValue = productAttributes.find(
+            (a) => a.key == attribute.id
+          );
+          attribute.value = attributeValue ? attributeValue.value : "";
+
+          if (isNew && attribute.type == 1 && attribute.options.length) {
+            attribute.value = attribute.options[0].id;
           }
-        });
+        }
 
-        specifications.forEach((f) => {
-          if (f.type == 0) f.editingItem = "";
+        for (const specification of specifications) {
+          if (specification.type == 0) {
+            specification.options = skuSpecifications
+              .filter((f) => f.key == specification.id)
+              .map((m) => ({
+                key: m.value,
+                value: productSpecifications.find((f) => f.key == m.value)
+                  .value,
+              }));
+          }
 
-          if (f.type == 1) {
-            f.options.forEach(function (o) {
-              o.checked = false;
+          if (specification.type == 1) {
+            specification.options.forEach(function (o) {
+              o.checked = skuSpecifications.some((s) => s.value == o.key);
             });
           }
-        });
+        }
 
         self.specifications = specifications;
         self.attributes = attributes;
+        self.skus = skus;
+        self.rebuildSkus();
       },
       imgUrlWrap: function (url) {
         return "url('" + url + self.querySiteId + "')";

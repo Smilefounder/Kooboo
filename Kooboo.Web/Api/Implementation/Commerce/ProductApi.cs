@@ -21,7 +21,7 @@ namespace Kooboo.Web.Api.Implementation.Commerce
             new ProductService(apiCall.Context).Save(viewModel);
         }
 
-        public ProductViewModel Get(Guid id, ApiCall apiCall)
+        public Kooboo.Sites.Commerce.ViewModels.Product.ProductViewModel Get(Guid id, ApiCall apiCall)
         {
             return new ProductService(apiCall.Context).Query(id);
         }

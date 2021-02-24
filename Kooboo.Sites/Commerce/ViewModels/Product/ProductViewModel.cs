@@ -8,11 +8,31 @@ namespace Kooboo.Sites.Commerce.ViewModels.Product
 {
     public class ProductViewModel
     {
+        public ProductViewModel()
+        {
+
+        }
+
+        public ProductViewModel(Entities.Product product, Sku[] skus, Guid[] categories)
+        {
+            Id = product.Id;
+            Title = product.Title;
+            Images = JsonHelper.Deserialize<Image[]>(product.Images);
+            Description = product.Description;
+            Attributes = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(product.Attributes);
+            Specifications = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(product.Specifications);
+            TypeId = product.TypeId;
+            Enable = product.Enable;
+            Skus = skus;
+            Categories = categories;
+        }
+
         public Guid Id { get; set; }
         public string Title { get; set; }
         public Image[] Images { get; set; }
         public string Description { get; set; }
         public KeyValuePair<Guid, string>[] Attributes { get; set; }
+        public KeyValuePair<Guid, string>[] Specifications { get; set; }
         public Guid TypeId { get; set; }
         public bool Enable { get; set; }
         public Sku[] Skus { get; set; }
@@ -28,6 +48,24 @@ namespace Kooboo.Sites.Commerce.ViewModels.Product
 
         public class Sku
         {
+            public Sku()
+            {
+
+            }
+
+            public Sku(Entities.Sku sku, int stock)
+            {
+                Id = sku.Id;
+                Specifications = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(sku.Specifications);
+                ProductId = sku.ProductId;
+                Name = sku.Name;
+                Price = sku.Price;
+                Tax = sku.Tax;
+                Thumbnail = sku.Thumbnail;
+                Enable = sku.Enable;
+                Stock = stock;
+            }
+
             public Guid Id { get; set; }
             public KeyValuePair<Guid, string>[] Specifications { get; set; }
             public Guid ProductId { get; set; }
@@ -37,6 +75,21 @@ namespace Kooboo.Sites.Commerce.ViewModels.Product
             public string Thumbnail { get; set; }
             public bool Enable { get; set; }
             public int Stock { get; set; }
+
+            public Entities.Sku ToSku()
+            {
+                return new Entities.Sku
+                {
+                    Id = Id,
+                    Enable = Enable,
+                    Name = Name,
+                    Price = Price,
+                    ProductId = ProductId,
+                    Tax = Tax,
+                    Thumbnail = Thumbnail,
+                    Specifications = JsonHelper.Serialize(Specifications)
+                };
+            }
         }
 
         public Entities.Product ToProduct()
@@ -48,24 +101,10 @@ namespace Kooboo.Sites.Commerce.ViewModels.Product
                 Enable = Enable,
                 Images = JsonHelper.Serialize(Images),
                 Attributes = JsonHelper.Serialize(Attributes),
+                Specifications = JsonHelper.Serialize(Specifications),
                 Title = Title,
                 TypeId = TypeId
             };
-        }
-
-        public Entities.Sku[] ToSkus()
-        {
-            return Skus.Select(s => new Entities.Sku
-            {
-                Id = s.Id,
-                Enable = s.Enable,
-                Name = s.Name,
-                Price = s.Price,
-                ProductId = s.ProductId,
-                Tax = s.Tax,
-                Thumbnail = s.Thumbnail,
-                Specifications = JsonHelper.Serialize(s.Specifications)
-            }).ToArray();
         }
     }
 }

@@ -18,13 +18,13 @@
     <kb-table-column :label="Kooboo.text.common.name" prop="name">
     </kb-table-column>
 
-    <kb-table-column label="属性">
+    <kb-table-column label="Attributes">
       <template v-slot="row">
         {{row.attributes.map(m=>m.name).join(",")}}
       </template>
     </kb-table-column>
 
-    <kb-table-column label="规格">
+    <kb-table-column label="Specifications">
       <template v-slot="row">
         {{row.specifications.map(m=>m.name).join(",")}}
       </template>

@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Kooboo.Data.Context;
+using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.ViewModels;
 using System;
@@ -23,7 +24,7 @@ namespace Kooboo.Sites.Commerce.Services
             using (var con = DbConnection)
             {
                 var oldSkuIds = con.Query<Guid>("select Id from Sku where ProductId=@Id", viewModel);
-                var newSkus = viewModel.ToSkus();
+                var newSkus = viewModel.Skus.Select(s => s.ToSku());
                 var newSkuIds = newSkus.Select(s => s.Id).ToArray();
                 con.Open();
                 var tran = con.BeginTransaction();
@@ -31,7 +32,7 @@ namespace Kooboo.Sites.Commerce.Services
                 if (!con.Exist<Product>(viewModel.Id))
                 {
                     con.Insert(viewModel.ToProduct());
-                    con.Insert(viewModel.ToSkus());
+                    con.Insert(newSkus);
                 }
                 else
                 {
@@ -67,25 +68,27 @@ namespace Kooboo.Sites.Commerce.Services
             }
         }
 
-        public ProductViewModel Query(Guid id)
+        public ViewModels.Product.ProductViewModel Query(Guid id)
         {
             using (var con = DbConnection)
             {
-                var skus = con.Query<SkuViewModel>("select * from Sku where ProductId=@Id", new { Id = id });
-                var product = con.QueryFirstOrDefault<ProductViewModel>("select * from Product where Id=@Id LIMIT 1", new { Id = id });
+                var skus = con.Query<Sku>("select * from Sku where ProductId=@Id", new { Id = id });
+                var product = con.QueryFirstOrDefault<Product>("select * from Product where Id=@Id LIMIT 1", new { Id = id });
                 if (!skus.Any() || product == null) throw new Exception("Not find product");
 
-                var stocks = con.Query<Stock>(
+                var stocks = con.Query<dynamic>(
                      "select SkuId,sum(Quantity) as 'Quantity' from Stock where SkuId in @Ids group by SkuId",
                      new { Ids = skus.Select(s => s.Id) });
 
+                var skuViewModels = new List<ViewModels.Product.ProductViewModel.Sku>();
+
                 foreach (var item in skus)
                 {
-                    item.Stock = stocks.FirstOrDefault(f => f.SkuId == item.Id)?.Quantity ?? 0;
+                    var stock = stocks.FirstOrDefault(f => f.SkuId == item.Id)?.Quantity ?? 0;
+                    skuViewModels.Add(new ViewModels.Product.ProductViewModel.Sku(item, (int)stock));
                 }
 
-                product.Skus = skus.ToArray();
-                return product;
+                return new ViewModels.Product.ProductViewModel(product, skuViewModels.ToArray(), new Guid[0]);
             }
         }
 

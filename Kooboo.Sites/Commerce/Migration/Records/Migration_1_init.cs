@@ -51,6 +51,7 @@ create table Product
 	Images text not null,
 	Description text not null,
 	Attributes text not null,
+	Specifications text not null,
 
 	TypeId uniqueidentifier not null
 		constraint Product_TypeId_ProductType_Id_fk
