@@ -49,6 +49,8 @@ namespace Kooboo.Mail.Smtp
 
         public Dictionary<SmtpCommand, SmtpResponse> Log = new Dictionary<SmtpCommand, SmtpResponse>();
 
+        public Dictionary<string, object> Items { get; } = new Dictionary<string, object>();
+
         private StringBuilder _buffer;
         private StringBuilder buffer
         {
@@ -101,22 +103,25 @@ namespace Kooboo.Mail.Smtp
 
         public SmtpResponse Command(string CommandLine)
         {
-            // regular state.. 
-            if (this.State == CommandState.Data)
+            using (var scope = new Events.MailHandleScope<SmtpSession>(this))
             {
-                return DataCommand(CommandLine);
-            }
-            else if (this.State == CommandState.Auth || this.State == CommandState.AuthUser || this.State == CommandState.AuthPass)
-            {
-                return AuthCommand(CommandLine);
-            }
-            else if (this.State == CommandState.Body)
-            {
-                return BodyCommand(CommandLine);
-            }
-            else
-            {
-                return HeloCommand(CommandLine);
+                // regular state.. 
+                if (this.State == CommandState.Data)
+                {
+                    return DataCommand(CommandLine);
+                }
+                else if (this.State == CommandState.Auth || this.State == CommandState.AuthUser || this.State == CommandState.AuthPass)
+                {
+                    return AuthCommand(CommandLine);
+                }
+                else if (this.State == CommandState.Body)
+                {
+                    return BodyCommand(CommandLine);
+                }
+                else
+                {
+                    return HeloCommand(CommandLine);
+                }
             }
         }
 

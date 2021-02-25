@@ -78,6 +78,8 @@ namespace Kooboo.Mail.Imap
             }
         }
 
+        public Dictionary<string, object> Items { get; } = new Dictionary<string, object>();
+
         public SelectFolder SelectFolder { get; set; }
 
         private MailDb _db;
@@ -134,7 +136,10 @@ namespace Kooboo.Mail.Imap
                     }
                     else
                     {
-                        await Kooboo.Mail.Imap.Commands.CommandManager.Execute(this, commandLine.Tag, commandLine.Name, commandLine.Args);
+                        using (new Events.MailHandleScope<ImapSession>(this))
+                        {
+                            await Kooboo.Mail.Imap.Commands.CommandManager.Execute(this, commandLine.Tag, commandLine.Name, commandLine.Args);
+                        }
                         OnCommandExecuted();
                     }
                 }

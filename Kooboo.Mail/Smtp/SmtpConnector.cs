@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net.Security;
 using System.Threading;
 using Kooboo.Mail.Utility;
+using System.Collections.Generic;
 
 namespace Kooboo.Mail.Smtp
 {
@@ -126,7 +127,10 @@ namespace Kooboo.Mail.Smtp
 
                         if (dataresponse.SessionCompleted)
                         {
-                            await Kooboo.Mail.Transport.Incoming.Receive(session);
+                            using (var scope = new Events.MailHandleScope<SmtpSession>(session))
+                            {
+                                await Kooboo.Mail.Transport.Incoming.Receive(session);
+                            }
 
                             var tos = session.Log.Keys.Where(o => o.Name == SmtpCommandName.RCPTTO);
 
