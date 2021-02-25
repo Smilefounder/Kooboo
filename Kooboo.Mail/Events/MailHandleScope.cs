@@ -4,20 +4,20 @@ using System.Text;
 
 namespace Kooboo.Mail.Events
 {
-    public class MailHandleScope<TSession> : IDisposable
+    public class MailHandleScope : IDisposable
     {
-        private readonly TSession _session;
+        private readonly IMailSession _session;
 
-        public MailHandleScope(TSession session)
+        public MailHandleScope(IMailSession session)
         {
             _session = session;
 
-            Kooboo.Data.Events.EventBus.Raise(new Events.MailHandleStart<TSession>(_session));
+            Kooboo.Data.Events.EventBus.Raise(new Events.MailHandleStart(_session));
         }
 
         public void Dispose()
         {
-            Kooboo.Data.Events.EventBus.Raise(new Events.MailHandleEnd<TSession>(_session));
+            Kooboo.Data.Events.EventBus.Raise(new Events.MailHandleEnd(_session));
         }
     }
 }

@@ -127,7 +127,7 @@ namespace Kooboo.Mail.Smtp
 
                         if (dataresponse.SessionCompleted)
                         {
-                            using (var scope = new Events.MailHandleScope<SmtpSession>(session))
+                            using (var scope = new Events.MailHandleScope(session))
                             {
                                 await Kooboo.Mail.Transport.Incoming.Receive(session);
                             }

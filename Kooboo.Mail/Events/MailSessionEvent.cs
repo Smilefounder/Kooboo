@@ -5,13 +5,13 @@ using System.Text;
 
 namespace Kooboo.Mail.Events
 {
-    public abstract class MailSessionEvent<TSession> : IEvent
+    public abstract class MailSessionEvent : IEvent
     {
-        public MailSessionEvent(TSession session)
+        public MailSessionEvent(IMailSession session)
         {
             Session = session;
         }
 
-        public TSession Session { get; }
+        public IMailSession Session { get; }
     }
 }

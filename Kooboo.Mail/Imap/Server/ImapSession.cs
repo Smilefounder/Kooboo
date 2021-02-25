@@ -15,7 +15,7 @@ using LumiSoft.Net;
 
 namespace Kooboo.Mail.Imap
 {
-    public class ImapSession : IManagedConnection, IDisposable
+    public class ImapSession : IManagedConnection, IMailSession, IDisposable
     {
         private CancellationTokenSource _cancellationTokenSource;
         private long _timeoutTimestamp = Int64.MaxValue;    // To check connection alive timeout
@@ -136,7 +136,7 @@ namespace Kooboo.Mail.Imap
                     }
                     else
                     {
-                        using (new Events.MailHandleScope<ImapSession>(this))
+                        using (new Events.MailHandleScope(this))
                         {
                             await Kooboo.Mail.Imap.Commands.CommandManager.Execute(this, commandLine.Tag, commandLine.Name, commandLine.Args);
                         }

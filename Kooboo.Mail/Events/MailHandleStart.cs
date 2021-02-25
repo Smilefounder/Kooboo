@@ -6,9 +6,9 @@ using Kooboo.Data.Events;
 
 namespace Kooboo.Mail.Events
 {
-    public class MailHandleStart<TSession> : MailSessionEvent<TSession>
+    public class MailHandleStart : MailSessionEvent
     {
-        public MailHandleStart(TSession session)
+        public MailHandleStart(IMailSession session)
             : base(session)
         {
         }

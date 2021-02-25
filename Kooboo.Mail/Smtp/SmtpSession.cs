@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Kooboo.Mail.Smtp
 {
-    public class SmtpSession
+    public class SmtpSession : IMailSession
     {
         public SmtpSession()
         {
@@ -103,7 +103,7 @@ namespace Kooboo.Mail.Smtp
 
         public SmtpResponse Command(string CommandLine)
         {
-            using (var scope = new Events.MailHandleScope<SmtpSession>(this))
+            using (var scope = new Events.MailHandleScope(this))
             {
                 // regular state.. 
                 if (this.State == CommandState.Data)
