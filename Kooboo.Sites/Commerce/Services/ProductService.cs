@@ -3,11 +3,11 @@ using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.ViewModels;
+using Kooboo.Sites.Commerce.ViewModels.Product;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using static Kooboo.Sites.Commerce.ViewModels.ProductViewModel;
 
 namespace Kooboo.Sites.Commerce.Services
 {
@@ -17,13 +17,13 @@ namespace Kooboo.Sites.Commerce.Services
         {
         }
 
-        public void Save(Kooboo.Sites.Commerce.ViewModels.Product.ProductViewModel viewModel)
+        public void Save(ProductViewModel viewModel)
         {
             var stockChangedSkus = viewModel.Skus.Where(w => w.Stock != 0).ToArray();
 
             using (var con = DbConnection)
             {
-                var oldSkuIds = con.Query<Guid>("select Id from Sku where ProductId=@Id", viewModel);
+                var oldSkuIds = con.Query<Guid>("select Id from ProductSku where ProductId=@Id", viewModel);
                 var newSkus = viewModel.Skus.Select(s => s.ToSku());
                 var newSkuIds = newSkus.Select(s => s.Id).ToArray();
                 con.Open();
@@ -32,29 +32,28 @@ namespace Kooboo.Sites.Commerce.Services
                 if (!con.Exist<Product>(viewModel.Id))
                 {
                     con.Insert(viewModel.ToProduct());
-                    con.Insert(newSkus);
+                    con.InsertList(newSkus);
                 }
                 else
                 {
                     con.Update(viewModel.ToProduct());
-                    con.Insert(newSkus.Where(w => !oldSkuIds.Contains(w.Id)));
-                    con.Delete<Sku>(oldSkuIds.Where(w => !newSkuIds.Contains(w)));
-                    con.Update(newSkus.Where(w => oldSkuIds.Contains(w.Id)));
+                    con.InsertList(newSkus.Where(w => !oldSkuIds.Contains(w.Id)));
+                    con.DeleteList<ProductSku>(oldSkuIds.Where(w => !newSkuIds.Contains(w)));
+                    con.UpdateList(newSkus.Where(w => oldSkuIds.Contains(w.Id)));
                 }
 
-                var stocks = con.Query<Stock>(
-                    "select SkuId,sum(Quantity) as 'Quantity' from Stock where SkuId in @Ids group by SkuId",
+                var stocks = con.Query<ProductStock>(
+                    "select SkuId,sum(Quantity) as 'Quantity' from ProductStock where SkuId in @Ids group by SkuId",
                     new { Ids = stockChangedSkus.Select(s => s.Id) });
 
-                var InsertStocks = new List<Stock>();
+                var InsertStocks = new List<ProductStock>();
 
                 foreach (var item in stockChangedSkus)
                 {
                     var lastStock = stocks.FirstOrDefault(f => f.SkuId == item.Id)?.Quantity ?? 0;
                     if (lastStock + item.Stock < 0) throw new Exception("Negative inventory, please edit again");
-                    InsertStocks.Add(new Stock
+                    InsertStocks.Add(new ProductStock
                     {
-                        Id = Guid.NewGuid(),
                         DateTime = DateTime.UtcNow,
                         Quantity = item.Stock,
                         SkuId = item.Id,
@@ -63,35 +62,34 @@ namespace Kooboo.Sites.Commerce.Services
                     });
                 }
 
-                con.Insert(InsertStocks);
+                con.InsertList(InsertStocks);
                 tran.Commit();
             }
         }
 
-        public ViewModels.Product.ProductViewModel Query(Guid id)
+        public ProductViewModel Query(Guid id)
         {
             using (var con = DbConnection)
             {
-                var skus = con.Query<Sku>("select * from Sku where ProductId=@Id", new { Id = id });
+                var skus = con.Query<ProductSku>("select * from ProductSku where ProductId=@Id", new { Id = id });
                 var product = con.QueryFirstOrDefault<Product>("select * from Product where Id=@Id LIMIT 1", new { Id = id });
                 if (!skus.Any() || product == null) throw new Exception("Not find product");
 
                 var stocks = con.Query<dynamic>(
-                     "select SkuId,sum(Quantity) as 'Quantity' from Stock where SkuId in @Ids group by SkuId",
+                     "select SkuId,sum(Quantity) as 'Quantity' from ProductStock where SkuId in @Ids group by SkuId",
                      new { Ids = skus.Select(s => s.Id) });
 
-                var skuViewModels = new List<ViewModels.Product.ProductViewModel.Sku>();
+                var skuViewModels = new List<ProductViewModel.Sku>();
 
                 foreach (var item in skus)
                 {
                     var stock = stocks.FirstOrDefault(f => f.SkuId == item.Id)?.Quantity ?? 0;
-                    skuViewModels.Add(new ViewModels.Product.ProductViewModel.Sku(item, (int)stock));
+                    skuViewModels.Add(new ProductViewModel.Sku(item, (int)stock));
                 }
 
-                return new ViewModels.Product.ProductViewModel(product, skuViewModels.ToArray(), new Guid[0]);
+                return new ProductViewModel(product, skuViewModels.ToArray(), new Guid[0]);
             }
         }
-
 
         public PagedListViewModel<ProductListViewModel> Query(PagingQueryViewModel viewModel)
         {
@@ -111,7 +109,7 @@ namespace Kooboo.Sites.Commerce.Services
 
                 var stocks = con.Query<dynamic>(@"
                 select ProductId,sum(Quantity) as Stock,sum(case when StockType = 1 or StockType=2 then Quantity else 0 end) as Sales
-                from Stock
+                from ProductStock
                 where ProductId in @Ids
                 group by ProductId
                 ", new
@@ -142,6 +140,14 @@ namespace Kooboo.Sites.Commerce.Services
                 }
 
                 return result;
+            }
+        }
+
+        public KeyValuePair<Guid, string>[] KeyValue()
+        {
+            using (var con = DbConnection)
+            {
+                return con.Query<KeyValuePair<Guid, string>>("select Id as Key,title as value from product").ToArray();
             }
         }
     }

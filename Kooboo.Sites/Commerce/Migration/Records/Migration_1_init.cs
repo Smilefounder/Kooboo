@@ -13,23 +13,6 @@ namespace Kooboo.Sites.Commerce.Migration.Records
         public void Migrate(IDbConnection connection)
         {
             connection.Execute($@"
-create table Category
-(
-	Id uniqueidentifier not null
-		constraint Category_pk
-			primary key,
-
-	Name text not null,
-
-	Parent uniqueidentifier
-		constraint Category_Parent_Category_Id_fk
-			references ""Category""
-				on delete cascade,
-
-	Attributes text not null,
-    Specifications text not null
-);
-
 create table ProductType
 (
 	Id uniqueidentifier not null
@@ -61,14 +44,14 @@ create table Product
 	Enable int not null
 );
 
-create table Sku
+create table ProductSku
 (
 	Id uniqueidentifier not null
-		constraint Sku_pk
+		constraint ProductSku_pk
 			primary key,
 
 	ProductId uniqueidentifier not null
-		constraint Sku_ProductId_Product_Id_fk
+		constraint ProductSku_ProductId_Product_Id_fk
 			references ""Product""
 				on delete cascade,
 
@@ -80,25 +63,45 @@ create table Sku
 	Enable int not null
 );
 
-create table Stock
+create table ProductStock
 (
-	Id uniqueidentifier not null
-		constraint Stock_pk
-			primary key,
-
 	SkuId uniqueidentifier not null
 		constraint Stock_SkuId_Sku_Id_fk
-			references ""Sku""
+			references ""ProductSku""
 				on delete cascade,
 
 	ProductId uniqueidentifier not null
-		constraint Stock_ProductId_Product_Id_fk
+		constraint ProductStock_ProductId_Product_Id_fk
 			references ""Product""
 				on delete cascade,
 
 	Quantity int not null,
 	StockType int not null,
 	DateTime int not null
+);
+
+create table Category
+(
+	Id uniqueidentifier not null
+		constraint ProductCategory_pk
+			primary key,
+
+	Type int not null,
+	Name text not null,
+	Rules text
+);
+
+create table ProductCategory
+(
+	CategoryId uniqueidentifier not null
+		constraint ProductCategory_CategoryId_Category_Id_fk
+			references ""Category""
+				on delete cascade,
+
+	ProductId uniqueidentifier not null
+		constraint ProductCategory_ProductId_Product_Id_fk
+			references ""Product""
+				on delete cascade
 );
 ");
         }

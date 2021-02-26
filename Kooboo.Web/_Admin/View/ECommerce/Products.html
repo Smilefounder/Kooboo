@@ -43,12 +43,12 @@
         ></button>
         <ul class="dropdown-menu">
           <li v-for="type in types" :key="type.id">
-            <a href="javascript:void()" @click="startAddProduct(type.id)"
+            <a href="javascript:;" @click="startAddProduct(type.id)"
               >{{type.name}}</a
             >
           </li>
           <li v-if="!types.length">
-            <a href="javascript:void()" @click="showModal=true"
+            <a href="javascript:;" @click="showModal=true"
               >Create a new type first</a
             >
           </li>
@@ -75,9 +75,9 @@
     <div class="product-detail">
       <p style="font-size: 15px">{{product.title}}</p>
       <div style="display: flex">
-        <div style="flex: 1">状态：<span>{{product.stock}}</span></div>
-        <div style="flex: 1">库存：<span>{{product.stock}}</span></div>
-        <div style="flex: 1">销量：<span>{{product.sales}}</span></div>
+        <div style="flex: 1"><span>Status</span>:<span>{{product.stock}}</span></div>
+        <div style="flex: 1"><span>Stock</span>:<span>{{product.stock}}</span></div>
+        <div style="flex: 1"><span>Sales</span>:<span>{{product.sales}}</span></div>
       </div>
     </div>
     <div class="product-ctrl">

@@ -195,7 +195,7 @@ $(function () {
           attribute.value = attributeValue ? attributeValue.value : "";
 
           if (isNew && attribute.type == 1 && attribute.options.length) {
-            attribute.value = attribute.options[0].id;
+            attribute.value = attribute.options[0].key;
           }
         }
 

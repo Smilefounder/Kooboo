@@ -1,8 +1,11 @@
 ﻿using Dapper;
+using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
+using Kooboo.Sites.Commerce.ViewModels.Product;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Text;
 
 namespace Kooboo.Sites.Commerce.Migration
@@ -11,35 +14,102 @@ namespace Kooboo.Sites.Commerce.Migration
     {
         public static void Insert(IDbConnection connection)
         {
-            var categorys = new[] {
-                new Category{
-                    Id=Guid.Parse("a0078376-53b4-436c-a37d-5a273b130771"),
-                    Name="Clothes",
-                    Attributes="[]",
-                    Specifications="[]"
-                },
-                new Category{
-                    Id=Guid.Parse("a0078376-53b4-436c-a37d-5a273b130774"),
-                    Attributes="[{\"id\":\"9ee7be45-91e5-39c8-b372-9c51d0b20682\",\"name\":\"Style\",\"type\":0,\"editingItem\":\"\",\"options\":[]},{\"id\":\"7c8c5b0c-01a5-361a-8d43-59130e2d739c\",\"name\":\"Sleeve\",\"type\":1,\"editingItem\":\"\",\"options\":[{\"id\":\"9b8928b7-c72c-3be4-abb3-af03c93d6835\",\"value\":\"Long\"},{\"id\":\"922f012b-6252-317e-9134-87d5edae1df0\",\"value\":\"Short\"}]}]",
-                    Name="Shirt",
-                    Parent=Guid.Parse("a0078376-53b4-436c-a37d-5a273b130771"),
-                    Specifications="[{\"id\":\"3a73ef56-ccac-3593-bd8c-55e9e6a3c77f\",\"name\":\"Size\",\"type\":1,\"editingItem\":\"\",\"options\":[{\"id\":\"228d6f86-0c68-30a0-b5d2-e4d14864f6cc\",\"value\":\"S\"},{\"id\":\"5fac8d97-38a0-3501-9b00-cf23c4e65c6b\",\"value\":\"M\"},{\"id\":\"804aedc4-8cc0-3498-a918-a23883aacca2\",\"value\":\"L\"},{\"id\":\"60a7d228-6298-3a86-b323-4e15df892ae9\",\"value\":\"XL\"}]},{\"id\":\"f63e5109-a907-351d-896d-c4a471513c76\",\"name\":\"Color\",\"type\":0,\"editingItem\":\"\",\"options\":[]}]"
-                },
-                new Category{
-                    Id=Guid.Parse("b0078376-53b4-436c-a37d-5a273b130771"),
-                    Name="Shoes",
-                    Attributes="[]",
-                    Specifications="[]"
-                },
-                new Category{
-                    Id=Guid.Parse("c0078376-53b4-436c-a37d-5a273b130771"),
-                    Name="Headgear",
-                    Attributes="[]",
-                    Specifications="[]"
-                },
-            };
+            ProductType(connection);
+        }
 
-            connection.Insert(categorys);
+        private static void ProductType(IDbConnection connection)
+        {
+            connection.Execute(@"
+INSERT INTO ProductType (Id, Name, Attributes, Specifications) VALUES ('0091733c-6f1b-4994-824b-1a1e05f4713c', '衬衫', '[
+  {
+    ""id"": ""b8d046ab-d653-4ced-86ba-4d74c24a2c2c"",
+    ""name"": ""产地"",
+    ""type"": 1,
+    ""options"": [
+      {
+        ""key"": ""45563789-d3ad-464f-a4ae-54d45ebe374a"",
+        ""value"": ""中国""
+      },
+      {
+        ""key"": ""4756a5db-67ce-443c-95fe-c56111ed51e9"",
+        ""value"": ""越南""
+      }
+    ]
+  },
+  {
+    ""id"": ""f7c310ec-724e-4b72-96c1-bb9c9c772c25"",
+    ""name"": ""风格"",
+    ""type"": 0,
+    ""options"": []
+  },
+  {
+    ""id"": ""a6b3ec81-39de-40f8-82ae-517e8d23c8ff"",
+    ""name"": ""年龄段"",
+    ""type"": 1,
+    ""options"": [
+      {
+        ""key"": ""a3d9806c-6b96-4e93-8dca-21e08121952b"",
+        ""value"": ""少年""
+      },
+      {
+        ""key"": ""3e76ca9c-6600-48de-afb3-3af5cd06db12"",
+        ""value"": ""青年""
+      },
+      {
+        ""key"": ""19cd7b45-1b57-4562-9bc6-2ec827951f1d"",
+        ""value"": ""中年""
+      }
+    ]
+  },
+  {
+    ""id"": ""3f5661e6-8e90-455b-950e-1ad0d6e7fad9"",
+    ""name"": ""材质"",
+    ""type"": 0,
+    ""options"": []
+  }
+]', '[
+  {
+    ""id"": ""8d5877f8-924a-4672-89c0-f6231e33a2f1"",
+    ""name"": ""尺寸"",
+    ""type"": 1,
+    ""options"": [
+      {
+        ""key"": ""acf95c38-cb05-4c77-962f-c764b20f3d11"",
+        ""value"": ""M""
+      },
+      {
+        ""key"": ""ec7a30fd-9853-4dbf-a869-6270182746a5"",
+        ""value"": ""L""
+      },
+      {
+        ""key"": ""dcdc650c-2620-437b-93ae-4fda294e97e5"",
+        ""value"": ""XL""
+      }
+    ]
+  },
+  {
+    ""id"": ""492a2c89-4b6f-4475-813c-44107c4309d7"",
+    ""name"": ""颜色"",
+    ""type"": 0,
+    ""options"": []
+  },
+  {
+    ""id"": ""9f6315e4-e3f5-4b3f-8053-17824e873b1b"",
+    ""name"": ""性别"",
+    ""type"": 1,
+    ""options"": [
+      {
+        ""key"": ""46fc087c-e34e-4a43-a151-4e15470f0e0f"",
+        ""value"": ""男""
+      },
+      {
+        ""key"": ""0693e43e-619e-4288-9478-018b0b6464c4"",
+        ""value"": ""女""
+      }
+    ]
+  }
+]');
+");
         }
     }
 }

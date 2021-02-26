@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce.ViewModels
+namespace Kooboo.Sites.Commerce.ViewModels.Product
 {
     public class ProductListViewModel
     {

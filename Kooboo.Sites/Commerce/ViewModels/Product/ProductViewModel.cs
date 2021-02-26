@@ -53,7 +53,7 @@ namespace Kooboo.Sites.Commerce.ViewModels.Product
 
             }
 
-            public Sku(Entities.Sku sku, int stock)
+            public Sku(Entities.ProductSku sku, int stock)
             {
                 Id = sku.Id;
                 Specifications = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(sku.Specifications);
@@ -76,9 +76,9 @@ namespace Kooboo.Sites.Commerce.ViewModels.Product
             public bool Enable { get; set; }
             public int Stock { get; set; }
 
-            public Entities.Sku ToSku()
+            public Entities.ProductSku ToSku()
             {
-                return new Entities.Sku
+                return new Entities.ProductSku
                 {
                     Id = Id,
                     Enable = Enable,

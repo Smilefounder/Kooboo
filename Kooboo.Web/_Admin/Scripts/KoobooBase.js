@@ -1679,28 +1679,28 @@
   }
   extend(Commerce, BaseModel);
 
-  function ProductCategory() {
+  function Category() {
     this.name = "Category";
 
-    this.checkProuctCount = function (para) {
-      return this.executeGet("CheckProuctCount", para);
+    this.define = function () {
+      return this.executeGet("define");
     };
   }
-  extend(ProductCategory, BaseModel);
+  extend(Category, BaseModel);
 
   function ProductType() {
     this.name = "ProductType";
-
   }
   extend(ProductType, BaseModel);
 
   function Product() {
     this.name = "Product";
-
+    this.keyValue = function () {
+      return this.executeGet("KeyValue");
+    };
   }
-  extend(Product, BaseModel);
 
-  
+  extend(Product, BaseModel);
 
   function KConfig() {
     this.name = "KConfig";
@@ -1819,8 +1819,8 @@
     Relation: new Relation(),
     Page: new Page(),
     Product: new Product(),
-    ProductType:new ProductType(),
-    ProductCategory: new ProductCategory(),
+    ProductType: new ProductType(),
+    Category: new Category(),
     Profile: new Profile(),
     Publish: new Publish(),
     Role: new Role(),

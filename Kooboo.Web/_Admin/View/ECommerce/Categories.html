@@ -1,20 +1,4 @@
 <!-- #layout name=blank-->
-<style>
-  .dynamic-items > * {
-    margin-bottom: 5px;
-  }
-
-  .options-container {
-    border: 1px solid #e5e5e5;
-    border-top: 0;
-    display: flex;
-    flex-wrap: wrap;
-  }
-
-  .options-container > * {
-    margin: 5px;
-  }
-</style>
 
 <div id="app">
   <div class="page-header">
@@ -22,39 +6,42 @@
   </div>
   <kb-breadcrumb :breads="breads"></kb-breadcrumb>
 
-  <div class="panel panel-default panel-small">
-    <div class="panel-heading">
-      <a
-        href="javascript:;"
-        class="btn navbar-btn green"
-        @click="onAddNewCategory"
-        >Add new category</a
+  <div class="navbar navbar-default">
+    <div class="container-fluid">
+      <a class="btn green navbar-btn" @click="add">Add new category</a>
+      <a class="btn red navbar-btn" v-if="selectedRows.length" @click="deletes"
+        >Delete</a
       >
-      <template v-if="currentNode">
-        <a
-          href="javascript:;"
-          class="btn navbar-btn green"
-          @click="onAddNewSubCategory"
-          >Add sub-category</a
-        >
-        <a href="javascript:;" class="btn navbar-btn green" @click="onEdit"
-          >Edit</a
-        >
-        <a
-          href="javascript:;"
-          class="btn navbar-btn red"
-          @click="removeCategory"
-          >Delete</a
-        >
-      </template>
-    </div>
-    <div class="panel-body">
-      <div id="categories"></div>
     </div>
   </div>
 
+  <kb-table v-if="list" :data="list" show-select :selected.sync="selectedRows">
+    <kb-table-column :label="Kooboo.text.common.name" prop="name">
+    </kb-table-column>
+
+    <kb-table-column label="Type">
+      <template v-slot="row"> {{row.type}} </template>
+    </kb-table-column>
+
+    <kb-table-column label="Rules">
+      <template v-slot="row"> </template>
+    </kb-table-column>
+
+    <kb-table-column label="Product count">
+      <template v-slot="row"> </template>
+    </kb-table-column>
+
+    <kb-table-column align="right" width="100px">
+      <template v-slot="row">
+        <a class="btn blue" @click.stop="edit(row.id)"
+          >{{ Kooboo.text.common.setting }}</a
+        >
+      </template>
+    </kb-table-column>
+  </kb-table>
+
   <div
-    v-kb-modal="showEditModal"
+    v-kb-modal="showModal"
     class="modal fade"
     data-backdrop="static"
     data-keyboard="fasle"
@@ -62,161 +49,132 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <button @click="showEditModal=false" class="close">
+          <button @click="showModal=false" class="close">
             <i class="fa fa-close"></i>
           </button>
-          <h4 class="modal-title" v-if="editData&&editData.isEdit"
-            >Edit<span>Category</span></h4
-          >
-          <h4 class="modal-title" v-else>Create<span>Category</span></h4>
+          <h4 class="modal-title">Create</h4>
         </div>
-        <div class="modal-body" v-if="showEditModal">
-          <form class="form-horizontal">
-            <div class="form-group" v-if="editData.parent">
-              <label class="col-sm-3 control-label">Parent</label>
-              <div class="col-sm-9">
-                <input
-                  class="form-control"
-                  v-model="editData.parentName"
-                  readonly
-                />
-              </div>
-            </div>
-            <div class="form-group">
+        <div class="modal-body" v-if="showModal">
+          <kb-form :data="editData">
+            <kb-form-item>
               <label class="col-sm-3 control-label">Name</label>
               <div class="col-sm-9">
-                <input class="form-control" v-model="editData.text" />
+                <input class="form-control" v-model="editData.name" />
               </div>
-            </div>
-            <div class="form-group">
-              <label class="col-sm-3 control-label">Attributes</label>
-              <div class="col-sm-9 dynamic-items">
-                <div v-for="item in editData.attributes" :key="item.id">
-                  <div class="input-group">
-                    <input
-                      type="text"
-                      class="form-control"
-                      placeholder="Name"
-                      v-model="item.name"
-                    />
-                    <span class="input-group-addon">:</span>
-                    <select class="form-control" v-model="item.type">
-                      <option :value="0">Text</option>
-                      <option :value="1">Options</option>
-                    </select>
-                    <span
-                      class="input-group-addon"
-                      style="cursor: pointer"
-                      @click="removeItem(editData.attributes,item)"
-                    >
-                      <i class="fa fa-minus-circle"></i>
-                    </span>
-                  </div>
-                  <div v-if="item.type==1" class="options-container">
-                    <button
-                      type="button"
-                      class="btn btn-sm"
-                      v-for="option in item.options"
-                      :key="option.id"
-                      @click="removeItem(item.options,option)"
-                    >
-                      {{option.value}}
-                      <i class="fa fa-close"></i>
-                    </button>
-                    <input
-                      class="form-control"
-                      style="display: inline; width: 80px; margin-right: 3px"
-                      v-model="item.editingItem"
-                      @blur="addOption(item)"
-                      @keydown.enter="addOption(item)"
-                    />
-                  </div>
-                </div>
-                <a
-                  href="javascript:;"
-                  class="btn dark"
-                  @click="addItem(editData.attributes)"
+            </kb-form-item>
+            <kb-form-item v-if="defines">
+              <label class="col-sm-3 control-label">Type</label>
+              <div class="col-sm-9">
+                <label class="radio-inline" v-for="item in defines.types">
+                  <input
+                    type="radio"
+                    id="type"
+                    :value="item.name"
+                    v-model="editData.type"
+                  />
+                  <span>{{item.display}}</span>
+                </label>
+              </div>
+            </kb-form-item>
+            <kb-form-item v-if="editData.type=='Manual'">
+              <label class="col-sm-3 control-label">Products</label>
+              <div class="col-sm-9">
+                <button
+                  class="btn"
+                  v-for="item in selectedProducts"
+                  :title="item.value"
+                  @click="editData.products=editData.products.filter(f=>f!=item.key)"
                 >
-                  <i class="fa fa-plus"></i>
-                </a>
+                  <span
+                    style="
+                      display: inline-flex;
+                      max-width: 100px;
+                      overflow: hidden;
+                    "
+                  >
+                    {{item.value}}
+                  </span>
+                  <i class="fa fa-close"></i>
+                </button>
+                <button class="btn" @click="showSelectorModal=true">
+                  <i class="fa fa-plus"></i
+                ></button>
               </div>
-            </div>
-            <div class="form-group">
-              <label class="col-sm-3 control-label">Specifications</label>
-              <div class="col-sm-9 dynamic-items">
-                <div v-for="item in editData.specifications" :key="item.id">
-                  <div class="input-group">
-                    <input
-                      type="text"
-                      class="form-control"
-                      placeholder="Name"
-                      v-model="item.name"
-                    />
-                    <span class="input-group-addon">:</span>
-                    <select
-                      class="form-control"
-                      v-model="item.type"
-                      @change="item.options=[]"
-                    >
-                      <option :value="0">Text</option>
-                      <option :value="1">Options</option>
-                    </select>
-                    <span
-                      class="input-group-addon"
-                      style="cursor: pointer"
-                      @click="removeItem(editData.specifications,item)"
-                    >
-                      <i class="fa fa-minus-circle"></i>
-                    </span>
-                  </div>
-                  <div v-if="item.type==1" class="options-container">
-                    <button
-                      type="button"
-                      class="btn btn-sm"
-                      v-for="option in item.options"
-                      :key="option.id"
-                      @click="removeItem(item.options,option)"
-                    >
-                      {{option.value}}
-                      <i class="fa fa-close"></i>
-                    </button>
-                    <input
-                      class="form-control"
-                      style="display: inline; width: 80px; margin-right: 3px"
-                      v-model.trim="item.editingItem"
-                      @blur="addOption(item)"
-                      @keydown.enter="addOption(item)"
-                    />
-                  </div>
-                </div>
-                <a
-                  href="javascript:;"
-                  class="btn dark"
-                  @click="addItem(editData.specifications)"
+            </kb-form-item>
+            <kb-form-item v-if="editData.type=='Auto'">
+              <label class="col-sm-3 control-label">Matcher</label>
+              <div class="col-sm-9">
+                <div
+                  class="input-group"
+                  style="display: flex; margin-bottom: 5px"
+                  v-for="item in editData.rules"
+                  :key="item.id"
                 >
+                  <select
+                    class="form-control"
+                    style="margin-right: 5px"
+                    v-model="item.property"
+                  >
+                    <option
+                      v-for="property in defines.properties"
+                      :value="property.name"
+                      >{{property.display}}</option
+                    >
+                  </select>
+                  <select
+                    class="form-control"
+                    style="margin-right: 5px"
+                    v-model="item.comparer"
+                  >
+                    <option
+                      v-for="comparer in defines.comparers"
+                      :value="comparer.name"
+                      >{{comparer.display}}</option
+                    >
+                  </select>
+                  <input
+                    type="text"
+                    class="form-control"
+                    style="margin-right: 5px"
+                    v-model="item.value"
+                  />
+                  <button
+                    class="btn"
+                    @click="editData.rules=editData.rules.filter(f=>f!=item)"
+                  >
+                    <i class="fa fa-minus"></i>
+                  </button>
+                </div>
+                <button class="btn" @click="addRule">
                   <i class="fa fa-plus"></i>
-                </a>
+                </button>
               </div>
-            </div>
-          </form>
+            </kb-form-item>
+          </kb-form>
         </div>
         <div class="modal-footer">
-          <button class="btn green" @click="saveCategory">Save</button>
-          <button @click="showEditModal=false" class="btn gray">Cancel</button>
+          <button class="btn green" @click="save">Save</button>
+          <button @click="showModal=false" class="btn gray">Cancel</button>
         </div>
       </div>
     </div>
   </div>
+
+  <kb-selector-modal
+    v-model="showSelectorModal"
+    :list="selectorProducts"
+    @ok="productSelected"
+  />
 </div>
 <script>
   (function () {
     Kooboo.loadJS([
-      "/_Admin/Scripts/lib/uuidv3.min.js",
       "/_Admin/Scripts/kooboo/Guid.js",
-      "/_Admin/Scripts/lib/jstree.min.js",
       "/_Admin/Scripts/components/kbBreadcrumb.js",
+      "/_Admin/Scripts/components/kbTable.js",
+      "/_Admin/Scripts/components/kbForm.js",
+      "/_Admin/Scripts/components/ECommerce/kb-selector-modal.js",
     ]);
-    Kooboo.loadCSS(["/_Admin/Styles/jstree/style.min.css"]);
   })();
 </script>
 <script src="/_Admin/View/ECommerce/Categories.js"></script>

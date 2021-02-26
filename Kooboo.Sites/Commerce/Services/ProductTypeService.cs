@@ -41,7 +41,7 @@ namespace Kooboo.Sites.Commerce.Services
         {
             using (var con = DbConnection)
             {
-                var entities = con.Get<ProductType>();
+                var entities = con.GetList<ProductType>();
                 return entities.Select(s => new ProductTypeViewModel(s)).ToArray();
             }
         }
@@ -50,7 +50,7 @@ namespace Kooboo.Sites.Commerce.Services
         {
             using (var con = DbConnection)
             {
-                con.Delete<ProductType>(ids);
+                con.DeleteList<ProductType>(ids);
             }
         }
 
@@ -58,7 +58,7 @@ namespace Kooboo.Sites.Commerce.Services
         {
             using (var con = DbConnection)
             {
-                return con.QuerySingleOrDefault<bool?>("select true from Product where TypeId=@Id", new { Id = id }) ?? false;
+                return con.QuerySingleOrDefault<bool?>("select true from Product where TypeId=@Id limit 1", new { Id = id }) ?? false;
             }
         }
     }

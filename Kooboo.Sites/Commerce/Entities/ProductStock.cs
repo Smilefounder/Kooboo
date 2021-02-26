@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Kooboo.Sites.Commerce.Entities
 {
-    public class Stock : EntityBase
+    public class ProductStock
     {
         public Guid SkuId { get; set; }
         public Guid ProductId { get; set; }

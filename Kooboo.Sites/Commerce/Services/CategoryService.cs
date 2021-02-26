@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Kooboo.Data.Context;
 using Kooboo.Sites.Commerce.Entities;
+using Kooboo.Sites.Commerce.ViewModels.Category;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,29 +15,52 @@ namespace Kooboo.Sites.Commerce.Services
         {
         }
 
-        public Category Get(Guid id)
+        public EditCategoryViewModel Get(Guid id)
         {
             using (var con = DbConnection)
             {
-                return con.Get<Category>(id);
+                var category = con.Get<Category>(id);
+                var products = new Guid[0];
+
+                if (category.Type == Category.AddingType.Manual)
+                {
+                    products = con.Query<Guid>("SELECT ProductId FROM ProductCategory WHERE CategoryId=@Id", category).ToArray();
+                }
+
+                return new EditCategoryViewModel(category, products);
             }
         }
 
-        public Category[] List()
+        public CategoryListViewModel[] List()
         {
             using (var con = DbConnection)
             {
-                return con.Get<Category>().ToArray();
+                return con.GetList<Category>().Select(s => new CategoryListViewModel(s,111)).ToArray();
             }
         }
 
-        public void Save(Category category)
+        public void Save(EditCategoryViewModel viewModel)
         {
             using (var con = DbConnection)
             {
-                var entity = con.Get<Category>(category.Id);
-                if (entity != null) con.Update(category);
-                else con.Insert(category);
+                con.Open();
+                var tran = con.BeginTransaction();
+                var exist = con.Exist<Category>(viewModel.Id);
+                if (exist) con.Update(viewModel.ToCategory());
+                else con.Insert(viewModel.ToCategory());
+                con.Execute("DELETE FROM ProductCategory WHERE CategoryId=@Id", viewModel);
+
+                if (viewModel.Type == Category.AddingType.Manual)
+                {
+                    con.InsertList(viewModel.Products.Select(s => new ProductCategory
+                    {
+                        CategoryId = viewModel.Id,
+                        ProductId = s
+                    }));
+
+                }
+
+                tran.Commit();
             }
         }
 
@@ -44,7 +68,7 @@ namespace Kooboo.Sites.Commerce.Services
         {
             using (var con = DbConnection)
             {
-                con.Delete<Category>(ids);
+                con.DeleteList<Category>(ids);
             }
         }
     }
