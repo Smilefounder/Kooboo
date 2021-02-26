@@ -122,6 +122,13 @@ namespace Kooboo.Mail.Transport
             msg.FolderId = folder.Id;
             maildb.Messages.Add(msg, messagebody);
 
+            // raise received event
+            Kooboo.Data.Events.EventBus.Raise(new Events.MailRecevied
+            {
+                Message = msg,
+                Body = messagebody
+            });
+
             if (address.AddressType == EmailAddressType.Forward)
             {
                 MailFrom = Utility.AddressUtility.GetAddress(MailFrom); 
