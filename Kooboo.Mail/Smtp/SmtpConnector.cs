@@ -99,66 +99,66 @@ namespace Kooboo.Mail.Smtp
                     // When enter the session state, read till the end .
                     if (session.State == SmtpSession.CommandState.Data)
                     {
-                        var externalto = AddressUtility.GetExternalRcpts(session);
-                        var counter = externalto.Count();
-
-                        Kooboo.Data.Log.Instance.Email.Write("--recipants");
-                        Kooboo.Data.Log.Instance.Email.WriteObj(externalto);
-                        Kooboo.Data.Log.Instance.Email.WriteObj(session.Log);
-
-                        if (counter > 0)
+                        using (var scope = new Events.MailHandleScope(session))
                         {
-                            if (!Kooboo.Data.Infrastructure.InfraManager.Test(session.OrganizationId, Data.Infrastructure.InfraType.Email, counter))
-                            {
-                                await WriteLineAsync("550 you have no enough credit to send emails");
-                                Dispose();
-                                break;
-                            }
-                        }
+                            var externalto = AddressUtility.GetExternalRcpts(session);
+                            var counter = externalto.Count();
 
-                        var data = await _stream.ReadToDotLine(TimeSpan.FromSeconds(60));
-
-                        var dataresponse = session.Data(data);
-
-                        if (dataresponse.SendResponse)
-                        {
-                            await WriteLineAsync(dataresponse.Render());
-                        }
-
-                        if (dataresponse.SessionCompleted)
-                        {
-                            using (var scope = new Events.MailHandleScope(session))
-                            {
-                                await Kooboo.Mail.Transport.Incoming.Receive(session);
-                            }
-
-                            var tos = session.Log.Keys.Where(o => o.Name == SmtpCommandName.RCPTTO);
-
-                            string subject = "TO: ";
-                            if (tos != null)
-                            {
-                                foreach (var item in tos)
-                                {
-                                    if (item != null && !string.IsNullOrWhiteSpace(item.Value))
-                                    {
-                                        subject += item.Value;
-                                    }
-                                }
-                            }
+                            Kooboo.Data.Log.Instance.Email.Write("--recipants");
+                            Kooboo.Data.Log.Instance.Email.WriteObj(externalto);
+                            Kooboo.Data.Log.Instance.Email.WriteObj(session.Log);
 
                             if (counter > 0)
                             {
-                                Kooboo.Data.Infrastructure.InfraManager.Add(session.OrganizationId, Data.Infrastructure.InfraType.Email, counter, subject);
+                                if (!Kooboo.Data.Infrastructure.InfraManager.Test(session.OrganizationId, Data.Infrastructure.InfraType.Email, counter))
+                                {
+                                    await WriteLineAsync("550 you have no enough credit to send emails");
+                                    Dispose();
+                                    break;
+                                }
                             }
 
-                            session.ReSet();
+                            var data = await _stream.ReadToDotLine(TimeSpan.FromSeconds(60));
 
-                            OnDataCompleted();
-                        }
+                            var dataresponse = session.Data(data);
 
-                        if (dataresponse.Close)
-                        {
-                            Dispose();
+                            if (dataresponse.SendResponse)
+                            {
+                                await WriteLineAsync(dataresponse.Render());
+                            }
+
+                            if (dataresponse.SessionCompleted)
+                            {
+                                await Kooboo.Mail.Transport.Incoming.Receive(session);
+
+                                var tos = session.Log.Keys.Where(o => o.Name == SmtpCommandName.RCPTTO);
+
+                                string subject = "TO: ";
+                                if (tos != null)
+                                {
+                                    foreach (var item in tos)
+                                    {
+                                        if (item != null && !string.IsNullOrWhiteSpace(item.Value))
+                                        {
+                                            subject += item.Value;
+                                        }
+                                    }
+                                }
+
+                                if (counter > 0)
+                                {
+                                    Kooboo.Data.Infrastructure.InfraManager.Add(session.OrganizationId, Data.Infrastructure.InfraType.Email, counter, subject);
+                                }
+
+                                session.ReSet();
+
+                                OnDataCompleted();
+                            }
+
+                            if (dataresponse.Close)
+                            {
+                                Dispose();
+                            }
                         }
                     }
 
