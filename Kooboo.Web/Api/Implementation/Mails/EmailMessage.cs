@@ -140,59 +140,7 @@ namespace Kooboo.Web.Api.Implementation.Mails
         [Kooboo.Attributes.RequireModel(typeof(ComposeViewModel))]
         public void Send(ApiCall call)
         {
-            if (EmailForwardManager.RequireForward(call.Context))
-            {
-                var dic = new Dictionary<string, string>();
-                dic.Add("messageId", call.GetValue("messageId"));
-
-                var json = Kooboo.Lib.Helper.JsonHelper.Serialize(call.Context.Request.Model);
-                var message= EmailForwardManager.Post<string>(this.ModelName, nameof(EmailMessageApi.Send), call.Context.User, json, dic);
-                if (!string.IsNullOrEmpty(message))
-                {
-                    throw new Exception(message);
-                }
-                return; 
-            }
-
-            var user = call.Context.User;
-            var model = call.Context.Request.Model as Mail.ViewModel.ComposeViewModel;
-            var msg = Kooboo.Mail.Utility.ComposeUtility.FromComposeViewModel(model, user);
-
-            string messagebody = Kooboo.Mail.Utility.ComposeUtility.ComposeMessageBody(model, user);
-
-            List<string> rcpttos = new List<string>(model.To);
-            rcpttos.AddRange(model.Cc);
-            rcpttos.AddRange(model.Bcc);
-
-            string fromaddress = Mail.Utility.AddressUtility.GetAddress(msg.From);
-
-            var msginfo = Kooboo.Mail.Utility.MessageUtility.ParseMeta(messagebody);
-
-            if (rcpttos.Count>0)
-            { 
-                // verify sending quota.
-                if (!Kooboo.Data.Infrastructure.InfraManager.Test(call.Context.User.CurrentOrgId, Data.Infrastructure.InfraType.Email,  rcpttos.Count))
-                {
-                    throw new Exception(Data.Language.Hardcoded.GetValue("you have no enough credit to send emails", call.Context));
-                }
-
-                // save sent.. 
-                Kooboo.Mail.Transport.Incoming.SaveSent(fromaddress, msginfo, messagebody);
-
-                Kooboo.Mail.Transport.Incoming.Receive(fromaddress, rcpttos, messagebody, msginfo);
-
-                // draft message id. 
-                var messageid = call.GetValue<int>("messageId");
-                if (messageid > 0)
-                {
-                    var usermaildb = Kooboo.Mail.Factory.DBFactory.UserMailDb(call.Context.User);
-                    usermaildb.Messages.Delete(messageid);
-                } 
-
-                Kooboo.Data.Infrastructure.InfraManager.Add(call.Context.User.CurrentOrgId, Data.Infrastructure.InfraType.Email,  rcpttos.Count, string.Join(",", rcpttos));
-                 
-            }
-
+            DoSend(call);
         }
 
         public void Moves(ApiCall call)
@@ -298,5 +246,61 @@ namespace Kooboo.Web.Api.Implementation.Mails
             }
         }
 
+        protected Message DoSend(ApiCall call)
+        {
+            if (EmailForwardManager.RequireForward(call.Context))
+            {
+                var dic = new Dictionary<string, string>();
+                dic.Add("messageId", call.GetValue("messageId"));
+
+                var json = Kooboo.Lib.Helper.JsonHelper.Serialize(call.Context.Request.Model);
+                var message = EmailForwardManager.Post<string>(this.ModelName, nameof(EmailMessageApi.Send), call.Context.User, json, dic);
+                if (!string.IsNullOrEmpty(message))
+                {
+                    throw new Exception(message);
+                }
+                return null;
+            }
+
+            var user = call.Context.User;
+            var model = call.Context.Request.Model as Mail.ViewModel.ComposeViewModel;
+            var msg = Kooboo.Mail.Utility.ComposeUtility.FromComposeViewModel(model, user);
+
+            string messagebody = Kooboo.Mail.Utility.ComposeUtility.ComposeMessageBody(model, user);
+
+            List<string> rcpttos = new List<string>(model.To);
+            rcpttos.AddRange(model.Cc);
+            rcpttos.AddRange(model.Bcc);
+
+            string fromaddress = Mail.Utility.AddressUtility.GetAddress(msg.From);
+
+            var msginfo = Kooboo.Mail.Utility.MessageUtility.ParseMeta(messagebody);
+
+            if (rcpttos.Count > 0)
+            {
+                // verify sending quota.
+                if (!Kooboo.Data.Infrastructure.InfraManager.Test(call.Context.User.CurrentOrgId, Data.Infrastructure.InfraType.Email, rcpttos.Count))
+                {
+                    throw new Exception(Data.Language.Hardcoded.GetValue("you have no enough credit to send emails", call.Context));
+                }
+
+                // save sent.. 
+                Kooboo.Mail.Transport.Incoming.SaveSent(fromaddress, msginfo, messagebody);
+
+                _ = Kooboo.Mail.Transport.Incoming.Receive(fromaddress, rcpttos, messagebody, msginfo);
+
+                // draft message id. 
+                var messageid = call.GetValue<int>("messageId");
+                if (messageid > 0)
+                {
+                    var usermaildb = Kooboo.Mail.Factory.DBFactory.UserMailDb(call.Context.User);
+                    usermaildb.Messages.Delete(messageid);
+                }
+
+                Kooboo.Data.Infrastructure.InfraManager.Add(call.Context.User.CurrentOrgId, Data.Infrastructure.InfraType.Email, rcpttos.Count, string.Join(",", rcpttos));
+            }
+
+            return msginfo;
+        }
     }
 }
