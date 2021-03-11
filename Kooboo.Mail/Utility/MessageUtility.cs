@@ -406,9 +406,7 @@ namespace Kooboo.Mail.Utility
                 return new List<ViewModel.AddressModel>();
             }
 
-            List<char> seprator = new List<char>();
-            seprator.Add(';');
-            var list = addressstring.Split(seprator.ToArray(), StringSplitOptions.RemoveEmptyEntries);
+            var list = addressstring.Split(new char[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
             return GetAddressModels(list.ToList());
         }
 
