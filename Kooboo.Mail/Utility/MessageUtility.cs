@@ -373,7 +373,7 @@ namespace Kooboo.Mail.Utility
 
             model.Address = Kooboo.Mail.Utility.AddressUtility.GetAddress(address);
 
-            int start = address.IndexOf(" < ");
+            int start = address.IndexOf("<");
 
             if (start > 0)
             {
@@ -382,7 +382,7 @@ namespace Kooboo.Mail.Utility
                 part = part.Replace("\"", "");
                 part = part.Replace("'", "");
 
-                model.Name = part;
+                model.Name = part.Trim();
             }
 
             return model;
