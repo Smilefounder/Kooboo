@@ -125,6 +125,7 @@ namespace Kooboo.Mail.Utility
             Kooboo.Mail.Message message = new Message();
             message.From = GetHeaderValue(MimeMsg, "from");
             message.To = GetHeaderValue(MimeMsg, "to");
+            message.Cc = GetHeaderValue(MimeMsg, "cc");
             message.SmtpMessageId = GetHeaderValue(MimeMsg, "Message-Id");
             message.Subject = GetHeaderValue(MimeMsg, "subject");
             message.Date = GetSentDate(MimeMsg);
