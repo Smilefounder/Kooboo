@@ -106,7 +106,10 @@ namespace Kooboo.Mail.Utility
             Dictionary<string, string> headers = new Dictionary<string, string>();
             headers.Add("From", GetFrom(model, user));
             headers.Add("To", ToAddress(model.To));
-            headers.Add("Cc", ToAddress(model.Cc));
+            if (model.Cc.Count > 0)
+            {
+                headers.Add("Cc", ToAddress(model.Cc));
+            }
             headers.Add("Subject", model.Subject);
 
             string strHeader = Kooboo.Mail.Multipart.HeaderComposer.Compose(headers);
