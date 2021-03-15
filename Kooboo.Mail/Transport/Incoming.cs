@@ -69,11 +69,11 @@ namespace Kooboo.Mail.Transport
                     var address = orgdb.EmailAddress.Find(item); 
                     if (address != null)
                     {
-                        msginfo.OutGoing = false;
-                        msginfo.AddressId = address.Id;
-                        msginfo.RcptTo = item;
-                        var maildb = Kooboo.Mail.Factory.DBFactory.UserMailDb(address.UserId, orgdb.OrganizationId);
                         var newMsgInfo = msginfo.Clone();
+                        newMsgInfo.OutGoing = false;
+                        newMsgInfo.AddressId = address.Id;
+                        newMsgInfo.RcptTo = item;
+                        var maildb = Kooboo.Mail.Factory.DBFactory.UserMailDb(address.UserId, orgdb.OrganizationId);
                         await Receive(orgdb, maildb, address, MailFrom, MessageBody, newMsgInfo);
                     }
                     else 
