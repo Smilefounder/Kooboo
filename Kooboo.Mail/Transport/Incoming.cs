@@ -72,8 +72,9 @@ namespace Kooboo.Mail.Transport
                         msginfo.OutGoing = false;
                         msginfo.AddressId = address.Id;
                         msginfo.RcptTo = item;
-                        var maildb = Kooboo.Mail.Factory.DBFactory.UserMailDb(address.UserId, orgdb.OrganizationId); 
-                        await Receive(orgdb, maildb, address, MailFrom, MessageBody, msginfo);
+                        var maildb = Kooboo.Mail.Factory.DBFactory.UserMailDb(address.UserId, orgdb.OrganizationId);
+                        var newMsgInfo = msginfo.Clone();
+                        await Receive(orgdb, maildb, address, MailFrom, MessageBody, newMsgInfo);
                     }
                     else 
                     {
