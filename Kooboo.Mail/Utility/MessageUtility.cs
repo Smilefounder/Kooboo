@@ -306,24 +306,25 @@ namespace Kooboo.Mail.Utility
                 return null;
             }
 
-            var archive = new ZipArchive(memorystream, ZipArchiveMode.Create, true);
-
-            foreach (var item in allattachments)
+            using (var archive = new ZipArchive(memorystream, ZipArchiveMode.Create, true))
             {
-                if (item.FileName != null)
+                foreach (var item in allattachments)
                 {
-                    var filebinary = GetFileBinary(mime, item.FileName);
-
-                    if (filebinary != null && filebinary.Length > 0)
+                    if (item.FileName != null)
                     {
-                        var zipfile = archive.CreateEntry(item.FileName);
-                        var filestream = zipfile.Open();
-                        filestream.Write(filebinary, 0, filebinary.Length);
-                        filestream.Close();
+                        var filebinary = GetFileBinary(mime, item.FileName);
+
+                        if (filebinary != null && filebinary.Length > 0)
+                        {
+                            var zipfile = archive.CreateEntry(item.FileName);
+                            var filestream = zipfile.Open();
+                            filestream.Write(filebinary, 0, filebinary.Length);
+                            filestream.Close();
+                        }
+
                     }
 
                 }
-
             }
 
             return memorystream.ToArray();
