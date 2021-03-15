@@ -509,9 +509,9 @@ namespace Kooboo.Mail.Multipart
             return sb.ToString();
         }
 
-        internal static string InlineImagePrefix = "/_api/emailattachment/file/";
+        public static string InlineImagePrefix = "/_api/emailattachment/file/";
 
-        internal static string InlineImageMessageFilePrefix = "/_api/emailattachment/msgfile/";
+        public static string InlineImageMessageFilePrefix = "/_api/emailattachment/msgfile/";
 
         public static List<Kooboo.Dom.Element> GetInlineImageElements(string htmlbody)
         {
