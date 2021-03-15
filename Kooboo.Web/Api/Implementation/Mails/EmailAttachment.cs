@@ -2,6 +2,7 @@
 //All rights reserved.
 using Kooboo.Api;
 using Kooboo.Api.ApiResponse;
+using Kooboo.Mail.Multipart;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -222,7 +223,7 @@ namespace Kooboo.Web.Api.Implementation.Mails
 
             Kooboo.Mail.MultiPart.FileService.Upload(call.Context.User, fileName, file.Bytes);
 
-            return $"/_api/emailattachment/file/" + System.Web.HttpUtility.UrlEncode(fileName);
+            return BodyComposer.InlineImagePrefix + System.Web.HttpUtility.UrlEncode(fileName);
         }
 
 
