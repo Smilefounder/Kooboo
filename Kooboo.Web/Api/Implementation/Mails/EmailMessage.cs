@@ -287,7 +287,8 @@ namespace Kooboo.Web.Api.Implementation.Mails
                 // save sent.. 
                 Kooboo.Mail.Transport.Incoming.SaveSent(fromaddress, msginfo, messagebody);
 
-                _ = Kooboo.Mail.Transport.Incoming.Receive(fromaddress, rcpttos, messagebody, msginfo);
+                var newMsgInfo = msginfo.Clone();
+                _ = Kooboo.Mail.Transport.Incoming.Receive(fromaddress, rcpttos, messagebody, newMsgInfo);
 
                 // draft message id. 
                 var messageid = call.GetValue<int>("messageId");

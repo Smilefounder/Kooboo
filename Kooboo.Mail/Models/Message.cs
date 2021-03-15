@@ -158,6 +158,24 @@ namespace Kooboo.Mail
 
         [KoobooIgnore]
         public EmailAddress Address { get; set; }
+
+        public Message Clone()
+        {
+            return new Message
+            {
+                MailFrom = MailFrom,
+                RcptTo = RcptTo,
+
+                From = From,
+                To = To,
+                Cc = Cc,
+                Bcc = Bcc,
+                Subject = Subject,
+                Summary = Summary,
+                SmtpMessageId = SmtpMessageId,
+                Attachments = Attachments
+            };
+        }
     }
 
    
