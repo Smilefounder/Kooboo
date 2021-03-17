@@ -35,7 +35,7 @@ namespace Kooboo.Mail.Multipart
 
         private void init(string HtmlBody, string TextBody, User user, List<Models.Attachment> attachments)
         {
-            if (user != null)
+            if (user != null && ConvertInlineElements)
             {
                 this.InlineImages = ParseInlineImages(user, ref HtmlBody);
             }
@@ -512,6 +512,8 @@ namespace Kooboo.Mail.Multipart
         public static string InlineImagePrefix = "/_api/emailattachment/file/";
 
         public static string InlineImageMessageFilePrefix = "/_api/emailattachment/msgfile/";
+
+        public static bool ConvertInlineElements = true;
 
         public static List<Kooboo.Dom.Element> GetInlineImageElements(string htmlbody)
         {
