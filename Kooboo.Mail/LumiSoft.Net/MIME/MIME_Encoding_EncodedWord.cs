@@ -261,7 +261,7 @@ namespace LumiSoft.Net.MIME
                         encodedWord =  MIME_Utils.QDecode(Encoding.GetEncoding(m.Groups["charset"].Value),m.Groups["value"].Value);
                     }
                     else if(string.Equals(m.Groups["encoding"].Value,"B",StringComparison.InvariantCultureIgnoreCase)){
-                        encodedWord = Encoding.GetEncoding(m.Groups["charset"].Value).GetString(Net_Utils.FromBase64(Encoding.Default.GetBytes(m.Groups["value"].Value)));
+                        encodedWord = Encoding.GetEncoding(m.Groups["charset"].Value).GetString(Net_Utils.FromBase64(Encoding.Default.GetBytes(m.Groups["value"].Value.Replace("==", "="))));
                     }
                     // Failed to parse encoded-word, leave it as is. RFC 2047 6.3.
                     // else{
