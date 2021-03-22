@@ -221,15 +221,4 @@ namespace Kooboo.Sites.Commerce.MatchRule
             }
         }
     }
-
-    public enum ConditionValueType
-    {
-        String = 0,
-        Number = 1,
-        Boolean = 2,
-        Datetime = 3,
-        ProductId = 4,
-        ProductTypeId = 5
-    }
-
 }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +12,7 @@ namespace Kooboo.Sites.Commerce.MatchRule
     {
         static ConcurrentDictionary<Type, object> _conditionDefines = new ConcurrentDictionary<Type, object>();
 
+        [JsonConverter(typeof(StringEnumConverter))]
         public MatchingType Type { get; set; }
         public Condition[] Conditions { get; set; }
 
@@ -44,12 +47,6 @@ namespace Kooboo.Sites.Commerce.MatchRule
                 default:
                     return false;
             }
-        }
-
-        public enum MatchingType
-        {
-            All = 0,
-            Any = 1
         }
     }
 }

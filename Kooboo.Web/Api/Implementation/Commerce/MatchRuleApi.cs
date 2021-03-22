@@ -1,5 +1,6 @@
 ﻿using Kooboo.Api;
 using Kooboo.Sites.Commerce;
+using Kooboo.Sites.Commerce.MatchRule;
 using Kooboo.Sites.Commerce.MatchRule.Category;
 using System;
 using System.Collections.Generic;

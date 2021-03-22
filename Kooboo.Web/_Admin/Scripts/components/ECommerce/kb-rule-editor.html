@@ -18,7 +18,7 @@
     <select
       class="form-control"
       style="margin-right: 5px; width: 120px"
-      v-model="item.property"
+      v-model="item.left"
       @change="propertyChanged(item)"
     >
       <option v-for="define in defines.conditionDefines" :value="define.name"
@@ -31,7 +31,7 @@
       v-model="item.comparer"
     >
       <option
-        v-for="comparer in currentDefine(item.property).comparers"
+        v-for="comparer in currentDefine(item.left).comparers"
         :value="comparer.name"
         >{{comparer.display}}</option
       >
@@ -39,12 +39,12 @@
 
     <div style="margin-right: 5px; flex: 1">
       <input
-        v-if="['Number','String','Datetime'].includes(currentDefine(item.property).valueType)"
-        :type="currentDefine(item.property).valueType"
+        v-if="['Number','String','Datetime'].includes(currentDefine(item.left).valueType)"
+        :type="currentDefine(item.left).valueType"
         class="form-control"
-        v-model="item.value"
+        v-model="item.right"
       />
-      <select v-else class="form-control" v-model="item.value">
+      <select v-else class="form-control" v-model="item.right">
         <option v-for="i in keyValues" :value="i.key">{{i.value}}</option>
       </select>
     </div>

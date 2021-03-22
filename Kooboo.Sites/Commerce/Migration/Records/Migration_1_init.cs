@@ -35,7 +35,7 @@ create table Product
 	Description text not null,
 	Attributes text not null,
 	Specifications text not null,
-	CreateDate int not null,
+	CreateDate datetime not null,
 
 	TypeId uniqueidentifier not null
 		constraint Product_TypeId_ProductType_Id_fk
@@ -78,7 +78,7 @@ create table ProductStock
 
 	Quantity int not null,
 	StockType int not null,
-	DateTime int not null
+	DateTime datetime not null
 );
 
 create table Category
@@ -89,7 +89,7 @@ create table Category
 
 	Type int not null,
 	Name text not null,
-	CreateDate int not null,
+	CreateDate datetime not null,
 	Rule text
 );
 

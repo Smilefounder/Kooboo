@@ -17,15 +17,19 @@
     created() {
       if (!this.rule.type) this.rule.type = this.defines.matchingType[0].name;
     },
-    mounted() {},
+    mounted() {
+      for (const condition of this.rule.conditions) {
+        this.propertyChanged(condition)
+      }
+    },
     computed: {},
     methods: {
       addCondition() {
         var condition = {
           id: Kooboo.Guid.NewGuid(),
-          property: this.defines.conditionDefines[0].name,
+          left: this.defines.conditionDefines[0].name,
           comparer: this.defines.conditionDefines[0].comparers[0].name,
-          value: "",
+          right: "",
         };
 
         this.rule.conditions.push(condition);
@@ -36,7 +40,7 @@
         return define;
       },
       propertyChanged(item) {
-        var define = this.currentDefine(item.property);
+        var define = this.currentDefine(item.left);
 
         switch (define.valueType) {
           case "ProductTypeId":
