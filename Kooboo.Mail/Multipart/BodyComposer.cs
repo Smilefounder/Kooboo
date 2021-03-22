@@ -513,6 +513,8 @@ namespace Kooboo.Mail.Multipart
 
         public static string InlineImageMessageFilePrefix = "/_api/emailattachment/msgfile/";
 
+        public static bool RandomFileName = false;
+
         public static bool ConvertInlineElements = true;
 
         public static List<Kooboo.Dom.Element> GetInlineImageElements(string htmlbody)

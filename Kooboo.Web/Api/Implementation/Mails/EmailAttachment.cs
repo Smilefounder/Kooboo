@@ -168,6 +168,11 @@ namespace Kooboo.Web.Api.Implementation.Mails
 
             fileName = Lib.Helper.StringHelper.ToValidFileName(fileName);
 
+            if (!String.IsNullOrEmpty(fileName) && BodyComposer.RandomFileName)
+            {
+                fileName = Guid.NewGuid().ToString("N") + System.IO.Path.GetExtension(fileName);
+            }
+
             Kooboo.Mail.MultiPart.FileService.Upload(call.Context.User, fileName, file.Bytes);
             return new Mail.Models.Attachment() { FileName = fileName };
         }
@@ -220,6 +225,10 @@ namespace Kooboo.Web.Api.Implementation.Mails
             var fileName = form.FormData["fileName"];
 
             fileName = Lib.Helper.StringHelper.ToValidFileName(fileName);
+            if (!String.IsNullOrEmpty(fileName) && BodyComposer.RandomFileName)
+            {
+                fileName = Guid.NewGuid().ToString("N") + System.IO.Path.GetExtension(fileName);
+            }
 
             Kooboo.Mail.MultiPart.FileService.Upload(call.Context.User, fileName, file.Bytes);
 
