@@ -164,6 +164,12 @@
     isUniqueName: function (paras) {
       return this._getUrl("isUniqueName", paras);
     },
+    keyValue: function () {
+      return this.executeGet("KeyValue");
+    },
+    KeyValue: function () {
+      return this.executeGet("KeyValue");
+    },
 
     _getUrl: function (route) {
       var url = "/_api/" + this.name + "/" + route;
@@ -1681,12 +1687,17 @@
 
   function Category() {
     this.name = "Category";
-
-    this.define = function () {
-      return this.executeGet("define");
-    };
   }
   extend(Category, BaseModel);
+
+  function MatchRule() {
+    this.name = "MatchRule";
+
+    this.categoryDefines = function () {
+      return this.executeGet("CategoryDefines");
+    };
+  }
+  extend(MatchRule, BaseModel);
 
   function ProductType() {
     this.name = "ProductType";
@@ -1695,9 +1706,6 @@
 
   function Product() {
     this.name = "Product";
-    this.keyValue = function () {
-      return this.executeGet("KeyValue");
-    };
   }
 
   extend(Product, BaseModel);
@@ -1821,6 +1829,7 @@
     Product: new Product(),
     ProductType: new ProductType(),
     Category: new Category(),
+    MatchRule: new MatchRule(),
     Profile: new Profile(),
     Publish: new Publish(),
     Role: new Role(),

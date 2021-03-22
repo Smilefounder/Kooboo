@@ -15,7 +15,7 @@ $(function () {
           },
         ],
         list: null,
-        defines: {},
+        defines: null,
         selectedRows: [],
         showModal: false,
         editData: null,
@@ -31,21 +31,17 @@ $(function () {
         this.editData = {
           id: Kooboo.Guid.NewGuid(),
           name: "",
-          type: this.defines.types[0].name,
-          rules: [],
+          type: "Manual",
+          rule: {
+            type: "",
+            conditions: [],
+          },
           products: [],
         };
 
         this.showModal = true;
       },
-      addRule() {
-        this.editData.rules.push({
-          id: Kooboo.Guid.NewGuid(),
-          property: this.defines.properties[0].name,
-          comparer: this.defines.comparers[0].name,
-          value: "0",
-        });
-      },
+      
       edit(id) {
         Kooboo.Category.get({ id: id }).then((rsp) => {
           if (!rsp.success) return;
@@ -66,7 +62,7 @@ $(function () {
       getData() {
         $.when(
           Kooboo.Category.getList(),
-          Kooboo.Category.define(),
+          Kooboo.MatchRule.categoryDefines(),
           Kooboo.Product.keyValue()
         ).then((categories, define, keyValue) => {
           this.list = categories[0].model;

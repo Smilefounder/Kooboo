@@ -14,7 +14,7 @@ namespace Kooboo.Sites.Commerce.ViewModels.Category
             Id = category.Id;
             Name = category.Name;
             Type = category.Type;
-            Rules = JsonHelper.Deserialize<Rule[]>(category.Rules);
+            Rule = JsonHelper.Deserialize<MatchRule.Rule>(category.Rule);
             Products = products;
         }
 
@@ -26,7 +26,7 @@ namespace Kooboo.Sites.Commerce.ViewModels.Category
             {
                 Id = Id,
                 Name = Name,
-                Rules = JsonHelper.Serialize(Rules),
+                Rule = JsonHelper.Serialize(Rule),
                 Type = Type
             };
         }

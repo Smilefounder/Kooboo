@@ -16,23 +16,7 @@ namespace Kooboo.Sites.Commerce.ViewModels.Category
 
         [JsonConverter(typeof(StringEnumConverter))]
         public AddingType Type { get; set; }
-        public Rule[] Rules { get; set; }
-
-        public class Rule
-        {
-            [JsonConverter(typeof(StringEnumConverter))]
-            public Property Property { get; set; }
-
-            [JsonConverter(typeof(StringEnumConverter))]
-            public Comparer Comparer { get; set; }
-            public string Value { get; set; }
-        }
-
-        public enum Property
-        {
-            Price = 0,
-            ProductType = 1
-        }
+        public MatchRule.Rule Rule { get; set; }
     }
 
 }

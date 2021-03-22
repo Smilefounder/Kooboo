@@ -1,0 +1,62 @@
+<div>
+  <div style="margin-bottom: 5px">
+    <label class="radio-inline">
+      <input type="radio" name="type" value="All" v-model="rule.type" />
+      <span>All</span>
+    </label>
+    <label class="radio-inline">
+      <input type="radio" name="type" value="Any" v-model="rule.type" />
+      <span>Any</span>
+    </label>
+  </div>
+  <div
+    class="input-group"
+    style="display: flex; margin-bottom: 5px"
+    v-for="item in rule.conditions"
+    :key="item.id"
+  >
+    <select
+      class="form-control"
+      style="margin-right: 5px; width: 120px"
+      v-model="item.property"
+      @change="propertyChanged(item)"
+    >
+      <option v-for="define in defines.conditionDefines" :value="define.name"
+        >{{define.display}}</option
+      >
+    </select>
+    <select
+      class="form-control"
+      style="margin-right: 5px; width: 120px"
+      v-model="item.comparer"
+    >
+      <option
+        v-for="comparer in currentDefine(item.property).comparers"
+        :value="comparer.name"
+        >{{comparer.display}}</option
+      >
+    </select>
+
+    <div style="margin-right: 5px; flex: 1">
+      <input
+        v-if="['Number','String','Datetime'].includes(currentDefine(item.property).valueType)"
+        :type="currentDefine(item.property).valueType"
+        class="form-control"
+        v-model="item.value"
+      />
+      <select v-else class="form-control" v-model="item.value">
+        <option v-for="i in keyValues" :value="i.key">{{i.value}}</option>
+      </select>
+    </div>
+
+    <button
+      class="btn"
+      @click="rule.conditions=rule.conditions.filter(f=>f!=item)"
+    >
+      <i class="fa fa-minus"></i>
+    </button>
+  </div>
+  <button class="btn" @click="addCondition">
+    <i class="fa fa-plus"></i>
+  </button>
+</div>

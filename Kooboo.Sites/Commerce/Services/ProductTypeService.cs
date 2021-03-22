@@ -46,6 +46,14 @@ namespace Kooboo.Sites.Commerce.Services
             }
         }
 
+        internal KeyValuePair<Guid, string>[] KeyValue()
+        {
+            using (var con = DbConnection)
+            {
+                return con.Query<KeyValuePair<Guid, string>>("select Id as Key,Name as value from ProductType").ToArray();
+            }
+        }
+
         public void Delete(Guid[] ids)
         {
             using (var con = DbConnection)

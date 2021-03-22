@@ -13,5 +13,6 @@ namespace Kooboo.Sites.Commerce.Entities
         public string Specifications { get; set; }
         public Guid TypeId { get; set; }
         public bool Enable { get; set; }
+        public DateTime CreateDate { get; set; }
     }
 }

@@ -62,18 +62,13 @@
                 <input class="form-control" v-model="editData.name" />
               </div>
             </kb-form-item>
-            <kb-form-item v-if="defines">
+            <kb-form-item>
               <label class="col-sm-3 control-label">Type</label>
               <div class="col-sm-9">
-                <label class="radio-inline" v-for="item in defines.types">
-                  <input
-                    type="radio"
-                    id="type"
-                    :value="item.name"
-                    v-model="editData.type"
-                  />
-                  <span>{{item.display}}</span>
-                </label>
+                <select v-model="editData.type" class="form-control">
+                  <option value="Manual" key="Manual">Manual</option>
+                  <option value="Auto" key="Auto">Auto</option>
+                </select>
               </div>
             </kb-form-item>
             <kb-form-item v-if="editData.type=='Manual'">
@@ -104,50 +99,7 @@
             <kb-form-item v-if="editData.type=='Auto'">
               <label class="col-sm-3 control-label">Matcher</label>
               <div class="col-sm-9">
-                <div
-                  class="input-group"
-                  style="display: flex; margin-bottom: 5px"
-                  v-for="item in editData.rules"
-                  :key="item.id"
-                >
-                  <select
-                    class="form-control"
-                    style="margin-right: 5px"
-                    v-model="item.property"
-                  >
-                    <option
-                      v-for="property in defines.properties"
-                      :value="property.name"
-                      >{{property.display}}</option
-                    >
-                  </select>
-                  <select
-                    class="form-control"
-                    style="margin-right: 5px"
-                    v-model="item.comparer"
-                  >
-                    <option
-                      v-for="comparer in defines.comparers"
-                      :value="comparer.name"
-                      >{{comparer.display}}</option
-                    >
-                  </select>
-                  <input
-                    type="text"
-                    class="form-control"
-                    style="margin-right: 5px"
-                    v-model="item.value"
-                  />
-                  <button
-                    class="btn"
-                    @click="editData.rules=editData.rules.filter(f=>f!=item)"
-                  >
-                    <i class="fa fa-minus"></i>
-                  </button>
-                </div>
-                <button class="btn" @click="addRule">
-                  <i class="fa fa-plus"></i>
-                </button>
+                <kb-rule-editor v-if="defines" :defines="defines" :rule="editData.rule">
               </div>
             </kb-form-item>
           </kb-form>
@@ -174,6 +126,7 @@
       "/_Admin/Scripts/components/kbTable.js",
       "/_Admin/Scripts/components/kbForm.js",
       "/_Admin/Scripts/components/ECommerce/kb-selector-modal.js",
+      "/_Admin/Scripts/components/ECommerce/kb-rule-editor.js",
     ]);
   })();
 </script>

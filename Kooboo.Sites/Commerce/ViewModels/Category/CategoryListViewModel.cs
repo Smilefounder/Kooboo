@@ -17,7 +17,7 @@ namespace Kooboo.Sites.Commerce.ViewModels.Category
             Id = category.Id;
             Name = category.Name;
             Type = category.Type;
-            Rules = JsonHelper.Deserialize<Rule[]>(category.Rules);
+            Rule = JsonHelper.Deserialize<MatchRule.Rule>(category.Rule);
             ProductCount = productCount;
         }
 
