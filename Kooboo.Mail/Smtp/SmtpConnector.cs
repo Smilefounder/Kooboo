@@ -43,24 +43,29 @@ namespace Kooboo.Mail.Smtp
 
         public async Task Accept()
         {
-            // Add cancellation token to allow cancel from any point calling Dispose()
-            _server._connectionManager.AddConnection(this);
-            _cancellationTokenSource = new CancellationTokenSource();
-            Interlocked.Exchange(ref _timeoutTimestamp, DateTime.UtcNow.Add(_server.Options.LiveTimeout).Ticks);
-
             try
             {
+                _server._connectionManager.AddConnection(this);
+                Interlocked.Exchange(ref _timeoutTimestamp, DateTime.UtcNow.Add(_server.Options.LiveTimeout).Ticks);
+
                 _stream = _client.GetStream();
 
                 if (_server.Certificate != null)
                 {
-                    var ssl = new SslStream(_stream, false);
-                    await ssl.AuthenticateAsServerAsync(_server.Certificate);
+                    var ssl = new SslStream(_stream, leaveInnerStreamOpen: false);
+                    try
+                    {
+                        await ssl.AuthenticateAsServerAsync(_server.Certificate, false, System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls11, false);
+                    }
+                    catch
+                    {
+                        // Ensure SslStream disposed
+                        ssl.Dispose();
+                        return;
+                    }
+
                     _stream = ssl;
                 }
-
-                _stream.ReadTimeout =
-                _stream.WriteTimeout = _server.Timeout;
 
                 _reader = new StreamReader(_stream);
                 _writer = new StreamWriter(_stream);
@@ -73,6 +78,8 @@ namespace Kooboo.Mail.Smtp
 
                 var commandline = await _reader.ReadLineAsyncWithTimeout();
 
+                // Add cancellation token to allow cancel from any point calling Dispose()
+                _cancellationTokenSource = new CancellationTokenSource();
                 var cancellationToken = _cancellationTokenSource.Token;
                 while (!cancellationToken.IsCancellationRequested && commandline != null)
                 {
@@ -193,8 +200,14 @@ namespace Kooboo.Mail.Smtp
             }
             finally
             {
-                _server._connectionManager.RemoveConnection(Id);
-                Dispose();
+                try
+                {
+                    _server._connectionManager.RemoveConnection(Id);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
 
@@ -215,11 +228,17 @@ namespace Kooboo.Mail.Smtp
 
         public void Dispose()
         {
-            if (Interlocked.Exchange(ref _disposing, 1) == 0)
+            if (Interlocked.Exchange(ref _disposing, 1) != 0)
+                return;
+
+            try
             {
-                _cancellationTokenSource.Cancel();
-                _reader.Dispose();
-                _writer.Dispose();
+                _cancellationTokenSource?.Cancel();
+                _reader?.Dispose();
+                _writer?.Dispose();
+            }
+            finally
+            {
                 _client.Close();
             }
         }

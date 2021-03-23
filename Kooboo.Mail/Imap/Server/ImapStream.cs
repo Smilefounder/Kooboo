@@ -94,8 +94,9 @@ namespace Kooboo.Mail.Imap
 
         public void Dispose()
         {
-            _reader.Dispose();
-            _writer.Dispose();
+            _reader?.Dispose();
+            _writer?.Dispose();
+            _stream?.Dispose();
         }
 
         private static Logging.ILogger _logger;

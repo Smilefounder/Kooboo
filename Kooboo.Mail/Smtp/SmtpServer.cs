@@ -100,17 +100,8 @@ namespace Kooboo.Mail.Smtp
 
         public void Stop()
         {
-            if (_listener == null)
-                return;
-
-            if (_cancellationTokenSource != null)
-            {
-                _cancellationTokenSource.Cancel();
-            }
-            if (_listener != null)
-            {
-                _listener.Stop();
-            }
+            _cancellationTokenSource?.Cancel();
+            _listener?.Stop();
         }
 
         private async Task Loop()
@@ -123,9 +114,7 @@ namespace Kooboo.Mail.Smtp
                 try
                 {
                     var cid = _nextConnectionId++;
-                    _logger.LogInformation($"<ac {cid} {Thread.CurrentThread.ManagedThreadId}");
                     var tcpClient = await _listener.AcceptTcpClientAsync();
-                    _logger.LogInformation($">ac {cid} {Thread.CurrentThread.ManagedThreadId} {tcpClient.Client.RemoteEndPoint}");
 
                     var session = new SmtpConnector(this, tcpClient, cid);
                     _ = session.Accept();

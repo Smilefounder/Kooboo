@@ -24,6 +24,7 @@ namespace Kooboo.Mail.Imap
 
         private CancellationTokenSource _cancellationTokenSource;
         private TcpListener _listener;
+        private Task _listenerTask;
         internal ConnectionManager _connectionManager;
 
         public ImapServer(int port)
@@ -73,26 +74,34 @@ namespace Kooboo.Mail.Imap
 
         internal Heartbeat Heartbeat { get; }
 
-        public async void Start()
+        public void Start()
         {
             if (Lib.Helper.NetworkHelper.IsPortInUse(Port))
                 return;
 
             _listener = new TcpListener(new IPEndPoint(IPAddress.Any, Port));
-            _listener.Server.ReceiveTimeout =
-            _listener.Server.SendTimeout = Timeout;
             _listener.Start();
 
+            _listenerTask = Task.Run(() => RunAcceptLoopAsync());
+        }
+
+        public void Stop()
+        {
+            _cancellationTokenSource?.Cancel();
+            _listener?.Stop();
+        }
+
+        private async Task RunAcceptLoopAsync()
+        {
             _cancellationTokenSource = new CancellationTokenSource();
             var cancellationToken = _cancellationTokenSource.Token;
+
             while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
                     var cid = _nextConnectionId++;
-                    _logger.LogInformation($"<ac {cid} {Thread.CurrentThread.ManagedThreadId}");
                     var tcpClient = await _listener.AcceptTcpClientAsync();
-                    _logger.LogInformation($">ac {cid} {Thread.CurrentThread.ManagedThreadId} {tcpClient.Client.RemoteEndPoint}");
 
                     var session = new ImapSession(this, tcpClient, cid);
                     _ = session.Start();
@@ -100,22 +109,6 @@ namespace Kooboo.Mail.Imap
                 catch
                 {
                 }
-            }
-        }
-
-        public void Stop()
-        {
-            if (_listener == null)
-                return;
-
-            if (_cancellationTokenSource != null)
-            {
-                _cancellationTokenSource.Cancel();
-            }
-
-            if (_listener != null)
-            {
-                _listener.Stop();
             }
         }
     }

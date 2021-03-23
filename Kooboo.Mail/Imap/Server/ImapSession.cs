@@ -104,40 +104,26 @@ namespace Kooboo.Mail.Imap
 
         public async Task Start()
         {
-            Server._connectionManager.AddConnection(this);
-            _cancellationTokenSource = new CancellationTokenSource();
-            Interlocked.Exchange(ref _timeoutTimestamp, DateTime.UtcNow.Add(Server.Options.LiveTimeout).Ticks);
-
             try
-            {
+            { 
+                Server._connectionManager.AddConnection(this);
+                Interlocked.Exchange(ref _timeoutTimestamp, DateTime.UtcNow.Add(Server.Options.LiveTimeout).Ticks);
+
+                var stream = TcpClient.GetStream();
                 if (Server.SslMode == SslMode.SSL)
                 {
-                    await StartSecureConnection();
+                    var sslSuccessful = await StartSecureConnection();
+                    if (!sslSuccessful)
+                        return;
                 }
                 else
                 {
-                    var stream = TcpClient.GetStream();
-                    stream.ReadTimeout =
-                    stream.WriteTimeout = Server.Timeout;
-                    Stream = new ImapStream(TcpClient, stream);
+                    Stream = new ImapStream(TcpClient, TcpClient.GetStream());
                 }
 
                 await OnStart();
 
-                var cancellationToken = _cancellationTokenSource.Token;
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    var commandLine = await Stream.ReadCommandAsync();
-                    if (commandLine == null)
-                    {
-                        await Stream.WriteStatusAsync("BAD", "Error: Command not recognized."); 
-                    }
-                    else
-                    {
-                        await Kooboo.Mail.Imap.Commands.CommandManager.Execute(this, commandLine.Tag, commandLine.Name, commandLine.Args);
-                        OnCommandExecuted();
-                    }
-                }
+                await RunCommandLoop();
             }
             catch (SessionCloseException)
             {
@@ -148,33 +134,77 @@ namespace Kooboo.Mail.Imap
             }
             catch (Exception ex)
             {
-                await Stream.WriteLineAsync("Local server error occured, bye!");
+                try
+                {
+                    await Stream.WriteLineAsync("Local server error occured, bye!");
+                }
+                catch
+                {
+                }
             }
             finally
             {
-                Server._connectionManager.RemoveConnection(Id);
-                Dispose();
+                try
+                {
+                    Server._connectionManager.RemoveConnection(Id);
+                }
+                finally
+                {
+                    Dispose();
+                }
             }
         }
 
-        public async Task StartSecureConnection()
+
+        private async Task RunCommandLoop()
+        {
+            _cancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = _cancellationTokenSource.Token;
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                var commandLine = await Stream.ReadCommandAsync();
+                if (commandLine == null)
+                {
+                    await Stream.WriteStatusAsync("BAD", "Error: Command not recognized.");
+                }
+                else
+                {
+                    await Kooboo.Mail.Imap.Commands.CommandManager.Execute(this, commandLine.Tag, commandLine.Name, commandLine.Args);
+                    OnCommandExecuted();
+                }
+            }
+        }
+
+        public async Task<bool> StartSecureConnection()
         {
             var sslStream = new SslStream(TcpClient.GetStream(), false);
-            await sslStream.AuthenticateAsServerAsync(Server.Certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12, false);
+            try
+            {
+                await sslStream.AuthenticateAsServerAsync(Server.Certificate, false, SslProtocols.Tls11 | SslProtocols.Tls12, false);
 
-            IsSecureConnection = true;
-
-            sslStream.ReadTimeout =
-            sslStream.WriteTimeout = Server.Timeout;
-            Stream = new ImapStream(TcpClient, sslStream);
+                IsSecureConnection = true;
+                Stream = new ImapStream(TcpClient, sslStream);
+                return true;
+            }
+            catch
+            {
+                sslStream.Dispose();
+                return false;
+            }
         }
 
         public void Dispose()
         {
-            if (Interlocked.Exchange(ref _disposing, 1) == 0)
+            if (Interlocked.Exchange(ref _disposing, 1) != 0)
+                return;
+
+            try
             {
-                _cancellationTokenSource.Cancel();
-                Stream.Dispose();
+                _cancellationTokenSource?.Cancel();
+                Stream?.Dispose();
+            }
+            finally
+            {
                 TcpClient.Close();
             }
         }
