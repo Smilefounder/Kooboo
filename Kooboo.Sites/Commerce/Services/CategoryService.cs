@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Kooboo.Data.Context;
+using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.ViewModels.Category;
 using System;
@@ -33,10 +34,42 @@ namespace Kooboo.Sites.Commerce.Services
 
         public CategoryListViewModel[] List()
         {
+            var result = new List<CategoryListViewModel>();
             using (var con = DbConnection)
             {
-                return con.GetList<Category>().Select(s => new CategoryListViewModel(s,111)).ToArray();
+                var entities = con.GetList<Category>();
+                var autoEntities = entities.Where(w => w.Type == Category.AddingType.Auto);
+                var manualEntities = entities.Where(w => w.Type == Category.AddingType.Manual);
+
+                if (autoEntities.Count() > 0)
+                {
+                    var productService = new ProductService(Context);
+
+                    foreach (var item in autoEntities)
+                    {
+                        var rule = JsonHelper.Deserialize<MatchRule.Rule>(item.Rule);
+                        var count = productService.MatchList.Where(c => rule.Match(c)).Distinct().Count();
+                        result.Add(new CategoryListViewModel(item, count));
+                    }
+                }
+
+                if (manualEntities.Count() > 0)
+                {
+                    var map = con.Query<KeyValuePair<Guid, int>>(@"
+select CategoryId as Key,count() as Value from ProductCategory 
+where CategoryId in @Ids
+group by CategoryId
+", new { Ids = manualEntities.Select(s => s.Id) });
+
+                    foreach (var item in manualEntities)
+                    {
+                        var count = map.FirstOrDefault(f => f.Key == item.Id).Value;
+                        result.Add(new CategoryListViewModel(item, count));
+                    }
+                }
             }
+
+            return result.ToArray();
         }
 
         public void Save(EditCategoryViewModel viewModel)

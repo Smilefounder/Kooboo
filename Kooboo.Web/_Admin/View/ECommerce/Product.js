@@ -185,7 +185,15 @@ $(function () {
 
         for (const sku of skus) {
           sku.lastStock = sku.stock;
-          skuSpecifications.push(...sku.specifications);
+          for (const i of sku.specifications) {
+            if (
+              !skuSpecifications.find(
+                (f) => f.key == i.key && f.value == i.value
+              )
+            ) {
+              skuSpecifications.push(i);
+            }
+          }
         }
 
         for (const attribute of attributes) {

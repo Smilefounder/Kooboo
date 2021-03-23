@@ -10,7 +10,6 @@ namespace Kooboo.Sites.Commerce.MatchRule
     {
         public Guid Id { get; set; }
         public string Left { get; set; }
-
         [JsonConverter(typeof(StringEnumConverter))]
         public Comparer Comparer { get; set; }
         public string Right { get; set; }

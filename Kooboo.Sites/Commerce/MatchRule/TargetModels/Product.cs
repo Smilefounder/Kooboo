@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce.MatchRule.Category
+namespace Kooboo.Sites.Commerce.MatchRule.TargetModels
 {
-    public class ProductRuleModel
+    public class Product
     {
         public Guid Id { get; set; }
         public string Title { get; set; }

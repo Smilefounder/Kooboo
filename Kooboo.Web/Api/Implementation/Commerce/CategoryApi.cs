@@ -40,5 +40,7 @@ namespace Kooboo.Web.Api.Implementation.Commerce
         {
             new CategoryService(apiCall.Context).Delete(ids);
         }
+
+        //public object 
     }
 }

@@ -4,13 +4,13 @@ using System.Text;
 
 namespace Kooboo.Sites.Commerce.MatchRule.Category
 {
-    public class PriceCondition : ConditionDefine<ProductRuleModel>
+    public class PriceCondition : ConditionDefine<TargetModels.Product>
     {
         public override string Name => "Price";
 
         public override ConditionValueType ValueType => ConditionValueType.Number;
 
-        protected override object GetPropertyValue(ProductRuleModel model)
+        protected override object GetPropertyValue(TargetModels.Product model)
         {
             return model.Price;
         }

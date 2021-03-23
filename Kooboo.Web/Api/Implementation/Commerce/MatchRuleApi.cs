@@ -1,7 +1,7 @@
 ﻿using Kooboo.Api;
 using Kooboo.Sites.Commerce;
 using Kooboo.Sites.Commerce.MatchRule;
-using Kooboo.Sites.Commerce.MatchRule.Category;
+using Kooboo.Sites.Commerce.MatchRule.TargetModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +20,7 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public object CategoryDefines()
         {
-            var defiles = GetConditionDefines<ProductRuleModel>();
+            var defiles = GetConditionDefines<Product>();
 
             return new
             {

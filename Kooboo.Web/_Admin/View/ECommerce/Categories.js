@@ -33,7 +33,7 @@ $(function () {
           name: "",
           type: "Manual",
           rule: {
-            type: "",
+            type: "All",
             conditions: [],
           },
           products: [],
@@ -41,7 +41,7 @@ $(function () {
 
         this.showModal = true;
       },
-      
+
       edit(id) {
         Kooboo.Category.get({ id: id }).then((rsp) => {
           if (!rsp.success) return;

@@ -13,6 +13,23 @@ namespace Kooboo.Sites.Commerce.Services
 {
     public class ProductService : ServiceBase
     {
+        static MatchRule.TargetModels.Product[] _matchList;
+
+        public MatchRule.TargetModels.Product[] MatchList
+        {
+            get
+            {
+                if (_matchList == null)
+                {
+                    using (var con = DbConnection)
+                    {
+                        return con.Query<MatchRule.TargetModels.Product>("select pro.Id,sku.Price,pro.Title,pro.TypeId from ProductSku sku left join Product pro on sku.ProductId=pro.Id").ToArray();
+                    }
+                }
+                return _matchList;
+            }
+        }
+
         public ProductService(RenderContext context) : base(context)
         {
         }
@@ -65,6 +82,7 @@ namespace Kooboo.Sites.Commerce.Services
                 con.InsertList(InsertStocks);
                 tran.Commit();
             }
+            _matchList = null;
         }
 
         public ProductViewModel Query(Guid id)
