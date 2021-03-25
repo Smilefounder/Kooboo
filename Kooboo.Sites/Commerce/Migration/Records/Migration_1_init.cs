@@ -15,70 +15,70 @@ namespace Kooboo.Sites.Commerce.Migration.Records
             connection.Execute($@"
 create table ProductType
 (
-	Id uniqueidentifier not null
+	""Id"" uniqueidentifier not null
 		constraint ProductType_pk
 			primary key,
 	
-	Name text not null,
-	Attributes text not null,
-    Specifications text not null
+	""Name"" text not null,
+	""Attributes"" text not null,
+    ""Specifications"" text not null
 );
 
 create table Product
 (
-	Id uniqueidentifier not null
+	""Id"" uniqueidentifier not null
 		constraint Product_pk
 			primary key,
 
-	Title text not null,
-	Images text not null,
-	Description text not null,
-	Attributes text not null,
-	Specifications text not null,
-	CreateDate datetime not null,
+	""Title"" text not null,
+	""Images"" text not null,
+	""Description"" text not null,
+	""Attributes"" text not null,
+	""Specifications"" text not null,
+	""CreateDate"" datetime not null,
 
-	TypeId uniqueidentifier not null
+	""TypeId"" uniqueidentifier not null
 		constraint Product_TypeId_ProductType_Id_fk
 			references ""ProductType""
 				on delete cascade,
 
-	Enable int not null
+	""Enable"" int not null
 );
 
 create table ProductSku
 (
-	Id uniqueidentifier not null
+	""Id"" uniqueidentifier not null
 		constraint ProductSku_pk
 			primary key,
 
-	ProductId uniqueidentifier not null
+	""ProductId"" uniqueidentifier not null
 		constraint ProductSku_ProductId_Product_Id_fk
 			references ""Product""
 				on delete cascade,
 
-	Name text,
-	Specifications text not null,
-	Price real not null,
-	Tax real not null,
-	Thumbnail text,
-	Enable int not null
+	""Name"" text,
+	""Specifications"" text not null,
+	""Price"" real not null,
+	""Tax"" real not null,
+	""Thumbnail"" text,
+	""Enable"" int not null
 );
 
 create table ProductStock
 (
-	SkuId uniqueidentifier not null
+	""SkuId"" uniqueidentifier not null
 		constraint Stock_SkuId_Sku_Id_fk
 			references ""ProductSku""
 				on delete cascade,
 
-	ProductId uniqueidentifier not null
+	""ProductId"" uniqueidentifier not null
 		constraint ProductStock_ProductId_Product_Id_fk
 			references ""Product""
 				on delete cascade,
 
-	Quantity int not null,
-	StockType int not null,
-	DateTime datetime not null
+	""Quantity"" int not null,
+	""StockType"" int not null,
+	""DateTime"" datetime not null
 );
 
 create table Category
@@ -95,15 +95,33 @@ create table Category
 
 create table ProductCategory
 (
-	CategoryId uniqueidentifier not null
+	""CategoryId"" uniqueidentifier not null
 		constraint ProductCategory_CategoryId_Category_Id_fk
 			references ""Category""
 				on delete cascade,
 
-	ProductId uniqueidentifier not null
+	""ProductId"" uniqueidentifier not null
 		constraint ProductCategory_ProductId_Product_Id_fk
 			references ""Product""
 				on delete cascade
+);
+
+create table Promotion
+(
+	""Id"" uniqueidentifier not null
+		constraint Promotion_pk
+			primary key,
+
+	""Name"" Text not null,
+	""Description"" Text,
+	""Type"" int not null,
+	""Priority"" int not null,
+	""Exclusive"" int not null,
+	""Discount"" real not null,
+	""Rules"" text not null,
+	""Target"" int not null,
+	""StartTime"" datetime not null,
+	""EndTime"" datetime not null
 );
 ");
         }

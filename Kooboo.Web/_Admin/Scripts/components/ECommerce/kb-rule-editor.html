@@ -1,11 +1,11 @@
 <div>
   <div style="margin-bottom: 5px">
     <label class="radio-inline">
-      <input type="radio" name="type" value="All" v-model="rule.type" />
+      <input type="radio" :name="id" value="All" v-model="rule.type" />
       <span>All</span>
     </label>
     <label class="radio-inline">
-      <input type="radio" name="type" value="Any" v-model="rule.type" />
+      <input type="radio" :name="id" value="Any" v-model="rule.type" />
       <span>Any</span>
     </label>
   </div>
@@ -21,7 +21,7 @@
       v-model="item.left"
       @change="propertyChanged(item)"
     >
-      <option v-for="define in defines.conditionDefines" :value="define.name"
+      <option v-for="define in defines" :value="define.name"
         >{{define.display}}</option
       >
     </select>

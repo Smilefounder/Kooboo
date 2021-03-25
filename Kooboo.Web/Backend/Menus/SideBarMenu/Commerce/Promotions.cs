@@ -6,23 +6,23 @@ using Kooboo.Data.Language;
 
 namespace Kooboo.Web.Menus.SideBarMenu.Commerce
 {
-    public class Products : ISideBarMenu
+    public class Promotions : ISideBarMenu
     {
         public SideBarSection Parent => SideBarSection.Commerce;
 
-        public string Name => "Products management";
+        public string Name => "Promotions";
 
         public string Icon => "";
 
-        public string Url => "ECommerce/Products";
+        public string Url => "ECommerce/Promotions";
 
-        public int Order => 1;
+        public int Order => 3;
 
         public List<ICmsMenu> SubItems { get; set; }
 
         public string GetDisplayName(RenderContext Context)
         {
-            return Hardcoded.GetValue("Products management", Context);
+            return Hardcoded.GetValue("Promotions", Context);
         }
     }
 }

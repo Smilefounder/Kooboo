@@ -165,7 +165,7 @@ namespace Kooboo.Sites.Commerce.Services
         {
             using (var con = DbConnection)
             {
-                return con.Query<KeyValuePair<Guid, string>>("select Id as Key,title as value from product").ToArray();
+                return con.Query<KeyValuePair<Guid, string>>("select Id as Key,title as value from Product").ToArray();
             }
         }
     }

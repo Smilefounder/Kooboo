@@ -1690,11 +1690,20 @@
   }
   extend(Category, BaseModel);
 
+  function Promotion() {
+    this.name = "Promotion";
+  }
+  extend(Promotion, BaseModel);
+
   function MatchRule() {
     this.name = "MatchRule";
 
     this.categoryDefines = function () {
       return this.executeGet("CategoryDefines");
+    };
+
+    this.promotionDefines = function () {
+      return this.executeGet("PromotionDefines");
     };
   }
   extend(MatchRule, BaseModel);
@@ -1829,6 +1838,7 @@
     Product: new Product(),
     ProductType: new ProductType(),
     Category: new Category(),
+    Promotion: new Promotion(),
     MatchRule: new MatchRule(),
     Profile: new Profile(),
     Publish: new Publish(),

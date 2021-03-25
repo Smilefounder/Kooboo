@@ -212,7 +212,7 @@ namespace Kooboo.Lib.IOC
 
         public static List<Type> GetImplementationTypes(Type InterfaceType)
         {
-            string name = InterfaceType.Name;
+            string name = InterfaceType.FullName;
             if (!InterfaceTypes.ContainsKey(name))
             {
                 lock (_lock)
@@ -245,7 +245,7 @@ namespace Kooboo.Lib.IOC
 
         public static List<object> GetInstances(Type InterfaceType)
         {
-            string name = InterfaceType.Name;
+            string name = InterfaceType.FullName;
 
             if (!Instances.ContainsKey(name))
             {

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Kooboo.Sites.Commerce.MatchRule.TargetModels
 {
-    public class Product
+    public class Product : TargetModelBase<Product>
     {
         public Guid Id { get; set; }
         public string Title { get; set; }

@@ -162,6 +162,10 @@
             },
             CategoriesPage: GetRoute("ECommerce/Product/Categories")
         },
+        Promotion: {
+            ListPage: GetRoute("ECommerce/Promotions"),
+            DetailPage: GetRoute("ECommerce/Promotion"),
+        },
         Market: {
             IndexPage: GetRoute("Market/Index", true)
         },

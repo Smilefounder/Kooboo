@@ -7,14 +7,14 @@ using System.Text;
 
 namespace Kooboo.Sites.Commerce.MatchRule
 {
-    public abstract class ConditionDefine<T> where T : class
+    public abstract class ConditionDefineBase<T> : IConditionDefine where T : TargetModelBase<T>
     {
         private readonly Comparer[] _comparers;
         public abstract string Name { get; }
         public virtual Comparer[] Comparers => _comparers;
         public abstract ConditionValueType ValueType { get; }
 
-        public ConditionDefine()
+        public ConditionDefineBase()
         {
             switch (ValueType)
             {

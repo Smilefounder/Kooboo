@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using static Kooboo.Sites.Commerce.MatchRule.Rule;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
@@ -20,23 +19,31 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public object CategoryDefines()
         {
-            var defiles = GetConditionDefines<Product>();
+            return GetDefineDisplay(Helpers.GetConditionDefines<Product>());
+        }
 
+        public object PromotionDefines()
+        {
             return new
             {
-                MatchingType = Helpers.GetEnumDescription(typeof(MatchingType)),
-                ConditionDefines = defiles.Select(define => new
-                {
-                    define.Name,
-                    Display = define.Name,
-                    ValueType = define.ValueType.ToString(),
-                    Comparers = define.Comparers.Select(s => new
-                    {
-                        Name = s.ToString(),
-                        Display = s.ToString()
-                    })
-                }),
+                Order = GetDefineDisplay(Helpers.GetConditionDefines<Order>()),
+                OrderItem = GetDefineDisplay(Helpers.GetConditionDefines<OrderItem>()),
             };
+        }
+
+        public object GetDefineDisplay(IEnumerable<IConditionDefine> defines)
+        {
+            return defines.Select(define => new
+            {
+                define.Name,
+                Display = define.Name,
+                ValueType = define.ValueType.ToString(),
+                Comparers = define.Comparers.Select(s => new
+                {
+                    Name = s.ToString(),
+                    Display = s.ToString()
+                })
+            });
         }
     }
 }

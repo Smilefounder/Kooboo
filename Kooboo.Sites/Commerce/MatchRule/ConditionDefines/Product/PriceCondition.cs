@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Kooboo.Sites.Commerce.MatchRule.Category
 {
-    public class PriceCondition : ConditionDefine<TargetModels.Product>
+    public class PriceCondition : ConditionDefineBase<TargetModels.Product>
     {
         public override string Name => "Price";
 

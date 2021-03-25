@@ -1,0 +1,68 @@
+<!-- #layout name=blank-->
+
+<div id="app">
+  <div class="page-header">
+    <h1 class="title">Promotions</h1>
+  </div>
+  <kb-breadcrumb :breads="breads"></kb-breadcrumb>
+
+  <div class="navbar navbar-default">
+    <div class="container-fluid">
+      <a class="btn green navbar-btn" @click="add">Add new promotion</a>
+      <a class="btn red navbar-btn" v-if="selectedRows.length" @click="deletes"
+        >Delete</a
+      >
+    </div>
+  </div>
+
+  <kb-table v-if="list" :data="list" show-select :selected.sync="selectedRows">
+    <kb-table-column :label="Kooboo.text.common.name" prop="name">
+    </kb-table-column>
+
+    <kb-table-column label="Active">
+      <template v-slot="row">
+        <span class="label label-sm label-success" v-if="row.active">Yes</span>
+        <span class="label label-sm label-success red" v-else>No</span>
+      </template>
+    </kb-table-column>
+
+    <kb-table-column label="Exclusive">
+      <template v-slot="row">
+        <span class="label label-sm label-success" v-if="row.exclusive"
+          >Yes</span
+        >
+        <span class="label label-sm label-success red" v-else>No</span>
+      </template>
+    </kb-table-column>
+
+    <kb-table-column label="Priority">
+      <template v-slot="row">{{row.priority}}</template>
+    </kb-table-column>
+
+    <kb-table-column label="Target">
+      <template v-slot="row">{{row.target}}</template>
+    </kb-table-column>
+
+    <kb-table-column label="Discount">
+      <template v-slot="row">{{row.discount}}</template>
+    </kb-table-column>
+
+    <kb-table-column align="right" width="100px">
+      <template v-slot="row">
+        <a class="btn blue" target="_blank" :href="edit(row.id)"
+          >{{ Kooboo.text.common.setting }}</a
+        >
+      </template>
+    </kb-table-column>
+  </kb-table>
+</div>
+<script>
+  (function () {
+    Kooboo.loadJS([
+      "/_Admin/Scripts/kooboo/Guid.js",
+      "/_Admin/Scripts/components/kbBreadcrumb.js",
+      "/_Admin/Scripts/components/kbTable.js",
+    ]);
+  })();
+</script>
+<script src="/_Admin/View/ECommerce/Promotions.js"></script>

@@ -11,11 +11,12 @@
     props: ["rule", "defines"],
     data() {
       return {
+        id:Kooboo.Guid.NewGuid(),
         keyValues: [],
       };
     },
     created() {
-      if (!this.rule.type) this.rule.type = this.defines.matchingType[0].name;
+      if (!this.rule.type) this.rule.type = this.defines[0].name;
     },
     mounted() {
       for (const condition of this.rule.conditions) {
@@ -27,8 +28,8 @@
       addCondition() {
         var condition = {
           id: Kooboo.Guid.NewGuid(),
-          left: this.defines.conditionDefines[0].name,
-          comparer: this.defines.conditionDefines[0].comparers[0].name,
+          left: this.defines[0].name,
+          comparer: this.defines[0].comparers[0].name,
           right: "",
         };
 
@@ -36,7 +37,7 @@
         this.propertyChanged(condition);
       },
       currentDefine(value) {
-        var define = this.defines.conditionDefines.find((f) => f.name == value);
+        var define = this.defines.find((f) => f.name == value);
         return define;
       },
       propertyChanged(item) {

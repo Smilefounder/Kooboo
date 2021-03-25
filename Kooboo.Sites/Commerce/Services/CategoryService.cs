@@ -48,7 +48,7 @@ namespace Kooboo.Sites.Commerce.Services
                     foreach (var item in autoEntities)
                     {
                         var rule = JsonHelper.Deserialize<MatchRule.Rule>(item.Rule);
-                        var count = productService.MatchList.Where(c => rule.Match(c)).Distinct().Count();
+                        var count = productService.MatchList.Where(c => c.Match(rule)).Select(s => s.Id).Distinct().Count();
                         result.Add(new CategoryListViewModel(item, count));
                     }
                 }

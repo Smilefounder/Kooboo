@@ -1,10 +1,7 @@
-﻿using Kooboo.Data.Definition;
-using Kooboo.Lib.Helper;
+﻿
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using static Kooboo.Sites.Commerce.Entities.Category;
 
 namespace Kooboo.Sites.Commerce.ViewModels.Category
