@@ -32,13 +32,15 @@ namespace Kooboo.Sites.Commerce.Migration
                 {
                     var tran = connection.BeginTransaction();
                     connection.Execute(@"
-                        drop table if exists 'Promotion';
+                        drop table if exists 'CartItem';
                         drop table if exists 'ProductCategory';
                         drop table if exists 'ProductStock';
                         drop table if exists 'ProductSku';
                         drop table if exists 'Product';
                         drop table if exists 'Category';
                         drop table if exists 'ProductType';
+                        drop table if exists 'Promotion';
+                        drop table if exists 'Customer';
                         drop table if exists '_migration';
                     ");
                     tran.Commit();

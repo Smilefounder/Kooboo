@@ -20,7 +20,7 @@ $(function () {
         showModal: false,
         pager: {
           pageNr: 1,
-          totalPages: 200,
+          totalPages: 1,
         },
         list: [],
         types: [],

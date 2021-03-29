@@ -123,6 +123,43 @@ create table Promotion
 	""StartTime"" datetime not null,
 	""EndTime"" datetime not null
 );
+
+create table Customer
+(
+	""Id"" uniqueidentifier not null
+		constraint Customer_pk
+			primary key,
+
+	""UserName"" text not null,
+	""Password"" text not null,
+	""CreateTime"" datetime not null
+);
+
+create table CartItem
+(
+	""Id"" uniqueidentifier not null
+		constraint CartItem_pk
+			primary key,
+
+	""CustomerId"" uniqueidentifier not null
+		constraint CartItem_CustomerId_Customer_Id_fk
+			references ""Customer""
+				on delete cascade,
+
+	""Selected"" int not null,
+
+	""ProductId"" uniqueidentifier not null
+		constraint CartItem_ProductId_Product_Id_fk
+			references ""Product""
+				on delete cascade,
+
+	""SkuId"" uniqueidentifier not null
+		constraint CartItem_SkuId_Sku_Id_fk
+			references ""ProductSku""
+				on delete cascade,
+
+	""Quantity"" int not null
+);
 ");
         }
     }

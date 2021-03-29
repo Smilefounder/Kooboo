@@ -14,19 +14,32 @@ namespace Kooboo.Sites.Commerce.Services
     public class ProductService : ServiceBase
     {
         static MatchRule.TargetModels.Product[] _matchList;
+        readonly static object _locker = new object();
 
-        public MatchRule.TargetModels.Product[] MatchList
+        public IEnumerable<MatchRule.TargetModels.Product> MatchList
         {
             get
             {
-                if (_matchList == null)
+                lock (_locker)
                 {
-                    using (var con = DbConnection)
+                    if (_matchList == null)
                     {
-                        return con.Query<MatchRule.TargetModels.Product>("select pro.Id,sku.Price,pro.Title,pro.TypeId from ProductSku sku left join Product pro on sku.ProductId=pro.Id").ToArray();
+                        lock (_locker)
+                        {
+                            GetMatchList();
+                        }
                     }
                 }
+
                 return _matchList;
+            }
+        }
+
+        private void GetMatchList()
+        {
+            using (var con = DbConnection)
+            {
+                _matchList = con.Query<MatchRule.TargetModels.Product>("select pro.Id,sku.Price,pro.Title,pro.TypeId from ProductSku sku left join Product pro on sku.ProductId=pro.Id").ToArray();
             }
         }
 

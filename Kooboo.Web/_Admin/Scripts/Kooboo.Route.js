@@ -166,6 +166,10 @@
             ListPage: GetRoute("ECommerce/Promotions"),
             DetailPage: GetRoute("ECommerce/Promotion"),
         },
+        Customer: {
+            ListPage: GetRoute("ECommerce/Customers"),
+            Cart: GetRoute("ECommerce/Cart"),
+        },
         Market: {
             IndexPage: GetRoute("Market/Index", true)
         },

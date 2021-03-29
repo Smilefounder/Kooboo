@@ -1719,6 +1719,22 @@
 
   extend(Product, BaseModel);
 
+  function Customer() {
+    this.name = "Customer";
+    this.register = function (para) {
+      return this.executePost("Register", para);
+    };
+  }
+
+  extend(Customer, BaseModel);
+
+  function Cart() {
+    this.name = "Cart";
+  
+  }
+
+  extend(Cart, BaseModel);
+
   function KConfig() {
     this.name = "KConfig";
 
@@ -1836,6 +1852,8 @@
     Relation: new Relation(),
     Page: new Page(),
     Product: new Product(),
+    Customer: new Customer(),
+    Cart: new Cart(),
     ProductType: new ProductType(),
     Category: new Category(),
     Promotion: new Promotion(),

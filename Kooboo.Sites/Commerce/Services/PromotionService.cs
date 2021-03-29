@@ -1,21 +1,77 @@
 ﻿using Dapper;
 using Kooboo.Data.Context;
+using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.ViewModels.Promotion;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using static Kooboo.Sites.Commerce.Entities.Promotion;
+using static Kooboo.Sites.Commerce.ViewModels.Promotion.PromotionViewModel;
 
 namespace Kooboo.Sites.Commerce.Services
 {
     public class PromotionService : ServiceBase
     {
+        static PromotionMatchViewModel[] _matchList = null;
+        readonly static object _locker = new object();
+
         public PromotionService(RenderContext context) : base(context)
         {
 
         }
 
+        public IEnumerable<PromotionMatchViewModel> MatchList
+        {
+            get
+            {
+                lock (_locker)
+                {
+                    if (_matchList == null)
+                    {
+                        lock (_locker)
+                        {
+                            GetMatchList();
+                        }
+                    }
+                }
+
+                return _matchList.Where(w => w.StartTime <= DateTime.UtcNow);
+            }
+        }
+
+        private void GetMatchList()
+        {
+            using (var con = DbConnection)
+            {
+                var list = con.Query<Promotion>(@"
+SELECT Id,
+       Name,
+       Type,
+       Priority,
+       Exclusive,
+       Discount,
+       Rules,
+       Target,
+       StartTime
+FROM Promotion
+WHERE CURRENT_TIMESTAMP <= DATETIME(Promotion.EndTime)
+");
+                _matchList = list.Select(s => new PromotionMatchViewModel
+                {
+                    Discount = s.Discount,
+                    Exclusive = s.Exclusive,
+                    Id = s.Id,
+                    Name = s.Name,
+                    Priority = s.Priority,
+                    Rules = JsonHelper.Deserialize<PromotionRules>(s.Rules),
+                    StartTime = s.StartTime.ToUniversalTime(),
+                    Target = s.Target,
+                    Type = s.Type
+                }).OrderByDescending(o => o.Priority).ThenByDescending(t => t.Exclusive).ToArray();
+            }
+        }
 
         public PromotionViewModel Get(Guid id)
         {
@@ -68,6 +124,8 @@ namespace Kooboo.Sites.Commerce.Services
                     con.Insert(entity);
                 }
             }
+
+            _matchList = null;
         }
 
         public void Deletes(Guid[] ids)
@@ -76,6 +134,8 @@ namespace Kooboo.Sites.Commerce.Services
             {
                 con.DeleteList<Promotion>(ids);
             }
+
+            _matchList = null;
         }
     }
 }

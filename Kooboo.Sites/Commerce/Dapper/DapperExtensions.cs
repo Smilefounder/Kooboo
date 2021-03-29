@@ -88,6 +88,13 @@ namespace Kooboo.Sites.Commerce
         }
         #endregion
 
+        #region Count
+        public static int Count<T>(this IDbConnection connection) where T : EntityBase
+        {
+            return connection.QuerySingleOrDefault<int>($"select count(1) from {typeof(T).Name}");
+        }
+        #endregion
+
         private static string[] GetTypeMemberString<T>() where T : class
         {
             return _typeMemberStrings.GetOrAdd(typeof(T), type =>
