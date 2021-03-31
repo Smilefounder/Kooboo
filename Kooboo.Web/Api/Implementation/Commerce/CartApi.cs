@@ -26,5 +26,10 @@ namespace Kooboo.Web.Api.Implementation.Commerce
         {
             return new CartService(apiCall.Context).GetCart(id);
         }
+
+        public void Deletes(Guid[] ids, ApiCall apiCall)
+        {
+            new CartService(apiCall.Context).DeleteItems(ids);
+        }
     }
 }

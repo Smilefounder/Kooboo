@@ -35,5 +35,10 @@ namespace Kooboo.Web.Api.Implementation.Commerce
         {
             return new ProductService(apiCall.Context).KeyValue();
         }
+
+        public SkuViewModel[] SkuList(ApiCall apiCall, Guid id)
+        {
+            return new ProductService(apiCall.Context).SkuList(id);
+        }
     }
 }

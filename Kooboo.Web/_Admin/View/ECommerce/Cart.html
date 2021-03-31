@@ -4,62 +4,94 @@
   <div class="col-md-8 col-md-offset-2">
     <fieldset class="margin-bottom-15 clearfix">
       <div class="form-horizontal">
-        <table class="table">
+        <table class="table" style="border-bottom: 1px solid #dddddd">
           <thead>
-            <th><input type="checkbox" /></th>
+            <th> <a class="btn btn-ms green" @click="showProductModal=true">Add Product</a></th>
             <th>Product</th>
             <th>Specifications</th>
+            <th>Promotions</th>
             <th>Price</th>
-            <th>quantity</th>
+            <th>Quantity</th>
+            <th>Stock</th>
             <th></th>
           </thead>
           <tbody v-if="cart">
             <tr v-for="item in cart.items" :key="item.id">
-              <td><input type="checkbox" /></td>
+              <td
+                ><input
+                  type="checkbox"
+                  v-model="item.selected"
+                  @change="changeItem(item.id)"
+              /></td>
               <td>{{item.productName}}</td>
               <td>
-                {{item.specifications.map(m=>`[${m.key}:${m.value}]`).join(' ')}}
+                {{ item.specifications.map(m=>`[${m.key}:${m.value}]`).join(' ')
+                }}
+              </td>
+              <td>
+                <div>
+                  <span
+                    class="label label-success"
+                    v-for="item in item.promotions"
+                    :key="item.key"
+                    style="margin-right: 5px"
+                    >{{item.value}}</span
+                  >
+                </div>
               </td>
               <td>{{item.price}}</td>
               <td>{{item.quantity}}</td>
-              <td></td>
+              <td>{{item.stock}}</td>
+              <td style="text-align: right"
+                ><a class="btn red" @click.stop="removeItem(item.id)"
+                  >Remove</a
+                ></td
+              >
             </tr>
           </tbody>
         </table>
-        <div>
-          <a class="btn green" @click="showProductModal=true">Add Product</a>
+      </div>
+      <div>
+        <div style="display: flex; align-items: center">
+          <span style="margin-right: 10px">Promotion :</span>
+          <span
+            class="label label-success"
+            v-for="item in cart.promotions"
+            :key="item.key"
+            style="margin-right: 5px"
+            >{{item.value}}</span
+          >
+        </div>
+        <div style="display: flex; align-items: center">
+          <span style="margin-right: 10px">Original amount :</span>
+          <span>{{cart.amount}}</span>
+        </div>
+        <div style="display: flex; align-items: center">
+          <span style="margin-right: 10px">Price after discount :</span>
+          <span>{{cart.discountAmount}}</span>
         </div>
       </div>
     </fieldset>
 
     <div class="page-buttons">
       <a class="btn green" @click="order">Place an order</a>
-      <div class="btn-group dropup">
-        <button class="btn green" style="margin: 0" @click="saveAndReturn"
-          >Save &amp; Return</button
-        >
-        <a
-          class="btn green dropdown-toggle"
-          data-toggle="dropdown"
-          style="margin: 0; min-width: auto"
-        >
-          <i class="fa fa-angle-up"></i>
-        </a>
-        <ul class="dropdown-menu" role="menu">
-          <li>
-            <a href="javascript:;" @click="save">Save</a>
-          </li>
-        </ul>
-      </div>
       <a class="btn gray">Cancel</a>
     </div>
   </div>
 
   <kb-selector-modal
     v-model="showProductModal"
-    :list="selectorProducts"
+    :list="products"
     @ok="productSelected"
-  />
+    :show-header="false"
+    :multi-select="false"
+  ></kb-selector-modal>
+
+  <kb-sku-modal
+    v-model="showSkuModal"
+    :id="addProductId"
+    @ok="skuSelected"
+  ></kb-sku-modal>
 </div>
 
 <script>
@@ -67,6 +99,7 @@
     "/_Admin/Scripts/lib/uuidv3.min.js",
     "/_Admin/Scripts/Kooboo/Guid.js",
     "/_Admin/Scripts/components/ECommerce/kb-selector-modal.js",
+    "/_Admin/Scripts/components/ECommerce/kb-sku-modal.js",
   ]);
 </script>
 <script src="/_Admin/View/ECommerce/Cart.js"></script>

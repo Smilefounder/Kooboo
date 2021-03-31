@@ -14,10 +14,11 @@ $(function () {
             name: Kooboo.text.common.ProductCategories,
           },
         ],
-        list: null,
-        selectedRows: [],
+        customerId: Kooboo.getQueryString("id"),
         showProductModal: false,
-        selectorProducts: [],
+        showSkuModal: false,
+        products: [],
+        addProductId: null,
         cart: null,
       };
     },
@@ -25,20 +26,54 @@ $(function () {
       this.getData();
     },
     methods: {
-      saveAndReturn() {},
-      save() {},
       order() {},
-      productSelected() {},
+      productSelected(rows) {
+        if (rows.length == 1) {
+          this.addProductId = rows[0].key;
+          this.showSkuModal = true;
+        }
+      },
+      skuSelected(row) {
+        if (row.length == 1) {
+          var existItem = this.cart.items.find((f) => f.skuId == row[0].id);
+          Kooboo.Cart.post({
+            customerId: this.customerId,
+            selected: existItem ? existItem.selected : true,
+            productId: row[0].productId,
+            skuId: row[0].id,
+            quantity: existItem ? existItem.quantity + 1 : 1,
+          }).then((rsp) => {
+            this.showSkuModal = false;
+            this.getData();
+          });
+        }
+      },
       getData() {
         $.when(
           Kooboo.Product.keyValue(),
-          Kooboo.Cart.Get({ id: Kooboo.getQueryString("id") })
+          Kooboo.Cart.Get({ id: this.customerId })
         ).then((products, cart) => {
-          this.selectorProducts = products[0].model;
+          this.products = products[0].model;
           this.cart = cart[0].model;
         });
       },
-    },
-    computed: {},
+      changeItem(id) {
+        var item = this.cart.items.find((f) => f.id == id);
+        Kooboo.Cart.post({
+          customerId: this.customerId,
+          selected: item.selected,
+          productId: item.productId,
+          skuId: item.skuId,
+          quantity: item.quantity,
+        }).then((rsp) => {
+          this.getData();
+        });
+      },
+      removeItem(id) {
+        Kooboo.Cart.Deletes([id]).then((rsp) => {
+          this.getData();
+        });
+      },
+    }
   });
 });

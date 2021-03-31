@@ -5,13 +5,12 @@
     template: Kooboo.getTemplate(
       "/_Admin/Scripts/components/ECommerce/kb-selector-modal.html"
     ),
-    props: ["value", "list"],
+    props: ["value", "list", "multiSelect", "showHeader"],
     data() {
       return {
         selectedRows: [],
       };
     },
-    mounted() {},
     computed: {
       show: {
         get: function () {

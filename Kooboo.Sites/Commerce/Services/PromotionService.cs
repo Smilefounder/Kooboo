@@ -69,7 +69,7 @@ WHERE CURRENT_TIMESTAMP <= DATETIME(Promotion.EndTime)
                     StartTime = s.StartTime.ToUniversalTime(),
                     Target = s.Target,
                     Type = s.Type
-                }).OrderByDescending(o => o.Priority).ThenByDescending(t => t.Exclusive).ToArray();
+                }).OrderByDescending(o => o.Exclusive).ThenByDescending(t => t.Priority).ToArray();
             }
         }
 

@@ -1715,6 +1715,9 @@
 
   function Product() {
     this.name = "Product";
+    this.skuList = function (para) {
+      return this.executeGet("SkuList", para);
+    };
   }
 
   extend(Product, BaseModel);

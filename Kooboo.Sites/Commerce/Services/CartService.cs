@@ -21,12 +21,17 @@ namespace Kooboo.Sites.Commerce.Services
         {
             using (var con = DbConnection)
             {
-                if (con.Exist<CartItem>(cartItem.Id))
+                var existEntity = con.QueryFirstOrDefault<CartItem>("select * from CartItem where CustomerId=@CustomerId and SkuId=@SkuId", cartItem);
+
+                if (existEntity != null)
                 {
-                    con.Update(cartItem);
+                    existEntity.Selected = cartItem.Selected;
+                    existEntity.Quantity = cartItem.Quantity;
+                    con.Update(existEntity);
                 }
                 else
                 {
+                    cartItem.Id = Guid.NewGuid();
                     con.Insert(cartItem);
                 }
             }
@@ -43,69 +48,56 @@ SELECT CI.ProductId,
        CI.Quantity,
        CI.Selected,
        PS.Price,
-       P.Title AS ProductName,
+       P.Title           AS ProductName,
        P.Specifications  AS ProductSpecifications,
        PS.Specifications AS ProductSkuSpecifications,
-       PT.Specifications AS ProductTypeSpecifications
+       PT.Specifications AS ProductTypeSpecifications,
+       SUM(S.Quantity)   AS Stock
 FROM CartItem CI
          LEFT JOIN ProductSku PS ON CI.SkuId = PS.Id
          LEFT JOIN Product P ON P.Id = PS.ProductId
          LEFT JOIN ProductType PT ON PT.Id = P.TypeId
-WHERE Selected = 1
-  AND CustomerId = @CustomerId
+         LEFT JOIN ProductStock S ON PS.Id = S.SkuId
+WHERE CustomerId = @CustomerId
+GROUP BY CI.SkuId
 ", new { CustomerId = customerId });
 
+                var cart = new CartViewModel();
                 var items = new List<CartViewModel.CartItemViewModel>();
 
                 foreach (var item in list)
                 {
-                    items.Add(new CartViewModel.CartItemViewModel
+                    var typeSpecifications = JsonHelper.Deserialize<ItemDefineViewModel[]>(item.ProductTypeSpecifications);
+                    var skuSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, Guid>[]>(item.ProductSkuSpecifications);
+                    var productSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(item.ProductSpecifications);
+
+                    items.Add(new CartViewModel.CartItemViewModel()
                     {
                         Id = item.Id,
                         Price = (decimal)item.Price,
                         Quantity = item.Quantity,
-                        Amount = (decimal)item.Price * item.Quantity,
                         ProductId = item.ProductId,
                         ProductName = item.ProductName,
                         SkuId = item.SkuId,
                         Selected = Convert.ToBoolean(item.Selected),
-                        Specifications = GetSpecifications(item.ProductSpecifications, item.ProductSkuSpecifications, item.ProductTypeSpecifications)
+                        Specifications = Helpers.GetSpecifications(typeSpecifications, productSpecifications, skuSpecifications),
+                        Stock = Convert.ToInt32(item.Stock)
                     });
                 }
 
-                return new CartViewModel
-                {
-                    Items = items.ToArray(),
-                    Amount = items.Where(w => w.Selected).Sum(s=>s.Amount),
-                };
+                var promotions = new PromotionService(Context).MatchList;
+                cart.Items = items.ToArray();
+                cart.Discount(promotions);
+                return cart;
             }
         }
 
-        private KeyValuePair<string, string>[] GetSpecifications(string productSpecifications, string productSkuSpecifications, string productTypeSpecifications)
+        public void DeleteItems(Guid[] ids)
         {
-            var productTypes = JsonHelper.Deserialize<ItemDefineViewModel[]>(productTypeSpecifications);
-            var productSkus = JsonHelper.Deserialize<KeyValuePair<Guid, Guid>[]>(productSkuSpecifications);
-            var products = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(productSpecifications);
-
-            var specifications = new List<KeyValuePair<string, string>>();
-
-            foreach (var item in productSkus)
+            using (var con = DbConnection)
             {
-                var productType = productTypes.FirstOrDefault(f => f.Id == item.Key);
-                if (productType == null) continue;
-                if (productType.Type == ItemDefineViewModel.DefineType.Option)
-                {
-                    var option = productType.Options.FirstOrDefault(f => f.Key == item.Value);
-                    specifications.Add(new KeyValuePair<string, string>(productType.Name, option.Value));
-                }
-                else if (productType.Type == ItemDefineViewModel.DefineType.Text)
-                {
-                    var specification = products.FirstOrDefault(f => f.Key == item.Value);
-                    specifications.Add(new KeyValuePair<string, string>(productType.Name, specification.Value));
-                }
+                con.DeleteList<CartItem>(ids);
             }
-
-            return specifications.ToArray();
         }
     }
 }

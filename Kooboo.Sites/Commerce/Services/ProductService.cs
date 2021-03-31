@@ -181,5 +181,59 @@ namespace Kooboo.Sites.Commerce.Services
                 return con.Query<KeyValuePair<Guid, string>>("select Id as Key,title as value from Product").ToArray();
             }
         }
+
+
+        public SkuViewModel[] SkuList(Guid productId)
+        {
+            var result = new List<SkuViewModel>();
+
+            using (var con = DbConnection)
+            {
+                var list = con.Query(@"
+SELECT P.Id              AS ProductId,
+       p.Title           AS ProductName,
+       PS.Id             AS SkuId,
+       P.Specifications  AS ProductSpecifications,
+       PS.Specifications AS ProductSkuSpecifications,
+       PT.Specifications AS ProductTypeSpecifications,
+       SUM(S.Quantity)   AS Stock
+FROM Product P
+         LEFT OUTER JOIN ProductType PT ON PT.Id = P.TypeId
+         LEFT JOIN ProductSku PS ON P.Id = PS.ProductId
+         LEFT JOIN ProductStock S ON PS.Id = S.SkuId
+WHERE P.Id = @ProductId
+GROUP BY Ps.Id
+", new { ProductId = productId });
+
+                ItemDefineViewModel[] productTypeSpecifications = null;
+                KeyValuePair<Guid, string>[] productSpecifications = null;
+
+                foreach (var item in list)
+                {
+                    if (productTypeSpecifications == null)
+                    {
+                        productTypeSpecifications = JsonHelper.Deserialize<ItemDefineViewModel[]>(item.ProductTypeSpecifications);
+                    }
+
+                    if (productSpecifications == null)
+                    {
+                        productSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(item.ProductSpecifications);
+                    }
+
+                    var productSkuSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, Guid>[]>(item.ProductSkuSpecifications);
+
+                    result.Add(new SkuViewModel
+                    {
+                        Id = item.SkuId,
+                        ProductId = item.ProductId,
+                        ProductName = item.ProductName,
+                        Stock = Convert.ToInt32(item.Stock),
+                        Specifications = Helpers.GetSpecifications(productTypeSpecifications, productSpecifications, productSkuSpecifications)
+                    });
+                }
+            }
+
+            return result.ToArray();
+        }
     }
 }

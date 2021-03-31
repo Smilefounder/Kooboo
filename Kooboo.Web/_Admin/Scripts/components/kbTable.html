@@ -1,5 +1,5 @@
 <table class="table table-striped table-hover">
-  <thead>
+  <thead v-show="showHeader">
     <tr>
       <th v-if="showSelect" class="table-checkbox">
         <input
@@ -22,9 +22,7 @@
               :customSlot="item.componentInstance.$slots.head"
             ></kb-table-column>
           </template>
-          <template v-else>
-            {{ item.componentInstance.label }}
-          </template>
+          <template v-else> {{ item.componentInstance.label }} </template>
         </th>
       </template>
     </tr>

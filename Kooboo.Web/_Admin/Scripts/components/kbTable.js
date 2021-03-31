@@ -1,8 +1,8 @@
-(function() {
+(function () {
   Vue.component("kb-table-column", {
     props: {
       label: {
-        default: ""
+        default: "",
       },
       prop: String,
       width: String,
@@ -12,12 +12,12 @@
       bodyClass: String | Array,
       if: {
         type: Boolean,
-        default: true
-      }
+        default: true,
+      },
     },
-    render: function(h) {
+    render: function (h) {
       return h("div", this.customSlot);
-    }
+    },
   });
   Vue.component("kb-table", {
     template: Kooboo.getTemplate("/_Admin/Scripts/components/kbTable.html"),
@@ -25,56 +25,68 @@
       showSelect: Boolean,
       data: {
         type: Array,
-        default: function() {
+        default: function () {
           return [];
-        }
+        },
       },
       selected: {
         type: Array,
-        default: function() {
+        default: function () {
           return [];
-        }
+        },
       },
       hideEmpty: {
         type: Boolean,
-        default: false
-      }
+        default: false,
+      },
+      showHeader: {
+        type: Boolean,
+        default: true,
+      },
+      multiSelect: {
+        type: Boolean,
+        default: true,
+      },
     },
-    data: function() {
+    data: function () {
       return {
         slots: [],
-        progressorRows: []
+        progressorRows: [],
       };
     },
-    mounted: function() {
+    mounted: function () {
       if (this.$slots.default) this.slots = this.$slots.default;
     },
     methods: {
-      selectedAll: function(e) {
+      selectedAll: function (e) {
         var arr = e.target.checked ? this.data : [];
         this.$emit("update:selected", arr);
       },
-      selectRow: function(item) {
+      selectRow: function (item) {
         var arr = [];
         if (this.itemIsSelected(item)) {
-          arr = this.selected.filter(function(i) {
+          arr = this.selected.filter(function (i) {
             return i !== item;
           });
         } else {
-          arr = this.selected.concat([item]);
+          if (this.multiSelect) {
+            arr = this.selected.concat([item]);
+          } else {
+            arr = [item];
+          }
         }
 
         this.$emit("update:selected", arr);
       },
-      itemIsSelected: function(item) {
-        return this.selected.some(function(i) {
+      itemIsSelected: function (item) {
+        return this.selected.some(function (i) {
           return i === item;
         });
-      }
+      },
     },
     watch: {
-      data: function(value) {
-        this.$nextTick(function() {
+      data: function (value) {
+        this.$nextTick(function () {
           if (this.$slots.default) {
             this.slots = this.$slots.default;
           }
@@ -82,7 +94,7 @@
         this.$emit("update:selected", []);
 
         this.$emit("change", value);
-      }
-    }
+      },
+    },
   });
 })();
