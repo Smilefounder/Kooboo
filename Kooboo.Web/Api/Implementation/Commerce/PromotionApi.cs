@@ -1,6 +1,6 @@
 ﻿using Kooboo.Api;
 using Kooboo.Sites.Commerce.Services;
-using Kooboo.Sites.Commerce.ViewModels.Promotion;
+using Kooboo.Sites.Commerce.Models.Promotion;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,7 +15,7 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public bool RequireUser => false;
 
-        public void Post(PromotionViewModel model, ApiCall apiCall)
+        public void Post(PromotionModel model, ApiCall apiCall)
         {
             new PromotionService(apiCall.Context).Save(model);
         }

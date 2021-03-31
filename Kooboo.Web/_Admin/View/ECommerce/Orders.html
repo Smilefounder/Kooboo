@@ -1,0 +1,103 @@
+<!-- #layout name=blank-->
+
+<div id="app">
+  <div class="page-header">
+    <h1 class="title">Customers</h1>
+  </div>
+  <kb-breadcrumb :breads="breads"></kb-breadcrumb>
+
+  <div class="navbar navbar-default">
+    <div class="container-fluid">
+      <a class="btn green navbar-btn" @click="registerCustomer"
+        >Add new customer</a
+      >
+      <a class="btn red navbar-btn" v-if="selectedRows.length" @click="deletes"
+        >Delete</a
+      >
+    </div>
+  </div>
+
+  <kb-table v-if="list" :data="list" show-select :selected.sync="selectedRows">
+    <kb-table-column label="UserName" prop="userName"> </kb-table-column>
+
+    <kb-table-column label="Cart">
+      <template v-slot="row">
+        <span class="label label-sm label-success">{{row.cart}}</span>
+      </template>
+    </kb-table-column>
+
+    <kb-table-column label="Create time">
+      <template v-slot="row">
+        {{row.createTime}}
+      </template>
+    </kb-table-column>
+
+    <kb-table-column align="right" width="100px">
+      <template v-slot="row">
+        <a class="btn blue" :href="cartPage(row.id)" target="_blank">Cart</a>
+      </template>
+    </kb-table-column>
+  </kb-table>
+
+  <div
+    v-kb-modal="showRegisterModal"
+    class="modal fade"
+    data-backdrop="static"
+    data-keyboard="fasle"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button @click="showRegisterModal=false" class="close">
+            <i class="fa fa-close"></i>
+          </button>
+          <h4 class="modal-title">Create</h4>
+        </div>
+        <div class="modal-body" v-if="showRegisterModal">
+          <kb-form :data="registerModel">
+            <kb-form-item>
+              <label class="col-sm-3 control-label">UserName</label>
+              <div class="col-sm-9">
+                <input class="form-control" v-model="registerModel.userName" />
+              </div>
+            </kb-form-item>
+            <kb-form-item>
+              <label class="col-sm-3 control-label">Password</label>
+              <div class="col-sm-9">
+                <input
+                  class="form-control"
+                  type="password"
+                  v-model="registerModel.password"
+                />
+              </div>
+            </kb-form-item>
+          </kb-form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn green" @click="saveRegister">Save</button>
+          <button @click="showRegisterModal=false" class="btn gray"
+            >Cancel</button
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <kb-pager
+    :page-nr="pager.pageNr"
+    :total-pages="pager.totalPages"
+    @change="changePage"
+  ></kb-pager>
+</div>
+<script>
+  (function () {
+    Kooboo.loadJS([
+      "/_Admin/Scripts/kooboo/Guid.js",
+      "/_Admin/Scripts/components/kbBreadcrumb.js",
+      "/_Admin/Scripts/components/kbTable.js",
+      "/_Admin/Scripts/components/kbForm.js",
+      "/_Admin/Scripts/components/kbPager.js",
+    ]);
+  })();
+</script>
+<script src="/_Admin/View/ECommerce/Orders.js"></script>

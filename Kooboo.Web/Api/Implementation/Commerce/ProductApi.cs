@@ -1,7 +1,7 @@
 ﻿using Kooboo.Api;
 using Kooboo.Sites.Commerce.Services;
-using Kooboo.Sites.Commerce.ViewModels;
-using Kooboo.Sites.Commerce.ViewModels.Product;
+using Kooboo.Sites.Commerce.Models;
+using Kooboo.Sites.Commerce.Models.Product;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,17 +16,17 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public bool RequireUser => true;
 
-        public void Post(ProductViewModel viewModel, ApiCall apiCall)
+        public void Post(ProductModel viewModel, ApiCall apiCall)
         {
             new ProductService(apiCall.Context).Save(viewModel);
         }
 
-        public ProductViewModel Get(Guid id, ApiCall apiCall)
+        public ProductModel Get(Guid id, ApiCall apiCall)
         {
             return new ProductService(apiCall.Context).Query(id);
         }
 
-        public PagedListViewModel<ProductListViewModel> List(PagingQueryViewModel viewModel, ApiCall apiCall)
+        public PagedListModel<ProductListModel> List(PagingQueryModel viewModel, ApiCall apiCall)
         {
             return new ProductService(apiCall.Context).Query(viewModel);
         }
@@ -36,7 +36,7 @@ namespace Kooboo.Web.Api.Implementation.Commerce
             return new ProductService(apiCall.Context).KeyValue();
         }
 
-        public SkuViewModel[] SkuList(ApiCall apiCall, Guid id)
+        public SkuModel[] SkuList(ApiCall apiCall, Guid id)
         {
             return new ProductService(apiCall.Context).SkuList(id);
         }

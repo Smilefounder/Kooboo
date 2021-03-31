@@ -2,7 +2,7 @@
 using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
-using Kooboo.Sites.Commerce.ViewModels;
+using Kooboo.Sites.Commerce.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,16 +36,16 @@ namespace Kooboo.Sites.Commerce.Services
             }
         }
 
-        public PagedListViewModel<CustomerViewModel> List(PagingQueryViewModel model)
+        public PagedListModel<CustomerModel> List(PagingQueryModel model)
         {
-            var result = new PagedListViewModel<CustomerViewModel>();
+            var result = new PagedListModel<CustomerModel>();
 
             using (var con = DbConnection)
             {
                 var count = con.Count<Customer>();
                 result.SetPageInfo(model, count);
 
-                result.List = con.Query<CustomerViewModel>(@"
+                result.List = con.Query<CustomerModel>(@"
 SELECT T.Id, T.UserName, T.Cart, T.CreateTime
 FROM (SELECT c.id AS Id, UserName, SUM(CASE WHEN CI.SkuId IS NULL THEN 0 ELSE 1 END) AS Cart, c.CreateTime AS CreateTime
       FROM Customer C

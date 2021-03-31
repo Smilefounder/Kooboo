@@ -2,7 +2,7 @@
 using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
-using Kooboo.Sites.Commerce.ViewModels.Category;
+using Kooboo.Sites.Commerce.Models.Category;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +16,7 @@ namespace Kooboo.Sites.Commerce.Services
         {
         }
 
-        public EditCategoryViewModel Get(Guid id)
+        public EditCategoryModel Get(Guid id)
         {
             using (var con = DbConnection)
             {
@@ -28,13 +28,13 @@ namespace Kooboo.Sites.Commerce.Services
                     products = con.Query<Guid>("SELECT ProductId FROM ProductCategory WHERE CategoryId=@Id", category).ToArray();
                 }
 
-                return new EditCategoryViewModel(category, products);
+                return new EditCategoryModel(category, products);
             }
         }
 
-        public CategoryListViewModel[] List()
+        public CategoryListModel[] List()
         {
-            var result = new List<CategoryListViewModel>();
+            var result = new List<CategoryListModel>();
             using (var con = DbConnection)
             {
                 var entities = con.GetList<Category>();
@@ -49,7 +49,7 @@ namespace Kooboo.Sites.Commerce.Services
                     {
                         var rule = JsonHelper.Deserialize<MatchRule.Rule>(item.Rule);
                         var count = productService.MatchList.Where(c => c.Match(rule)).Select(s => s.Id).Distinct().Count();
-                        result.Add(new CategoryListViewModel(item, count));
+                        result.Add(new CategoryListModel(item, count));
                     }
                 }
 
@@ -64,7 +64,7 @@ group by CategoryId
                     foreach (var item in manualEntities)
                     {
                         var count = map.FirstOrDefault(f => f.Key == item.Id).Value;
-                        result.Add(new CategoryListViewModel(item, count));
+                        result.Add(new CategoryListModel(item, count));
                     }
                 }
             }
@@ -72,7 +72,7 @@ group by CategoryId
             return result.ToArray();
         }
 
-        public void Save(EditCategoryViewModel viewModel)
+        public void Save(EditCategoryModel viewModel)
         {
             using (var con = DbConnection)
             {

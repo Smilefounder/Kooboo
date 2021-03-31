@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Text;
 using static Kooboo.Sites.Commerce.Entities.Promotion;
 
-namespace Kooboo.Sites.Commerce.ViewModels.Promotion
+namespace Kooboo.Sites.Commerce.Models.Promotion
 {
-    public class PromotionListViewModel
+    public class PromotionListModel
     {
         public Guid Id { get; set; }
         public string Name { get; set; }

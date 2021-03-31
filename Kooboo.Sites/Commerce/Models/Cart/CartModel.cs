@@ -1,15 +1,15 @@
 ﻿using Kooboo.Sites.Commerce.Services;
-using Kooboo.Sites.Commerce.ViewModels.Promotion;
+using Kooboo.Sites.Commerce.Models.Promotion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce.ViewModels.Cart
+namespace Kooboo.Sites.Commerce.Models.Cart
 {
-    public class CartViewModel
+    public class CartModel
     {
-        readonly List<PromotionMatchViewModel> _promotions = new List<PromotionMatchViewModel>();
+        readonly List<PromotionMatchModel> _promotions = new List<PromotionMatchModel>();
 
         public decimal Amount => Items.Where(w => w.Selected).Sum(s => s.Amount);
         public decimal DiscountAmount
@@ -39,10 +39,10 @@ namespace Kooboo.Sites.Commerce.ViewModels.Cart
             }
         }
         public KeyValuePair<Guid, string>[] Promotions => _promotions.Select(s => new KeyValuePair<Guid, string>(s.Id, s.Name)).ToArray();
-        public CartItemViewModel[] Items { get; set; }
+        public CartItemModel[] Items { get; set; }
         public int Quantity { get; set; }
 
-        public void Discount(IEnumerable<PromotionMatchViewModel> promotions)
+        public void Discount(IEnumerable<PromotionMatchModel> promotions)
         {
 
             foreach (var promotion in promotions)
@@ -92,11 +92,11 @@ namespace Kooboo.Sites.Commerce.ViewModels.Cart
 
         }
 
-        public class CartItemViewModel
+        public class CartItemModel
         {
-            readonly List<PromotionMatchViewModel> _promotions = new List<PromotionMatchViewModel>();
+            readonly List<PromotionMatchModel> _promotions = new List<PromotionMatchModel>();
 
-            public void AddPromotion(PromotionMatchViewModel promotion)
+            public void AddPromotion(PromotionMatchModel promotion)
             {
                 _promotions.Add(promotion);
             }

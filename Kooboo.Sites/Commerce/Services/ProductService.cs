@@ -2,8 +2,8 @@
 using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
-using Kooboo.Sites.Commerce.ViewModels;
-using Kooboo.Sites.Commerce.ViewModels.Product;
+using Kooboo.Sites.Commerce.Models;
+using Kooboo.Sites.Commerce.Models.Product;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,7 +47,7 @@ namespace Kooboo.Sites.Commerce.Services
         {
         }
 
-        public void Save(ProductViewModel viewModel)
+        public void Save(ProductModel viewModel)
         {
             var stockChangedSkus = viewModel.Skus.Where(w => w.Stock != 0).ToArray();
 
@@ -98,7 +98,7 @@ namespace Kooboo.Sites.Commerce.Services
             _matchList = null;
         }
 
-        public ProductViewModel Query(Guid id)
+        public ProductModel Query(Guid id)
         {
             using (var con = DbConnection)
             {
@@ -110,22 +110,22 @@ namespace Kooboo.Sites.Commerce.Services
                      "select SkuId,sum(Quantity) as 'Quantity' from ProductStock where SkuId in @Ids group by SkuId",
                      new { Ids = skus.Select(s => s.Id) });
 
-                var skuViewModels = new List<ProductViewModel.Sku>();
+                var skuViewModels = new List<ProductModel.Sku>();
 
                 foreach (var item in skus)
                 {
                     var stock = stocks.FirstOrDefault(f => f.SkuId == item.Id)?.Quantity ?? 0;
-                    skuViewModels.Add(new ProductViewModel.Sku(item, (int)stock));
+                    skuViewModels.Add(new ProductModel.Sku(item, (int)stock));
                 }
 
-                return new ProductViewModel(product, skuViewModels.ToArray(), new Guid[0]);
+                return new ProductModel(product, skuViewModels.ToArray(), new Guid[0]);
             }
         }
 
-        public PagedListViewModel<ProductListViewModel> Query(PagingQueryViewModel viewModel)
+        public PagedListModel<ProductListModel> Query(PagingQueryModel viewModel)
         {
-            var result = new PagedListViewModel<ProductListViewModel>();
-            result.List = new List<ProductListViewModel>();
+            var result = new PagedListModel<ProductListModel>();
+            result.List = new List<ProductListModel>();
 
             using (var con = DbConnection)
             {
@@ -150,7 +150,7 @@ namespace Kooboo.Sites.Commerce.Services
 
                 foreach (var item in products)
                 {
-                    var product = new ProductListViewModel
+                    var product = new ProductListModel
                     {
                         Id = item.Id,
                         Enable = item.Enable,
@@ -183,9 +183,9 @@ namespace Kooboo.Sites.Commerce.Services
         }
 
 
-        public SkuViewModel[] SkuList(Guid productId)
+        public SkuModel[] SkuList(Guid productId)
         {
-            var result = new List<SkuViewModel>();
+            var result = new List<SkuModel>();
 
             using (var con = DbConnection)
             {
@@ -205,14 +205,14 @@ WHERE P.Id = @ProductId
 GROUP BY Ps.Id
 ", new { ProductId = productId });
 
-                ItemDefineViewModel[] productTypeSpecifications = null;
+                ItemDefineModel[] productTypeSpecifications = null;
                 KeyValuePair<Guid, string>[] productSpecifications = null;
 
                 foreach (var item in list)
                 {
                     if (productTypeSpecifications == null)
                     {
-                        productTypeSpecifications = JsonHelper.Deserialize<ItemDefineViewModel[]>(item.ProductTypeSpecifications);
+                        productTypeSpecifications = JsonHelper.Deserialize<ItemDefineModel[]>(item.ProductTypeSpecifications);
                     }
 
                     if (productSpecifications == null)
@@ -222,7 +222,7 @@ GROUP BY Ps.Id
 
                     var productSkuSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, Guid>[]>(item.ProductSkuSpecifications);
 
-                    result.Add(new SkuViewModel
+                    result.Add(new SkuModel
                     {
                         Id = item.SkuId,
                         ProductId = item.ProductId,

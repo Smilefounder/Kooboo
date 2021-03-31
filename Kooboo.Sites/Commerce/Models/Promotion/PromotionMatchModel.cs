@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 using static Kooboo.Sites.Commerce.Entities.Promotion;
-using static Kooboo.Sites.Commerce.ViewModels.Promotion.PromotionViewModel;
+using static Kooboo.Sites.Commerce.Models.Promotion.PromotionModel;
 
-namespace Kooboo.Sites.Commerce.ViewModels.Promotion
+namespace Kooboo.Sites.Commerce.Models.Promotion
 {
-    public class PromotionMatchViewModel
+    public class PromotionMatchModel
     {
         public Guid Id { get; set; }
         public string Name { get; set; }

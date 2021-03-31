@@ -3,16 +3,16 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce.ViewModels.Category
+namespace Kooboo.Sites.Commerce.Models.Category
 {
-    public class CategoryListViewModel : CategoryViewModel
+    public class CategoryListModel : CategoryModel
     {
-        public CategoryListViewModel()
+        public CategoryListModel()
         {
 
         }
 
-        public CategoryListViewModel(Entities.Category category, int productCount)
+        public CategoryListModel(Entities.Category category, int productCount)
         {
             Id = category.Id;
             Name = category.Name;

@@ -2,19 +2,19 @@
 using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
-using Kooboo.Sites.Commerce.ViewModels.Promotion;
+using Kooboo.Sites.Commerce.Models.Promotion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using static Kooboo.Sites.Commerce.Entities.Promotion;
-using static Kooboo.Sites.Commerce.ViewModels.Promotion.PromotionViewModel;
+using static Kooboo.Sites.Commerce.Models.Promotion.PromotionModel;
 
 namespace Kooboo.Sites.Commerce.Services
 {
     public class PromotionService : ServiceBase
     {
-        static PromotionMatchViewModel[] _matchList = null;
+        static PromotionMatchModel[] _matchList = null;
         readonly static object _locker = new object();
 
         public PromotionService(RenderContext context) : base(context)
@@ -22,7 +22,7 @@ namespace Kooboo.Sites.Commerce.Services
 
         }
 
-        public IEnumerable<PromotionMatchViewModel> MatchList
+        public IEnumerable<PromotionMatchModel> MatchList
         {
             get
             {
@@ -58,7 +58,7 @@ SELECT Id,
 FROM Promotion
 WHERE CURRENT_TIMESTAMP <= DATETIME(Promotion.EndTime)
 ");
-                _matchList = list.Select(s => new PromotionMatchViewModel
+                _matchList = list.Select(s => new PromotionMatchModel
                 {
                     Discount = s.Discount,
                     Exclusive = s.Exclusive,
@@ -73,18 +73,18 @@ WHERE CURRENT_TIMESTAMP <= DATETIME(Promotion.EndTime)
             }
         }
 
-        public PromotionViewModel Get(Guid id)
+        public PromotionModel Get(Guid id)
         {
             using (var con = DbConnection)
             {
                 var entity = con.Get<Promotion>(id);
-                return new PromotionViewModel(entity);
+                return new PromotionModel(entity);
             }
         }
 
-        public PromotionListViewModel[] List()
+        public PromotionListModel[] List()
         {
-            var result = new List<PromotionListViewModel>();
+            var result = new List<PromotionListModel>();
             using (var con = DbConnection)
             {
                 var list = con.Query("SELECT Id,Name,StartTime,EndTime,Exclusive,Priority,Target,Discount,Type FROM Promotion");
@@ -93,7 +93,7 @@ WHERE CURRENT_TIMESTAMP <= DATETIME(Promotion.EndTime)
                 {
                     var startTime = ((DateTime)item.StartTime).ToUniversalTime();
                     var endTime = ((DateTime)item.EndTime).ToUniversalTime();
-                    result.Add(new PromotionListViewModel
+                    result.Add(new PromotionListModel
                     {
                         Active = DateTime.UtcNow >= startTime && DateTime.UtcNow <= endTime,
                         Exclusive = Convert.ToBoolean(item.Exclusive),
@@ -109,7 +109,7 @@ WHERE CURRENT_TIMESTAMP <= DATETIME(Promotion.EndTime)
             return result.ToArray();
         }
 
-        public void Save(PromotionViewModel model)
+        public void Save(PromotionModel model)
         {
             var entity = model.ToPromotion();
 

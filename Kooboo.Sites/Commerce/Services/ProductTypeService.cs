@@ -1,7 +1,7 @@
 ﻿using Dapper;
 using Kooboo.Data.Context;
 using Kooboo.Sites.Commerce.Entities;
-using Kooboo.Sites.Commerce.ViewModels.Product;
+using Kooboo.Sites.Commerce.Models.Product;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,7 @@ namespace Kooboo.Sites.Commerce.Services
         {
         }
 
-        public void Save(ProductTypeViewModel viewModel)
+        public void Save(ProductTypeModel viewModel)
         {
             using (var con = DbConnection)
             {
@@ -28,21 +28,21 @@ namespace Kooboo.Sites.Commerce.Services
             }
         }
 
-        public ProductTypeViewModel Get(Guid id)
+        public ProductTypeModel Get(Guid id)
         {
             using (var con = DbConnection)
             {
                 var entity = con.Get<ProductType>(id);
-                return new ProductTypeViewModel(entity);
+                return new ProductTypeModel(entity);
             }
         }
 
-        public ProductTypeViewModel[] List()
+        public ProductTypeModel[] List()
         {
             using (var con = DbConnection)
             {
                 var entities = con.GetList<ProductType>();
-                return entities.Select(s => new ProductTypeViewModel(s)).ToArray();
+                return entities.Select(s => new ProductTypeModel(s)).ToArray();
             }
         }
 

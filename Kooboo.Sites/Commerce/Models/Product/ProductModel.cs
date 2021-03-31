@@ -4,16 +4,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce.ViewModels.Product
+namespace Kooboo.Sites.Commerce.Models.Product
 {
-    public class ProductViewModel
+    public class ProductModel
     {
-        public ProductViewModel()
+        public ProductModel()
         {
 
         }
 
-        public ProductViewModel(Entities.Product product, Sku[] skus, Guid[] categories)
+        public ProductModel(Entities.Product product, Sku[] skus, Guid[] categories)
         {
             Id = product.Id;
             Title = product.Title;

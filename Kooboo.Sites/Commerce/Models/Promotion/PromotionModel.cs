@@ -5,17 +5,17 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce.ViewModels.Promotion
+namespace Kooboo.Sites.Commerce.Models.Promotion
 {
-    public class PromotionViewModel
+    public class PromotionModel
     {
-        public PromotionViewModel()
+        public PromotionModel()
         {
 
         }
 
 
-        public PromotionViewModel(Entities.Promotion promotion)
+        public PromotionModel(Entities.Promotion promotion)
         {
             Id = promotion.Id;
             Name = promotion.Name;

@@ -4,11 +4,11 @@ using System.Text;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
 
-namespace Kooboo.Sites.Commerce.ViewModels
+namespace Kooboo.Sites.Commerce.Models
 {
-    public class CustomerViewModel
+    public class CustomerModel
     {
-        public CustomerViewModel()
+        public CustomerModel()
         {
 
         }

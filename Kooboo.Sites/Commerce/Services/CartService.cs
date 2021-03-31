@@ -2,8 +2,8 @@
 using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
-using Kooboo.Sites.Commerce.ViewModels;
-using Kooboo.Sites.Commerce.ViewModels.Cart;
+using Kooboo.Sites.Commerce.Models;
+using Kooboo.Sites.Commerce.Models.Cart;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,7 +37,7 @@ namespace Kooboo.Sites.Commerce.Services
             }
         }
 
-        public CartViewModel GetCart(Guid customerId)
+        public CartModel GetCart(Guid customerId)
         {
             using (var con = DbConnection)
             {
@@ -62,16 +62,16 @@ WHERE CustomerId = @CustomerId
 GROUP BY CI.SkuId
 ", new { CustomerId = customerId });
 
-                var cart = new CartViewModel();
-                var items = new List<CartViewModel.CartItemViewModel>();
+                var cart = new CartModel();
+                var items = new List<CartModel.CartItemModel>();
 
                 foreach (var item in list)
                 {
-                    var typeSpecifications = JsonHelper.Deserialize<ItemDefineViewModel[]>(item.ProductTypeSpecifications);
+                    var typeSpecifications = JsonHelper.Deserialize<ItemDefineModel[]>(item.ProductTypeSpecifications);
                     var skuSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, Guid>[]>(item.ProductSkuSpecifications);
                     var productSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(item.ProductSpecifications);
 
-                    items.Add(new CartViewModel.CartItemViewModel()
+                    items.Add(new CartModel.CartItemModel()
                     {
                         Id = item.Id,
                         Price = (decimal)item.Price,

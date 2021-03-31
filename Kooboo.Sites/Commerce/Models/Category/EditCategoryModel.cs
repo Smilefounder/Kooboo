@@ -3,13 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce.ViewModels.Category
+namespace Kooboo.Sites.Commerce.Models.Category
 {
-    public class EditCategoryViewModel : CategoryViewModel
+    public class EditCategoryModel : CategoryModel
     {
-        public EditCategoryViewModel() { }
+        public EditCategoryModel() { }
 
-        public EditCategoryViewModel(Entities.Category category, Guid[] products)
+        public EditCategoryModel(Entities.Category category, Guid[] products)
         {
             Id = category.Id;
             Name = category.Name;

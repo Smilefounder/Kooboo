@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce.ViewModels.Product
+namespace Kooboo.Sites.Commerce.Models.Product
 {
-    public class EditProductTypeViewModel : ProductTypeViewModel
+    public class EditProductTypeModel : ProductTypeModel
     {
-        public EditProductTypeViewModel(ProductTypeViewModel viewModel, bool hasDependent)
+        public EditProductTypeModel(ProductTypeModel viewModel, bool hasDependent)
         {
             Id = viewModel.Id;
             Name = viewModel.Name;

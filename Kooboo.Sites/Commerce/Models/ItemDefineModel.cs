@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce.ViewModels
+namespace Kooboo.Sites.Commerce.Models
 {
-    public class ItemDefineViewModel
+    public class ItemDefineModel
     {
         public Guid Id { get; set; }
         public string Name { get; set; }

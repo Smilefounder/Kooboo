@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce.ViewModels
+namespace Kooboo.Sites.Commerce.Models
 {
-    public class PagedListViewModel<T>
+    public class PagedListModel<T>
     {
         public long PageIndex { get; set; }
         public long PageCount { get; set; }
         public List<T> List { get; set; }
 
-        public void SetPageInfo(PagingQueryViewModel paging, long count)
+        public void SetPageInfo(PagingQueryModel paging, long count)
         {
             PageIndex = paging.Index;
             PageCount = count / paging.Size + (count % paging.Size > 0 ? 1 : 0);

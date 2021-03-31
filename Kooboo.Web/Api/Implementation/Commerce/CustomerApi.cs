@@ -1,6 +1,6 @@
 ﻿using Kooboo.Api;
 using Kooboo.Sites.Commerce.Services;
-using Kooboo.Sites.Commerce.ViewModels;
+using Kooboo.Sites.Commerce.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -20,7 +20,7 @@ namespace Kooboo.Web.Api.Implementation.Commerce
             new CustomerService(apiCall.Context).Register(userName, password);
         }
 
-        public PagedListViewModel<CustomerViewModel> List(PagingQueryViewModel viewModel, ApiCall apiCall)
+        public PagedListModel<CustomerModel> List(PagingQueryModel viewModel, ApiCall apiCall)
         {
             return new CustomerService(apiCall.Context).List(viewModel);
         }

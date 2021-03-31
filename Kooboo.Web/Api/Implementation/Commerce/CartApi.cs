@@ -1,7 +1,7 @@
 ﻿using Kooboo.Api;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Services;
-using Kooboo.Sites.Commerce.ViewModels.Cart;
+using Kooboo.Sites.Commerce.Models.Cart;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -22,7 +22,7 @@ namespace Kooboo.Web.Api.Implementation.Commerce
             new CartService(apiCall.Context).SaveItem(cartItem);
         }
 
-        public CartViewModel Get(Guid id, ApiCall apiCall)
+        public CartModel Get(Guid id, ApiCall apiCall)
         {
             return new CartService(apiCall.Context).GetCart(id);
         }

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce.ViewModels
+namespace Kooboo.Sites.Commerce.Models
 {
-    public class PagingQueryViewModel
+    public class PagingQueryModel
     {
         //start from 1
         public long Index { get; set; }

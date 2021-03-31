@@ -1,6 +1,6 @@
 ﻿using Kooboo.Api;
 using Kooboo.Sites.Commerce.Services;
-using Kooboo.Sites.Commerce.ViewModels.Category;
+using Kooboo.Sites.Commerce.Models.Category;
 using System;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
@@ -13,17 +13,17 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public bool RequireUser => true;
 
-        public CategoryListViewModel[] List(ApiCall apiCall)
+        public CategoryListModel[] List(ApiCall apiCall)
         {
             return new CategoryService(apiCall.Context).List();
         }
 
-        public EditCategoryViewModel Get(ApiCall apiCall, Guid id)
+        public EditCategoryModel Get(ApiCall apiCall, Guid id)
         {
             return new CategoryService(apiCall.Context).Get(id);
         }
 
-        public void Post(EditCategoryViewModel viewModel, ApiCall apiCall)
+        public void Post(EditCategoryModel viewModel, ApiCall apiCall)
         {
             new CategoryService(apiCall.Context).Save(viewModel);
         }

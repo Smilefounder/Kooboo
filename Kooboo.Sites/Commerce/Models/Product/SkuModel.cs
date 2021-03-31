@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce.ViewModels.Product
+namespace Kooboo.Sites.Commerce.Models.Product
 {
-    public class SkuViewModel
+    public class SkuModel
     {
         public Guid Id { get; set; }
         public Guid ProductId { get; set; }

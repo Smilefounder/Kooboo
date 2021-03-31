@@ -4,26 +4,26 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce.ViewModels.Product
+namespace Kooboo.Sites.Commerce.Models.Product
 {
-    public class ProductTypeViewModel
+    public class ProductTypeModel
     {
-        public ProductTypeViewModel()
+        public ProductTypeModel()
         {
         }
 
-        public ProductTypeViewModel(ProductType entity)
+        public ProductTypeModel(ProductType entity)
         {
             Id = entity.Id;
             Name = entity.Name;
-            Attributes = JsonHelper.Deserialize<ItemDefineViewModel[]>(entity.Attributes);
-            Specifications = JsonHelper.Deserialize<ItemDefineViewModel[]>(entity.Specifications);
+            Attributes = JsonHelper.Deserialize<ItemDefineModel[]>(entity.Attributes);
+            Specifications = JsonHelper.Deserialize<ItemDefineModel[]>(entity.Specifications);
         }
 
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public ItemDefineViewModel[] Attributes { get; set; }
-        public ItemDefineViewModel[] Specifications { get; set; }
+        public ItemDefineModel[] Attributes { get; set; }
+        public ItemDefineModel[] Specifications { get; set; }
 
         public ProductType ToEntity()
         {
