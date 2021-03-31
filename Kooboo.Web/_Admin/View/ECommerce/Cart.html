@@ -16,6 +16,7 @@
             <th>Promotions</th>
             <th>Price</th>
             <th>Quantity</th>
+            <th>Total Amount</th>
             <th>Stock</th>
             <th></th>
           </thead>
@@ -49,19 +50,29 @@
               </td>
               <td>{{item.price}}</td>
               <td>{{item.quantity}}</td>
+              <td>
+                <div>
+                  <template v-if="item.amount!=item.discountAmount">
+                    <span>(</span>
+                    <s>{{item.amount}}</s>
+                    <span>)</span>
+                    <span>{{item.discountAmount}}</span>
+                  </template>
+                  <template v-else>{{item.amount}}</template>
+                </div>
+              </td>
               <td>{{item.stock}}</td>
-              <td style="text-align: right"
-                ><a class="btn red" @click.stop="removeItem(item.id)"
-                  >Remove</a
-                ></td
-              >
+              <td style="text-align: right">
+                <a class="btn red" @click.stop="removeItem(item.id)">Remove</a>
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
       <div>
         <div style="display: flex; align-items: center">
-          <span style="margin-right: 10px">Promotions :</span>
+          <span>Promotions</span>
+          <span style="margin-right: 10px">:</span>
           <span
             class="label label-success"
             v-for="item in cart.promotions"
@@ -71,12 +82,15 @@
           >
         </div>
         <div style="display: flex; align-items: center">
-          <span style="margin-right: 10px">Original amount :</span>
-          <span>{{cart.amount}}</span>
-        </div>
-        <div style="display: flex; align-items: center">
-          <span style="margin-right: 10px">Price after discount :</span>
-          <span>{{cart.discountAmount}}</span>
+          <span>Total amount</span>
+          <span style="margin-right: 10px">:</span>
+          <template v-if="cart.amount!=cart.discountAmount">
+            <span>(</span>
+            <s>{{cart.amount}}</s>
+            <span>)</span>
+            <span>{{cart.discountAmount}}</span>
+          </template>
+          <template v-else>{{cart.amount}}</template>
         </div>
       </div>
     </fieldset>

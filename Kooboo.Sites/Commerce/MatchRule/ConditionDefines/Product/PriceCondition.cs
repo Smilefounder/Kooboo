@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce.MatchRule.Category
+namespace Kooboo.Sites.Commerce.MatchRule.ConditionDefines.Product
 {
     public class PriceCondition : ConditionDefineBase<TargetModels.Product>
     {

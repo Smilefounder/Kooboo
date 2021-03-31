@@ -86,6 +86,7 @@ namespace Kooboo.Sites.Commerce.Models.Cart
                         }
 
                         if (shouldBreack) break;
+                        if (promotion.Exclusive) return;
                     }
                 }
             }

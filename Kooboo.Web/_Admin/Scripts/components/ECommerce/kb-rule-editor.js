@@ -11,7 +11,7 @@
     props: ["rule", "defines"],
     data() {
       return {
-        id:Kooboo.Guid.NewGuid(),
+        id: Kooboo.Guid.NewGuid(),
         keyValues: [],
       };
     },
@@ -20,7 +20,7 @@
     },
     mounted() {
       for (const condition of this.rule.conditions) {
-        this.propertyChanged(condition)
+        this.propertyChanged(condition);
       }
     },
     computed: {},
@@ -49,12 +49,17 @@
               this.keyValues = rsp.model;
             });
             break;
+          case "ProductId":
+            Kooboo.Product.keyValue().then((rsp) => {
+              this.keyValues = rsp.model;
+            });
+            break;
 
           default:
             break;
         }
 
-        item.value="";
+        item.value = "";
       },
     },
   });
