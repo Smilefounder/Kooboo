@@ -18,12 +18,7 @@ namespace Kooboo.Sites.Commerce
             Context = context;
             var path = Path.Combine(AppSettings.GetFileIORoot(context.WebSite), "commerce.db");
             _connectionString = $"Data source = '{path}';Version=3;BinaryGUID=False;foreign keys=true";
-
-            using (var con = DbConnection)
-            {
-                con.Open();
-                Migrator.TryMigrate(context.WebSite.Id, con, false);
-            }
+            if(!Migrator.IsMigrated(context.WebSite.Id)) Migrator.TryMigrate(context.WebSite.Id, DbConnection);
         }
 
     }

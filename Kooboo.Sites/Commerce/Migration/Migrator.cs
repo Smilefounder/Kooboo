@@ -15,39 +15,51 @@ namespace Kooboo.Sites.Commerce.Migration
         readonly static List<Guid> _migratedSites = new List<Guid>();
         readonly static List<IMigration> _migrationRecords = Lib.IOC.Service.GetInstances<IMigration>();
 
-
-        public static void TryMigrate(Guid siteId, IDbConnection connection, bool rebuild = false)
+        public static bool IsMigrated(Guid siteId)
         {
-            bool migrated = false;
-
             lock (_locker)
             {
-                migrated = _migratedSites.Contains(siteId);
-                if (!migrated) _migratedSites.Add(siteId);
+                return _migratedSites.Contains(siteId);
             }
+        }
 
-            if (!migrated)
+
+        public static void TryMigrate(Guid siteId, IDbConnection connection)
+        {
+            lock (_locker)
             {
-                if (rebuild)
+                if (!IsMigrated(siteId))
                 {
-                    var tran = connection.BeginTransaction();
-                    connection.Execute(@"
-                        drop table if exists 'CartItem';
-                        drop table if exists 'ProductCategory';
-                        drop table if exists 'ProductStock';
-                        drop table if exists 'ProductSku';
-                        drop table if exists 'Product';
-                        drop table if exists 'Category';
-                        drop table if exists 'ProductType';
-                        drop table if exists 'Promotion';
-                        drop table if exists 'Customer';
-                        drop table if exists '_migration';
-                    ");
-                    tran.Commit();
+                    using (connection)
+                    {
+                        connection.Open();
+                        DeleteTables(connection); //rebuild
+                        Migrate(connection);
+                    }
                 }
 
-                Migrate(connection);
+                _migratedSites.Add(siteId);
             }
+        }
+
+        private static void DeleteTables(IDbConnection connection)
+        {
+            var tran = connection.BeginTransaction();
+            connection.Execute(@"
+drop table if exists 'OrderItem';
+drop table if exists 'Order';
+drop table if exists 'CartItem';
+drop table if exists 'ProductCategory';
+drop table if exists 'ProductStock';
+drop table if exists 'ProductSku';
+drop table if exists 'Product';
+drop table if exists 'Category';
+drop table if exists 'ProductType';
+drop table if exists 'Promotion';
+drop table if exists 'Customer';
+drop table if exists '_migration';
+");
+            tran.Commit();
         }
 
         public static void Migrate(IDbConnection connection)

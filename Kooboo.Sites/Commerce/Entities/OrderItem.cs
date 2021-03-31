@@ -6,14 +6,25 @@ namespace Kooboo.Sites.Commerce.Entities
 {
     public class OrderItem : EntityBase
     {
-        public Guid? SkuId { get; set; }
-        public string Title { get; set; }
+        public Guid OrderId { get; set; }
+        public Guid ProductId { get; set; }
+        public Guid SkuId { get; set; }
+        public string ProductName { get; set; }
         public string Specifications { get; set; }
         public decimal Price { get; set; }
         public decimal Tax { get; set; }
-        public Guid? Discount { get; set; }
-        public string DiscountDetail { get; set; }
+        public string Promotions { get; set; }
         public int Quantity { get; set; }
-        public int State { get; set; }
+        public OrderItemState State { get; set; }
+
+        public enum OrderItemState
+        {
+            WaitingPay = 0,
+            Paid = 1,
+            Shipped = 2,
+            Finish = 3,
+            Refunding = 4,
+            Refunded = 5
+        }
     }
 }

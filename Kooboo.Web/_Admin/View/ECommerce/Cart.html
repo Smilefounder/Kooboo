@@ -1,12 +1,16 @@
 <!-- #layout name=default -->
 
 <div id="main" class="clearfix">
-  <div class="col-md-8 col-md-offset-2">
+  <div class="col-md-8 col-md-offset-2" v-if="cart">
     <fieldset class="margin-bottom-15 clearfix">
       <div class="form-horizontal">
         <table class="table" style="border-bottom: 1px solid #dddddd">
           <thead>
-            <th> <a class="btn btn-ms green" @click="showProductModal=true">Add Product</a></th>
+            <th>
+              <a class="btn btn-ms green" @click="showProductModal=true"
+                >Add Product</a
+              ></th
+            >
             <th>Product</th>
             <th>Specifications</th>
             <th>Promotions</th>
@@ -16,7 +20,11 @@
             <th></th>
           </thead>
           <tbody v-if="cart">
-            <tr v-for="item in cart.items" :key="item.id">
+            <tr
+              v-for="item in cart.items"
+              :key="item.id"
+              :style="{backgroundColor:item.quantity>item.stock?'#ffe7e7':''}"
+            >
               <td
                 ><input
                   type="checkbox"
@@ -53,7 +61,7 @@
       </div>
       <div>
         <div style="display: flex; align-items: center">
-          <span style="margin-right: 10px">Promotion :</span>
+          <span style="margin-right: 10px">Promotions :</span>
           <span
             class="label label-success"
             v-for="item in cart.promotions"
