@@ -1,4 +1,8 @@
-﻿using Kooboo.Data.Context;
+﻿using Dapper;
+using Kooboo.Data.Context;
+using Kooboo.Lib.Helper;
+using Kooboo.Sites.Commerce.Entities;
+using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Order;
 using System;
 using System.Collections.Generic;
@@ -20,9 +24,10 @@ namespace Kooboo.Sites.Commerce.Services
                 con.Open();
                 var tran = con.BeginTransaction();
                 var cart = new CartService(Context).GetCart(model.CustomerId, con, true);
+                var consignee = new ConsigneeService(Context).Get(model.ConsigneeId, con);
                 CheckStock(cart);
-
                 var order = model.ToOrder(cart);
+                order.Consignee = JsonHelper.Serialize(consignee);
                 var orderItems = new List<Entities.OrderItem>();
                 var stocks = new List<Entities.ProductStock>();
 
@@ -76,6 +81,36 @@ namespace Kooboo.Sites.Commerce.Services
             };
 
             return order;
+        }
+
+        public PagedListModel<OrderListModel> Query(PagingQueryModel model)
+        {
+            var result = new PagedListModel<OrderListModel>();
+
+            using (var con = DbConnection)
+            {
+                var count = con.Count<Order>();
+                result.SetPageInfo(model, count);
+                result.List = con.Query<OrderListModel>(@"
+SELECT O.Id,
+       CreateTime,
+       PaymentTime,
+       PaymentMethod,
+       Amount,
+       O.State,
+       COUNT(1) AS ItemCount
+FROM 'Order' O
+         LEFT JOIN OrderItem OI ON O.Id = OI.OrderId
+GROUP BY O.Id
+LIMIT @Size OFFSET @Offset
+", new
+                {
+                    model.Size,
+                    Offset = result.GetOffset(model.Size)
+                }).ToList();
+            }
+
+            return result;
         }
     }
 }

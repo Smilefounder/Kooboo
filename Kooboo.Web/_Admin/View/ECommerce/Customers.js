@@ -34,27 +34,6 @@ $(function () {
           id: id,
         });
       },
-      productSelected(rows) {
-        this.editData.products.push(...rows.map((m) => m.key));
-      },
-      save() {
-        Kooboo.Category.post(this.editData).then((rsp) => {
-          if (!rsp.success) return;
-          this.getData();
-          this.showModal = false;
-        });
-      },
-      getData() {
-        Kooboo.Customer.getList({ index: 1, size: 5 }).then((res) => {
-          if (res.success) {
-            this.list = res.model.list;
-            this.pager = {
-              pageNr: res.model.pageIndex,
-              totalPages: res.model.pageCount,
-            };
-          }
-        });
-      },
       deletes() {
         Kooboo.Category.Delete(this.selectedRows.map((m) => m.id)).then(
           (rsp) => {
@@ -85,32 +64,6 @@ $(function () {
       registerCustomer() {
         this.registerModel = { userName: "", password: "" };
         this.showRegisterModal = true;
-      },
-    },
-    computed: {
-      selectorProducts() {
-        var selectedProducts = this.editData ? this.editData.products : [];
-        var result = [];
-
-        for (const product of this.products) {
-          if (!selectedProducts.find((f) => f == product.key)) {
-            result.push(product);
-          }
-        }
-
-        return result;
-      },
-      selectedProducts() {
-        var selectedProducts = this.editData ? this.editData.products : [];
-        var result = [];
-
-        for (const product of this.products) {
-          if (selectedProducts.find((f) => f == product.key)) {
-            result.push(product);
-          }
-        }
-
-        return result;
       },
     },
   });

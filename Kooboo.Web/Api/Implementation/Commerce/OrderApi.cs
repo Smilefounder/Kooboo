@@ -1,4 +1,5 @@
 ﻿using Kooboo.Api;
+using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Order;
 using Kooboo.Sites.Commerce.Services;
 using System;
@@ -15,9 +16,19 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public bool RequireUser => false;
 
+        public void Create(CreateOrderModel model, ApiCall apiCall)
+        {
+            new OrderService(apiCall.Context).CreateOrder(model);
+        }
+
         public OrderPreviewModel Preview(Guid id, ApiCall apiCall)
         {
             return new OrderService(apiCall.Context).Preview(id);
+        }
+
+        public PagedListModel<OrderListModel> List(PagingQueryModel model, ApiCall apiCall)
+        {
+            return new OrderService(apiCall.Context).Query(model);
         }
     }
 }

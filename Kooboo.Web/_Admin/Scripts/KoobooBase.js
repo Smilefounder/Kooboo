@@ -1748,6 +1748,9 @@
     this.preview = function (para) {
       return this.executeGet("Preview", para);
     };
+    this.create = function (para) {
+      return this.executePost("Create", para);
+    };
   }
 
   extend(Order, BaseModel);

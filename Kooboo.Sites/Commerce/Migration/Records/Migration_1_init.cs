@@ -195,8 +195,8 @@ create table 'Order'
 	'CreateTime' datetime not null,
 	'PaymentTime' datetime,
 	'Amount' real not null,
-	'Address' text not null,
-	'Contact' text not null,
+	'PaymentMethod' text not null,
+	'Consignee' text not null,
 	'State' int not null,
 	'Promotions' text not null
 );

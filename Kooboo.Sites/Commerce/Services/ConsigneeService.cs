@@ -3,6 +3,7 @@ using Kooboo.Data.Context;
 using Kooboo.Sites.Commerce.Entities;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 
@@ -22,12 +23,11 @@ namespace Kooboo.Sites.Commerce.Services
             }
         }
 
-        public Consignee Get(Guid id)
+        public Consignee Get(Guid id, IDbConnection connection = null)
         {
-            using (var con = DbConnection)
-            {
-                return con.Get<Consignee>(id);
-            }
+            var con = connection ?? DbConnection;
+            return con.Get<Consignee>(id);
+            if (connection == null) con.Dispose();
         }
 
         public void Save(Consignee consignee)

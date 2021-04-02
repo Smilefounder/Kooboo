@@ -24,6 +24,11 @@ $(function () {
       specificationsDisplay(specifications) {
         return specifications.map((m) => `[${m.key}:${m.value}]`).join(" ");
       },
+      submitOrder() {
+        Kooboo.Order.create(this.model).then((rsp) => {
+          location.href = Kooboo.Route.Get(Kooboo.Route.Customer.ListPage);
+        });
+      },
     },
   });
 });

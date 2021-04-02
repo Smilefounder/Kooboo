@@ -16,13 +16,13 @@ namespace Kooboo.Sites.Commerce
         public static T Get<T>(this IDbConnection connection, Guid id) where T : EntityBase
         {
             string[] strs = GetTypeMemberString<T>();
-            return connection.QueryFirstOrDefault<T>($"SELECT {strs[0]} FROM {typeof(T).Name} WHERE Id=@Id LIMIT 1", new { Id = id });
+            return connection.QueryFirstOrDefault<T>($"SELECT {strs[0]} FROM '{typeof(T).Name}' WHERE Id=@Id LIMIT 1", new { Id = id });
         }
 
         public static IEnumerable<T> GetList<T>(this IDbConnection connection) where T : class
         {
             string[] strs = GetTypeMemberString<T>();
-            return connection.Query<T>($"SELECT {strs[0]} FROM {typeof(T).Name}");
+            return connection.Query<T>($"SELECT {strs[0]} FROM '{typeof(T).Name}'");
         }
 
         #endregion
@@ -31,14 +31,14 @@ namespace Kooboo.Sites.Commerce
         public static void Insert<T>(this IDbConnection connection, T entity) where T : class
         {
             string[] strs = GetTypeMemberString<T>();
-            connection.Execute($"INSERT INTO {typeof(T).Name} ({strs[0]}) VALUES ({strs[2]})", entity);
+            connection.Execute($"INSERT INTO '{typeof(T).Name}' ({strs[0]}) VALUES ({strs[2]})", entity);
         }
 
         public static void InsertList<T>(this IDbConnection connection, IEnumerable<T> entities) where T : class
         {
             if (!entities.Any()) return;
             string[] strs = GetTypeMemberString<T>();
-            connection.Execute($"INSERT INTO {typeof(T).Name} ({strs[0]}) VALUES ({strs[2]})", entities);
+            connection.Execute($"INSERT INTO '{typeof(T).Name}' ({strs[0]}) VALUES ({strs[2]})", entities);
         }
         #endregion
 
@@ -46,52 +46,52 @@ namespace Kooboo.Sites.Commerce
         public static void Update<T>(this IDbConnection connection, T entity) where T : EntityBase
         {
             string[] strs = GetTypeMemberString<T>();
-            connection.Execute($"UPDATE {typeof(T).Name} SET {strs[1]} WHERE Id =@Id", entity);
+            connection.Execute($"UPDATE '{typeof(T).Name}' SET {strs[1]} WHERE Id =@Id", entity);
         }
 
         public static void UpdateList<T>(this IDbConnection connection, IEnumerable<T> entities) where T : EntityBase
         {
             if (!entities.Any()) return;
             string[] strs = GetTypeMemberString<T>();
-            connection.Execute($"UPDATE {typeof(T).Name} SET {strs[1]} WHERE Id =@Id", entities);
+            connection.Execute($"UPDATE '{typeof(T).Name}' SET {strs[1]} WHERE Id =@Id", entities);
         }
         #endregion
 
         #region Delete
         public static void Delete<T>(this IDbConnection connection, Guid id) where T : EntityBase
         {
-            connection.Execute($"DELETE FROM {typeof(T).Name} WHERE Id =@Id", new { Id = id });
+            connection.Execute($"DELETE FROM '{typeof(T).Name}' WHERE Id =@Id", new { Id = id });
         }
 
         public static void Delete<T>(this IDbConnection connection, T entity) where T : EntityBase
         {
-            connection.Execute($"DELETE FROM {typeof(T).Name} WHERE Id =@Id", entity);
+            connection.Execute($"DELETE FROM '{typeof(T).Name}' WHERE Id =@Id", entity);
         }
 
         public static void DeleteList<T>(this IDbConnection connection, IEnumerable<Guid> ids) where T : EntityBase
         {
             if (!ids.Any()) return;
-            connection.Execute($"DELETE FROM {typeof(T).Name} WHERE Id IN (@Id)", ids.Select(s => new { Id = s }));
+            connection.Execute($"DELETE FROM '{typeof(T).Name}' WHERE Id IN (@Id)", ids.Select(s => new { Id = s }));
         }
 
         public static void DeleteList<T>(this IDbConnection connection, IEnumerable<T> entities) where T : EntityBase
         {
             if (!entities.Any()) return;
-            connection.Execute($"DELETE FROM {typeof(T).Name} WHERE Id IN (@Id)", entities);
+            connection.Execute($"DELETE FROM '{typeof(T).Name}' WHERE Id IN (@Id)", entities);
         }
         #endregion
 
         #region Exist
         public static bool Exist<T>(this IDbConnection connection, Guid id) where T : EntityBase
         {
-            return connection.QuerySingleOrDefault<bool?>($"SELECT 1 FROM {typeof(T).Name} WHERE Id =@Id LIMIT 1", new { Id = id }) ?? false;
+            return connection.QuerySingleOrDefault<bool?>($"SELECT 1 FROM '{typeof(T).Name}' WHERE Id =@Id LIMIT 1", new { Id = id }) ?? false;
         }
         #endregion
 
         #region Count
         public static int Count<T>(this IDbConnection connection) where T : EntityBase
         {
-            return connection.QuerySingleOrDefault<int>($"select count(1) from {typeof(T).Name}");
+            return connection.QuerySingleOrDefault<int>($"select count(1) from '{typeof(T).Name}'");
         }
         #endregion
 

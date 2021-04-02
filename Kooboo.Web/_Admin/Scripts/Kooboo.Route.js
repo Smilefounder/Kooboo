@@ -173,6 +173,9 @@
         Cart: {
             Settlement: GetRoute("ECommerce/Settlement"),
         },
+        Order: {
+            DetailPage: GetRoute("ECommerce/Order"),
+        },
         Market: {
             IndexPage: GetRoute("Market/Index", true)
         },
