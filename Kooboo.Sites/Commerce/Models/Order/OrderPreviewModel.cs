@@ -7,9 +7,9 @@ namespace Kooboo.Sites.Commerce.Models.Order
     public class OrderPreviewModel
     {
         public decimal Amount { get; set; }
-        public OrderItemPreviewModel[] Items { get; set; }
+        public Item[] Items { get; set; }
 
-        public class OrderItemPreviewModel
+        public class Item
         {
             public string ProductName { get; set; }
             public KeyValuePair<string, string>[] Specifications { get; set; }

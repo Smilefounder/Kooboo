@@ -18,7 +18,12 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public void Create(CreateOrderModel model, ApiCall apiCall)
         {
-            new OrderService(apiCall.Context).CreateOrder(model);
+            new OrderService(apiCall.Context).Create(model);
+        }
+
+        public OrderDetailModel Get(Guid id, ApiCall apiCall)
+        {
+            return new OrderService(apiCall.Context).Get(id);
         }
 
         public OrderPreviewModel Preview(Guid id, ApiCall apiCall)

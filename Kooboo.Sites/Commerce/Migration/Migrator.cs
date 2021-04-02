@@ -33,7 +33,7 @@ namespace Kooboo.Sites.Commerce.Migration
                     using (connection)
                     {
                         connection.Open();
-                       // DeleteTables(connection); //rebuild
+                        //DeleteTables(connection); //rebuild
                         Migrate(connection);
                     }
                 }

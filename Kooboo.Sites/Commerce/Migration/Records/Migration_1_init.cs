@@ -217,7 +217,7 @@ create table 'OrderItem'
 	'ProductName' text not null,
 	'Specifications' text not null,
 	'Price' real not null,
-	'Tax' text not null,
+	'Tax' real not null,
 	'Quantity' int not null,
 	'State' int not null,
 	'Promotions' text not null

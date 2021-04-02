@@ -17,7 +17,7 @@ namespace Kooboo.Sites.Commerce.Services
         {
         }
 
-        public void CreateOrder(CreateOrderModel model)
+        public void Create(CreateOrderModel model)
         {
             using (var con = DbConnection)
             {
@@ -55,6 +55,66 @@ namespace Kooboo.Sites.Commerce.Services
             }
         }
 
+        public OrderDetailModel Get(Guid id)
+        {
+            using (var con = DbConnection)
+            {
+                var order = con.QueryFirstOrDefault(@"
+SELECT C.UserName,
+       O.CreateTime,
+       O.PaymentTime,
+       O.PaymentMethod,
+       O.Amount,
+       O.State,
+       O.Promotions,
+       O.Consignee
+FROM 'Order' O
+         LEFT JOIN Customer C ON C.Id = O.CustomerId
+WHERE O.Id = @Id
+LIMIT 1
+", new { Id = id });
+
+                var result = new OrderDetailModel
+                {
+                    Id = id,
+                    Amount = (decimal)order.Amount,
+                    CreateTime = order.CreateTime,
+                    Customer = order.UserName,
+                    PaymentMethod = order.PaymentMethod,
+                    PaymentTime = order.PaymentTime,
+                    Promotions = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(order.Promotions),
+                    State = (Order.OrderState)order.State,
+                    Consignee = JsonHelper.Deserialize<Consignee>(order.Consignee),
+                };
+
+                var items = new List<OrderDetailModel.Item>();
+                var orderItems = con.Query(@"
+SELECT ProductName, Specifications, Price, Tax, Promotions, Quantity, State
+FROM 'OrderItem'
+WHERE OrderId = @Id
+", new { Id = id });
+
+                foreach (var item in orderItems)
+                {
+                    items.Add(new OrderDetailModel.Item
+                    {
+                        Price = (decimal)item.Price,
+                        ProductName = item.ProductName,
+                        Quantity = (int)item.Quantity,
+                        Promotions = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(item.Promotions),
+                        Specifications = JsonHelper.Deserialize<KeyValuePair<string, string>[]>(item.Specifications),
+                        State = (OrderItem.OrderItemState)item.State,
+                        Tax = (decimal)item.Tax
+                    });
+                }
+
+                result.Items = items.ToArray();
+                return result;
+            }
+
+
+        }
+
         private static void CheckStock(Models.Cart.CartModel cart)
         {
             if (cart.Items.Any(a => a.Quantity > a.Stock))
@@ -71,7 +131,7 @@ namespace Kooboo.Sites.Commerce.Services
             var order = new OrderPreviewModel
             {
                 Amount = cart.DiscountAmount,
-                Items = cart.Items.Select(s => new OrderPreviewModel.OrderItemPreviewModel
+                Items = cart.Items.Select(s => new OrderPreviewModel.Item
                 {
                     Price = decimal.Round(Helpers.GetCartItemPrice(cart, s.DiscountAmount, s.Quantity), 2),
                     ProductName = s.ProductName,
