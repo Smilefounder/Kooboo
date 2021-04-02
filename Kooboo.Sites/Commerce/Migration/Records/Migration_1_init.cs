@@ -78,7 +78,8 @@ create table 'ProductStock'
 
 	'Quantity' int not null,
 	'StockType' int not null,
-	'DateTime' datetime not null
+	'DateTime' datetime not null,
+	'OrderItemId' uniqueidentifier
 );
 
 create table 'Category'
@@ -161,6 +162,25 @@ create table 'CartItem'
 	'Quantity' int not null
 );
 
+create table 'Consignee'
+(
+	'Id' uniqueidentifier not null
+		constraint Consignee_pk
+			primary key,
+
+	'CustomerId' uniqueidentifier not null
+		constraint Consignee_CustomerId_Customer_Id_fk
+			references 'Customer'
+				on delete cascade,
+
+	'County' text not null,
+	'State' text,
+	'City' text not null,
+	'Address' text not null,
+	'Name' text not null,
+	'Phone' text not null
+);
+
 create table 'Order'
 (
 	'Id' uniqueidentifier not null
@@ -173,9 +193,10 @@ create table 'Order'
 				on delete cascade,
 
 	'CreateTime' datetime not null,
-	'PaymentTime' datetime not null,
+	'PaymentTime' datetime,
 	'Amount' real not null,
 	'Address' text not null,
+	'Contact' text not null,
 	'State' int not null,
 	'Promotions' text not null
 );

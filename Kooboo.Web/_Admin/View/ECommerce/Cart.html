@@ -33,10 +33,7 @@
                   @change="changeItem(item.id)"
               /></td>
               <td>{{item.productName}}</td>
-              <td>
-                {{ item.specifications.map(m=>`[${m.key}:${m.value}]`).join(' ')
-                }}
-              </td>
+              <td> {{specificationsDisplay(item.specifications)}} </td>
               <td>
                 <div>
                   <span
@@ -96,7 +93,7 @@
     </fieldset>
 
     <div class="page-buttons">
-      <a class="btn green" @click="order">Place an order</a>
+      <a class="btn green" @click="settlement">Settlement</a>
       <a class="btn gray">Cancel</a>
     </div>
   </div>

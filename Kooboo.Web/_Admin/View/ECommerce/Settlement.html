@@ -1,0 +1,80 @@
+<!-- #layout name=default -->
+
+<div id="main" class="clearfix">
+  <div class="col-md-8 col-md-offset-2">
+    <fieldset class="margin-bottom-15 clearfix">
+      <legend>
+        <div class="pull-left">Consignee</div>
+      </legend>
+      <div class="form-horizontal">
+        <div class="form-group">
+          <label class="control-label col-md-1"> </label>
+          <div class="col-md-11">
+            <kb-consignee-selector
+              v-model="model.consigneeId"
+              :id="model.customerId"
+            ></kb-consignee-selector>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="margin-bottom-15 clearfix" v-if="order">
+      <legend>
+        <div class="pull-left">Order info</div>
+      </legend>
+      <div class="form-horizontal">
+        <div class="form-group">
+          <label class="control-label col-md-1"></label>
+          <div class="col-md-11">
+            <table class="table table-bordered" style="text-align: center">
+              <thead>
+                <th style="text-align: center">Index</th>
+                <th style="text-align: center">Product</th>
+                <th style="text-align: center">Specifications</th>
+                <th style="text-align: center">Price</th>
+                <th style="text-align: center">Quantity</th>
+              </thead>
+              <tr v-for="(item,index) in order.items">
+                <td>{{index+1}}</td>
+                <td>{{item.productName}}</td>
+                <td> {{specificationsDisplay(item.specifications)}} </td>
+                <td>{{item.price}}</td>
+                <td>{{item.quantity}}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-1"></label>
+          <div class="col-md-11">
+            <span>Total amount</span>
+            <span style="margin-right: 10px">:</span>
+            <span>{{order.amount}}</span>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- <fieldset class="margin-bottom-15 clearfix">
+      <legend>
+        <div class="pull-left">Payment way</div>
+      </legend>
+      <div class="form-horizontal"> </div>
+    </fieldset> -->
+
+    <div class="page-buttons">
+      <a class="btn green">Submit order</a>
+      <a class="btn gray">Cancel</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  Kooboo.loadJS([
+    "/_Admin/Scripts/lib/uuidv3.min.js",
+    "/_Admin/Scripts/Kooboo/Guid.js",
+    "/_Admin/Scripts/components/ECommerce/kb-consignee-selector.js",
+  ]);
+</script>
+<script src="/_Admin/View/ECommerce/Settlement.js"></script>

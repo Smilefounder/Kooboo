@@ -1,5 +1,6 @@
 ﻿using Kooboo.Sites.Commerce.MatchRule;
 using Kooboo.Sites.Commerce.Models;
+using Kooboo.Sites.Commerce.Models.Cart;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -21,7 +22,7 @@ namespace Kooboo.Sites.Commerce
             });
         }
 
-        public static List<ConditionDefineBase<T>> GetConditionDefines<T>() where T:TargetModelBase<T>
+        public static List<ConditionDefineBase<T>> GetConditionDefines<T>() where T : TargetModelBase<T>
         {
             return _conditionDefines.GetOrAdd(typeof(T), t =>
             {
@@ -50,6 +51,13 @@ namespace Kooboo.Sites.Commerce
             }
 
             return specifications.ToArray();
+        }
+
+        public static decimal GetCartItemPrice(CartModel cart, decimal discountAmount, int quantity)
+        {
+            var percentages = cart.DiscountAmount / cart.Items.Where(w => w.Selected).Sum(s => s.DiscountAmount);
+            var price = percentages * discountAmount / quantity;
+            return price;
         }
     }
 }

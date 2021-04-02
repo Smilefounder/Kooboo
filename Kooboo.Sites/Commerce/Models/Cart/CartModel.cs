@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Kooboo.Lib.Helper;
 
 namespace Kooboo.Sites.Commerce.Models.Cart
 {
@@ -139,6 +140,24 @@ namespace Kooboo.Sites.Commerce.Models.Cart
             }
             public KeyValuePair<Guid, string>[] Promotions => _promotions.Select(s => new KeyValuePair<Guid, string>(s.Id, s.Name)).ToArray();
             public int Stock { get; set; }
+
+            public Entities.OrderItem ToOrderItem(Guid orderId, CartModel cart)
+            {
+                return new Entities.OrderItem
+                {
+                    Id = Guid.NewGuid(),
+                    OrderId = orderId,
+                    Price = Helpers.GetCartItemPrice(cart, DiscountAmount, Quantity),
+                    Quantity = Quantity,
+                    ProductId = ProductId,
+                    ProductName = ProductName,
+                    Promotions = JsonHelper.Serialize(Promotions),
+                    SkuId = SkuId,
+                    Specifications = JsonHelper.Serialize(Specifications),
+                    State = Entities.OrderItem.OrderItemState.WaitingPay,
+                    Tax = 0
+                };
+            }
         }
     }
 }

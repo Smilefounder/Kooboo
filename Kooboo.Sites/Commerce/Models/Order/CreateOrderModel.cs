@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Kooboo.Lib.Helper;
+using Kooboo.Sites.Commerce.Models.Cart;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,16 +9,21 @@ namespace Kooboo.Sites.Commerce.Models.Order
     public class CreateOrderModel
     {
         public Guid CustomerId { get; set; }
-        public OrderAddress Address { get; set; }
+        public Guid ConsigneeId { get; set; }
         public string PaymentMethod { get; set; }
 
-        public class OrderAddress
+        public Entities.Order ToOrder(CartModel cart)
         {
-            public string State { get; set; }
-            public string Province { get; set; }
-            public string City { get; set; }
-            public string County { get; set; }
-            public string Detail { get; set; }
+            return new Entities.Order
+            {
+                Id = Guid.NewGuid(),
+                Amount = cart.DiscountAmount,
+                CreateTime = DateTime.UtcNow,
+                CustomerId = CustomerId,
+                PaymentMethod = PaymentMethod,
+                Promotions = JsonHelper.Serialize(cart.Promotions),
+                State = Entities.Order.OrderState.WaitingPay
+            };
         }
     }
 }

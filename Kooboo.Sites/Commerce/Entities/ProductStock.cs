@@ -11,6 +11,7 @@ namespace Kooboo.Sites.Commerce.Entities
         public int Quantity { get; set; }
         public StockType StockType { get; set; }
         public DateTime DateTime { get; set; }
+        public Guid? OrderItemId { get; set; }
     }
 
     public enum StockType

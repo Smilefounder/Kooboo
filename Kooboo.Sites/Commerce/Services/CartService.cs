@@ -6,6 +6,7 @@ using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Cart;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 
@@ -37,11 +38,12 @@ namespace Kooboo.Sites.Commerce.Services
             }
         }
 
-        public CartModel GetCart(Guid customerId)
+        public CartModel GetCart(Guid customerId, IDbConnection connection = null, bool filterNotSelected = false)
         {
-            using (var con = DbConnection)
-            {
-                var list = con.Query(@"
+            var con = connection ?? DbConnection;
+            var whereSelected = filterNotSelected ? "AND CI.Selected=1" : string.Empty;
+
+            var list = con.Query($@"
 SELECT CI.ProductId,
        CI.SkuId,
        CI.Id,
@@ -58,38 +60,38 @@ FROM CartItem CI
          LEFT JOIN Product P ON P.Id = PS.ProductId
          LEFT JOIN ProductType PT ON PT.Id = P.TypeId
          LEFT JOIN ProductStock S ON PS.Id = S.SkuId
-WHERE CustomerId = @CustomerId
+WHERE CustomerId = @CustomerId {whereSelected}
 GROUP BY CI.SkuId
 ", new { CustomerId = customerId });
 
-                var cart = new CartModel();
-                var items = new List<CartModel.CartItemModel>();
+            var cart = new CartModel();
+            var items = new List<CartModel.CartItemModel>();
 
-                foreach (var item in list)
+            foreach (var item in list)
+            {
+                var typeSpecifications = JsonHelper.Deserialize<ItemDefineModel[]>(item.ProductTypeSpecifications);
+                var skuSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, Guid>[]>(item.ProductSkuSpecifications);
+                var productSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(item.ProductSpecifications);
+
+                items.Add(new CartModel.CartItemModel()
                 {
-                    var typeSpecifications = JsonHelper.Deserialize<ItemDefineModel[]>(item.ProductTypeSpecifications);
-                    var skuSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, Guid>[]>(item.ProductSkuSpecifications);
-                    var productSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(item.ProductSpecifications);
-
-                    items.Add(new CartModel.CartItemModel()
-                    {
-                        Id = item.Id,
-                        Price = (decimal)item.Price,
-                        Quantity = item.Quantity,
-                        ProductId = item.ProductId,
-                        ProductName = item.ProductName,
-                        SkuId = item.SkuId,
-                        Selected = Convert.ToBoolean(item.Selected),
-                        Specifications = Helpers.GetSpecifications(typeSpecifications, productSpecifications, skuSpecifications),
-                        Stock = Convert.ToInt32(item.Stock)
-                    });
-                }
-
-                var promotions = new PromotionService(Context).MatchList;
-                cart.Items = items.ToArray();
-                cart.Discount(promotions);
-                return cart;
+                    Id = item.Id,
+                    Price = (decimal)item.Price,
+                    Quantity = item.Quantity,
+                    ProductId = item.ProductId,
+                    ProductName = item.ProductName,
+                    SkuId = item.SkuId,
+                    Selected = Convert.ToBoolean(item.Selected),
+                    Specifications = Helpers.GetSpecifications(typeSpecifications, productSpecifications, skuSpecifications),
+                    Stock = Convert.ToInt32(item.Stock)
+                });
             }
+
+            var promotions = new PromotionService(Context).MatchList;
+            cart.Items = items.ToArray();
+            cart.Discount(promotions);
+            if (connection == null) con.Dispose();
+            return cart;
         }
 
         public void DeleteItems(Guid[] ids)

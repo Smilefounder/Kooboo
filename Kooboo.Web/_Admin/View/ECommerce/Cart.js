@@ -26,7 +26,11 @@ $(function () {
       this.getData();
     },
     methods: {
-      order() {},
+      settlement() {
+        location.href = Kooboo.Route.Get(Kooboo.Route.Cart.Settlement, {
+          id: this.customerId,
+        });
+      },
       productSelected(rows) {
         if (rows.length == 1) {
           this.addProductId = rows[0].key;
@@ -74,6 +78,9 @@ $(function () {
           this.getData();
         });
       },
-    }
+      specificationsDisplay(specifications) {
+        return specifications.map((m) => `[${m.key}:${m.value}]`).join(" ");
+      },
+    },
   });
 });

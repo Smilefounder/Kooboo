@@ -24,7 +24,8 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public CartModel Get(Guid id, ApiCall apiCall)
         {
-            return new CartService(apiCall.Context).GetCart(id);
+            var filterNotSelected = apiCall.GetBoolValue("filterNotSelected");
+            return new CartService(apiCall.Context).GetCart(id, filterNotSelected: filterNotSelected);
         }
 
         public void Deletes(Guid[] ids, ApiCall apiCall)

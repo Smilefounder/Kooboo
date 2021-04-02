@@ -19,6 +19,7 @@
           :selected.sync="selectedRows"
           :show-header="showHeader"
           :multi-select="multiSelect"
+          style="cursor: pointer"
         >
           <template v-for="(item,index) in cols">
             <kb-table-column :label="item" :prop="item"> </kb-table-column>

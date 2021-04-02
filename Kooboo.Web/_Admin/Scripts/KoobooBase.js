@@ -1733,10 +1733,24 @@
 
   function Cart() {
     this.name = "Cart";
-  
   }
 
   extend(Cart, BaseModel);
+
+  function Consignee() {
+    this.name = "Consignee";
+  }
+
+  extend(Consignee, BaseModel);
+
+  function Order() {
+    this.name = "Order";
+    this.preview = function (para) {
+      return this.executeGet("Preview", para);
+    };
+  }
+
+  extend(Order, BaseModel);
 
   function KConfig() {
     this.name = "KConfig";
@@ -1857,6 +1871,8 @@
     Product: new Product(),
     Customer: new Customer(),
     Cart: new Cart(),
+    Consignee: new Consignee(),
+    Order: new Order(),
     ProductType: new ProductType(),
     Category: new Category(),
     Promotion: new Promotion(),
