@@ -1,7 +1,9 @@
-﻿using Kooboo.Sites.Commerce.MatchRule;
+﻿using Kooboo.Lib.Helper;
+using Kooboo.Sites.Commerce.MatchRule;
 using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Cart;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,11 +55,46 @@ namespace Kooboo.Sites.Commerce
             return specifications.ToArray();
         }
 
+        public static T FromKscriptModel<T>(object obj)
+        {
+            //TODO Need to optimize performance
+            return JsonHelper.Deserialize<T>(JsonHelper.Serialize(obj));
+        }
+
         public static decimal GetCartItemPrice(CartModel cart, decimal discountAmount, int quantity)
         {
             var percentages = cart.DiscountAmount / cart.Items.Where(w => w.Selected).Sum(s => s.DiscountAmount);
             var price = percentages * discountAmount / quantity;
             return price;
+        }
+
+        public static object ToKscriptModel(object obj)
+        {
+            if (obj == null) return obj;
+            var type = obj.GetType();
+
+            if (type.IsEnum || obj is Guid)
+            {
+                return obj.ToString();
+            }
+
+            if (type.IsPrimitive || obj is string) return obj;
+
+            if (obj is IEnumerable)
+            {
+                var array = obj as IEnumerable;
+                var list = new List<object>();
+
+                foreach (var item in array)
+                {
+                    list.Add(ToKscriptModel(item));
+                }
+
+                return list.ToArray();
+            }
+
+
+            return type.GetProperties().ToDictionary(k => k.Name, v => ToKscriptModel(v.GetValue(obj)));
         }
     }
 }

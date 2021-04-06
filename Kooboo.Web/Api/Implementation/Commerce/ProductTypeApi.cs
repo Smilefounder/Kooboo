@@ -1,9 +1,8 @@
 ﻿using Kooboo.Api;
 using Kooboo.Sites.Commerce.Services;
-using Kooboo.Sites.Commerce.Models.Product;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using Kooboo.Sites.Commerce.Models.Type;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
@@ -13,18 +12,16 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public bool RequireSite => true;
 
-        public bool RequireUser => true;
+        public bool RequireUser => false;
 
-        public ProductTypeModel[] List(ApiCall apiCall)
+        public ProductTypeDetailModel[] List(ApiCall apiCall)
         {
             return new ProductTypeService(apiCall.Context).List();
         }
 
-        public EditProductTypeModel Get(ApiCall apiCall, Guid id)
+        public ProductTypeDetailModel Get(ApiCall apiCall, Guid id)
         {
-            var productType = new ProductTypeService(apiCall.Context).Get(id);
-            var hasDependent = new ProductTypeService(apiCall.Context).HasDependent(id);
-            return new EditProductTypeModel(productType, hasDependent);
+            return new ProductTypeService(apiCall.Context).Get(id);
         }
 
         public void Post(ProductTypeModel viewModel, ApiCall apiCall)
@@ -37,7 +34,8 @@ namespace Kooboo.Web.Api.Implementation.Commerce
             new ProductTypeService(apiCall.Context).Delete(ids);
         }
 
-        public KeyValuePair<Guid, string>[] KeyValue(ApiCall apiCall) {
+        public KeyValuePair<Guid, string>[] KeyValue(ApiCall apiCall)
+        {
             return new ProductTypeService(apiCall.Context).KeyValue();
         }
     }

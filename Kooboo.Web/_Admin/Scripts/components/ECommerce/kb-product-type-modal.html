@@ -16,11 +16,15 @@
         </h4>
       </div>
       <div class="modal-body" v-if="show&&editData">
-        <kb-form :model="editData" :rules="editDataRules" ref="form">
+        <kb-form :model="editData">
           <kb-form-item prop="name">
             <label class="col-sm-3 control-label">Name</label>
             <div class="col-sm-9">
-              <input class="form-control" v-model="editData.name" />
+              <input
+                class="form-control"
+                v-model="editData.name"
+                v-kb-hint="validateModel.name.msg"
+              />
             </div>
           </kb-form-item>
           <kb-form-item>
@@ -37,12 +41,13 @@
                     class="form-control"
                     placeholder="Name"
                     v-model="item.name"
+                    v-kb-hint="validateModel[item.id].msg"
                   />
                   <span class="input-group-addon">:</span>
                   <select
                     class="form-control"
                     v-model="item.type"
-                    :disabled="editData.hasDependent"
+                    :disabled="!!editData.productCount"
                     @change="item.options=[]"
                   >
                     <option :value="0">Text</option>
@@ -52,13 +57,14 @@
                     class="input-group-addon"
                     style="cursor: pointer"
                     @click="editData.attributes=editData.attributes.filter(f=>f!=item)"
-                    v-if="!editData.hasDependent"
+                    v-if="!editData.productCount"
                   >
                     <i class="fa fa-minus" style="margin-top: 4px"></i>
                   </span>
                 </div>
                 <kb-options-editor
-                  :has-dependent="editData.hasDependent"
+                  ref="optionsEditors"
+                  :has-dependent="editData.productCount"
                   v-if="item.type==1"
                   :list.sync="item.options"
                   style="border: 1px solid #e5e5e5; border-top: 0; padding: 5px"
@@ -67,7 +73,7 @@
               <button
                 class="btn"
                 @click="addItem(editData.attributes)"
-                v-if="!editData.hasDependent"
+                v-if="!editData.productCount"
               >
                 <i class="fa fa-plus"></i>
               </button>
@@ -87,12 +93,13 @@
                     class="form-control"
                     placeholder="Name"
                     v-model="item.name"
+                    v-kb-hint="validateModel[item.id].msg"
                   />
                   <span class="input-group-addon">:</span>
                   <select
                     class="form-control"
                     v-model="item.type"
-                    :disabled="editData.hasDependent"
+                    :disabled="!!editData.productCount"
                     @change="item.options=[]"
                   >
                     <option :value="0">Text</option>
@@ -102,13 +109,14 @@
                     class="input-group-addon"
                     style="cursor: pointer"
                     @click="editData.specifications=editData.specifications.filter(f=>f!=item)"
-                    v-if="!editData.hasDependent"
+                    v-if="!editData.productCount"
                   >
                     <i class="fa fa-minus" style="margin-top: 4px"></i>
                   </span>
                 </div>
                 <kb-options-editor
-                  :has-dependent="editData.hasDependent"
+                  ref="optionsEditors"
+                  :has-dependent="editData.productCount"
                   v-if="item.type==1"
                   :list.sync="item.options"
                   style="border: 1px solid #e5e5e5; border-top: 0; padding: 5px"
@@ -117,7 +125,7 @@
               <button
                 class="btn"
                 @click="addItem(editData.specifications)"
-                v-if="!editData.hasDependent"
+                v-if="!editData.productCount"
               >
                 <i class="fa fa-plus"></i>
               </button>

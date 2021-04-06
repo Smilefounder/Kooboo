@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <Compile Remove="Automation\**" />
+    <Compile Remove="Ecommerce\**" />
     <Compile Remove="NodeTree\**" />
     <Compile Remove="Render\Cache\**" />
     <Compile Remove="SizeAnalyze\**" />
@@ -21,6 +22,7 @@
     <Compile Remove="TAL\Helper\**" />
     <Compile Remove="TreesTemp\**" />
     <EmbeddedResource Remove="Automation\**" />
+    <EmbeddedResource Remove="Ecommerce\**" />
     <EmbeddedResource Remove="NodeTree\**" />
     <EmbeddedResource Remove="Render\Cache\**" />
     <EmbeddedResource Remove="SizeAnalyze\**" />
@@ -29,6 +31,7 @@
     <EmbeddedResource Remove="TAL\Helper\**" />
     <EmbeddedResource Remove="TreesTemp\**" />
     <None Remove="Automation\**" />
+    <None Remove="Ecommerce\**" />
     <None Remove="NodeTree\**" />
     <None Remove="Render\Cache\**" />
     <None Remove="SizeAnalyze\**" />
@@ -104,10 +107,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Ecommerce\Events\" />
-    <Folder Include="Ecommerce\Search\" />
-    <Folder Include="Ecommerce\Recommendation\" />
-    <Folder Include="Ecommerce\Shopping\" />
     <Folder Include="SMS\" />
   </ItemGroup>
 

@@ -9,7 +9,7 @@ namespace Kooboo.Sites.Commerce.Models
         public Guid Id { get; set; }
         public string Name { get; set; }
         public DefineType Type { get; set; }
-        public IEnumerable<KeyValuePair<Guid, string>> Options { get; set; }
+        public KeyValuePair<Guid, string>[] Options { get; set; }
         public enum DefineType
         {
             Text = 0,

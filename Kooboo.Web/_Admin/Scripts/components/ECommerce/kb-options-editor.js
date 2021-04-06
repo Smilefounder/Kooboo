@@ -13,9 +13,16 @@
       return {
         innerList: [],
         newOption: null,
-        editDataRules: {
-          name: [{ required: Kooboo.text.validation.required }],
+        validateModel: {
+          count: { valid: true, msg: "" },
         },
+        validRules: [
+          { required: Kooboo.text.validation.required },
+          {
+            max: 31,
+            message: Kooboo.text.validation.maxLength + 31,
+          },
+        ],
       };
     },
     mounted() {
@@ -25,8 +32,11 @@
         editing: false,
         editingValue: m.value,
       }));
+
+      for (const i of this.innerList) {
+        Vue.set(this.validateModel, i.key, { valid: true, msg: "" });
+      }
     },
-    computed: {},
     methods: {
       saveOption(item) {
         if (!item.editingValue) return;
@@ -57,6 +67,11 @@
           editing: true,
           editingValue: "",
         };
+
+        Vue.set(this.validateModel, this.newOption.key, {
+          valid: true,
+          msg: "",
+        });
       },
       saveNewOption() {
         if (!this.newOption.editingValue) return;
@@ -74,6 +89,26 @@
             value: m.value,
           }))
         );
+      },
+      valid() {
+        var valid = true;
+
+        this.validateModel.count = Kooboo.validField(this.innerList, [
+          { required: Kooboo.text.validation.required },
+        ]);
+
+        if (!this.validateModel.count.valid) valid = false;
+
+        for (const i of this.innerList) {
+          this.validateModel[i.key] = Kooboo.validField(
+            i.value,
+            this.validRules
+          );
+
+          if (!this.validateModel[i.key].valid) valid = false;
+        }
+
+        return valid;
       },
     },
   });

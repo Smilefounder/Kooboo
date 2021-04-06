@@ -1076,6 +1076,9 @@
 
     commerce: {
       isEnabled: "E-commerce enabled",
+      attributes:"Attributes",
+      specifications:"Specifications",
+      productCount:"Product Count",
       product: {
         inStock: "In stock",
         dropOff: "Drop off",

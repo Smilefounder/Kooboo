@@ -5,7 +5,7 @@
     <h1 class="title">Product Types</h1>
   </div>
   <kb-breadcrumb :breads="breads"></kb-breadcrumb>
-  
+
   <div class="navbar navbar-default">
     <div class="container-fluid">
       <a class="btn green navbar-btn" @click="add">Add a new type</a>
@@ -19,15 +19,21 @@
     <kb-table-column :label="Kooboo.text.common.name" prop="name">
     </kb-table-column>
 
-    <kb-table-column label="Attributes">
+    <kb-table-column :label="Kooboo.text.commerce.attributes">
       <template v-slot="row">
         {{row.attributes.map(m=>m.name).join(",")}}
       </template>
     </kb-table-column>
 
-    <kb-table-column label="Specifications">
+    <kb-table-column :label="Kooboo.text.commerce.specifications">
       <template v-slot="row">
         {{row.specifications.map(m=>m.name).join(",")}}
+      </template>
+    </kb-table-column>
+
+    <kb-table-column :label="Kooboo.text.commerce.productCount">
+      <template v-slot="row">
+        <span class="label label-success">{{row.productCount}}</span>
       </template>
     </kb-table-column>
 

@@ -25,6 +25,7 @@
         class="btn btn-sm"
         @click="editOption(item)"
         style="margin: 5px 5px 5px 0"
+        v-kb-hint="validateModel[item.key].msg"
       >
         {{item.value}}
         <i
@@ -57,6 +58,7 @@
         type="button"
         class="btn btn-sm btn-default"
         @click.stop="addOption"
+        v-kb-hint="validateModel.count.msg"
       >
         <i class="fa fa-plus"></i>
       </button>

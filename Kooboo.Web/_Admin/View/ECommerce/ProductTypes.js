@@ -26,12 +26,23 @@ $(function () {
     mounted: function () {
       this.getList();
     },
+    computed: {
+      haveRelations() {
+        return this.selectedRows.some((s) => s.productCount);
+      },
+    },
     methods: {
       add() {
         this.id = null;
         this.showModal = true;
       },
       deletes() {
+        var confirmStr = this.haveRelations
+          ? Kooboo.text.confirm.deleteItemsWithRef
+          : Kooboo.text.confirm.deleteItems;
+
+        if (!confirm(confirmStr)) return;
+
         Kooboo.ProductType.Delete(this.selectedRows.map((m) => m.id)).then(
           (res) => {
             if (res.success) {
