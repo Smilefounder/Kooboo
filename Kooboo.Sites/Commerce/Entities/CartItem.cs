@@ -11,5 +11,6 @@ namespace Kooboo.Sites.Commerce.Entities
         public Guid ProductId { get; set; }
         public Guid SkuId { get; set; }
         public int Quantity { get; set; }
+        public DateTime EditTime { get; set; }
     }
 }

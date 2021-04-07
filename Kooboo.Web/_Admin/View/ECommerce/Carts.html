@@ -1,0 +1,74 @@
+<!-- #layout name=blank-->
+<style></style>
+
+<div id="app" v-cloak>
+  <div class="page-header">
+    <h1 class="title">Carts</h1>
+  </div>
+  <kb-breadcrumb :breads="breads"></kb-breadcrumb>
+  <div class="navbar navbar-default">
+    <div class="container-fluid">
+      <a class="btn red navbar-btn">Auto refresh</a>
+    </div>
+  </div>
+  <table class="table table-striped">
+    <thead>
+      <th>Customer</th>
+      <th>Last edit time</th>
+      <th>Cart</th>
+      <th></th>
+    </thead>
+    <tbody>
+      <tr v-for="cart in list" :key="cart.customerId">
+        <td>{{cart.customerName}}</td>
+        <td>{{cart.lastEditTime}}</td>
+        <td>
+          <div>
+            <div
+              v-for="item in cart.items"
+              :key="item.skuId"
+              style="display: flex; align-items: center"
+              :style="{color:item.selected?'black':'#ddd'}"
+            >
+              <span>
+                <input
+                  style="margin: 5px"
+                  @click.prevent=""
+                  type="checkbox"
+                  :checked="item.selected"
+                />
+              </span>
+              <span>{{item.productName}}</span>
+              <span style="margin: 5px"
+                >{{specificationsDisplay(item.specifications)}}</span
+              >
+              <span style="transform: rotate(45deg)">+</span>
+              <span>{{item.quantity}}</span>
+            </div>
+          </div>
+        </td>
+        <td style="text-align: right">
+          <a class="btn blue" :href="cartPage(cart.customerId)" target="_blank"
+            >Detail</a
+          >
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <kb-pager
+    :page-nr="pager.pageNr"
+    :total-pages="pager.totalPages"
+    @change="changePage"
+  ></kb-pager>
+</div>
+<script>
+  (function () {
+    Kooboo.loadJS([
+      "/_Admin/Scripts/kooboo/Guid.js",
+      "/_Admin/Scripts/components/kbTable.js",
+      "/_Admin/Scripts/components/kbBreadcrumb.js",
+      "/_Admin/Scripts/components/kbPager.js",
+    ]);
+  })();
+</script>
+<script src="/_Admin/View/ECommerce/Carts.js"></script>

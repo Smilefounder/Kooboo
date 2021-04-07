@@ -3,9 +3,7 @@ using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Services;
 using Kooboo.Sites.Commerce.Models.Cart;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using static Kooboo.Sites.Commerce.Entities.Customer;
+using Kooboo.Sites.Commerce.Models;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
@@ -31,6 +29,11 @@ namespace Kooboo.Web.Api.Implementation.Commerce
         public void Deletes(Guid[] ids, ApiCall apiCall)
         {
             new CartService(apiCall.Context).DeleteItems(ids);
+        }
+
+        public PagedListModel<CartListModel> List(PagingQueryModel model, ApiCall apiCall)
+        {
+            return new CartService(apiCall.Context).Query(model);
         }
     }
 }

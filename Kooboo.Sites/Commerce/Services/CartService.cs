@@ -28,11 +28,13 @@ namespace Kooboo.Sites.Commerce.Services
                 {
                     existEntity.Selected = cartItem.Selected;
                     existEntity.Quantity = cartItem.Quantity;
+                    existEntity.EditTime = DateTime.UtcNow;
                     con.Update(existEntity);
                 }
                 else
                 {
                     cartItem.Id = Guid.NewGuid();
+                    cartItem.EditTime = DateTime.UtcNow;
                     con.Insert(cartItem);
                 }
             }
@@ -99,6 +101,72 @@ GROUP BY CI.SkuId
             using (var con = DbConnection)
             {
                 con.DeleteList<CartItem>(ids);
+            }
+        }
+
+        public PagedListModel<CartListModel> Query(PagingQueryModel model)
+        {
+            using (var con = DbConnection)
+            {
+                var result = new PagedListModel<CartListModel>();
+                var count = con.QuerySingleOrDefault<int>("SELECT COUNT(1) FROM (SELECT 1 FROM CartItem GROUP BY CustomerId)");
+                result.SetPageInfo(model, count);
+
+                var list = con.Query(@"
+SELECT CI.Id,
+       CI.CustomerId,
+       C.UserName,
+       CI.Selected,
+       CI.ProductId,
+       P.Title,
+       CI.SkuId,
+       CI.Quantity,
+       CI.EditTime,
+       P.Specifications as ProductSpecifications,
+       PS.Specifications as ProductSkuSpecifications,
+       PT.Specifications as ProductTypeSpecifications
+FROM CartItem CI
+         LEFT JOIN ProductSku PS ON PS.Id = CI.SkuId
+         LEFT JOIN Product P ON P.Id = CI.ProductId
+         LEFT JOIN ProductType PT ON PT.Id = P.TypeId
+         LEFT JOIN Customer C ON C.Id = CI.CustomerId
+WHERE CustomerId
+          IN (SELECT CustomerId
+              FROM CartItem
+              GROUP BY CustomerId
+              ORDER BY EditTime DESC
+              LIMIT @PageSize OFFSET @Offset)
+
+", new
+                {
+                    PageSize = model.Size,
+                    Offset = result.GetOffset(model.Size)
+                });
+
+                result.List = list.GroupBy(g => g.CustomerId).Select(s => new CartListModel
+                {
+                    CustomerId = s.Key,
+                    CustomerName = s.Max(m => m.UserName),
+                    Items = s.Select(ss =>
+                    {
+                        var typeSpecifications = JsonHelper.Deserialize<ItemDefineModel[]>(ss.ProductTypeSpecifications);
+                        var skuSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, Guid>[]>(ss.ProductSkuSpecifications);
+                        var productSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(ss.ProductSpecifications);
+
+                        return new CartListModel.CartListItem
+                        {
+                            EditTime = ss.EditTime,
+                            ProductId = ss.ProductId,
+                            ProductName = ss.Title,
+                            Quantity = (int)ss.Quantity,
+                            Selected = Convert.ToBoolean(ss.Selected),
+                            SkuId = ss.SkuId,
+                            Specifications = Helpers.GetSpecifications(typeSpecifications, productSpecifications, skuSpecifications)
+                        };
+                    }).ToArray()
+                }).OrderByDescending(o=>o.Items.Max(m=>m.EditTime)).ToList();
+
+                return result;
             }
         }
     }

@@ -33,7 +33,7 @@ $(function () {
         }
       });
 
-      Kooboo.ProductType.getList({ index: 1, size: 5 }).then(function (res) {
+      Kooboo.ProductType.getList().then(function (res) {
         if (res.success) {
           self.types = res.model;
         }

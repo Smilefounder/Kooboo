@@ -159,7 +159,8 @@ create table 'CartItem'
 			references 'ProductSku'
 				on delete cascade,
 
-	'Quantity' int not null
+	'Quantity' int not null,
+	'EditTime' datetime not null
 );
 
 create table 'Consignee'
