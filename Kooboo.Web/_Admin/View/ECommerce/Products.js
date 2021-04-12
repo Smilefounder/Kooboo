@@ -33,7 +33,7 @@ $(function () {
         }
       });
 
-      Kooboo.ProductType.getList().then(function (res) {
+      Kooboo.ProductType.keyValue().then(function (res) {
         if (res.success) {
           self.types = res.model;
         }
@@ -47,12 +47,11 @@ $(function () {
       },
       editProduct: function (product) {
         return Kooboo.Route.Get(Kooboo.Route.Product.DetailPage, {
-          type: product.categoryId,
+          type: product.typeId,
           id: product.id,
         });
       },
-      getPrimaryImg: function (value) {
-        var list = JSON.parse(value);
+      getPrimaryImg: function (list) {
         if (!list.length) return;
         var item =
           list.filter(function (f) {

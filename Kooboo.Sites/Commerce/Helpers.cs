@@ -2,6 +2,7 @@
 using Kooboo.Sites.Commerce.MatchRule;
 using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Cart;
+using Kooboo.Sites.Commerce.Models.Product;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -32,24 +33,18 @@ namespace Kooboo.Sites.Commerce
             }) as List<ConditionDefineBase<T>>;
         }
 
-        public static KeyValuePair<string, string>[] GetSpecifications(ItemDefineModel[] productTypes, KeyValuePair<Guid, string>[] products, KeyValuePair<Guid, Guid>[] productSkus)
+        public static KeyValuePair<string, string>[] GetSpecifications(ItemDefineModel[] productTypes, ProductModel.Specification[] products, KeyValuePair<Guid, Guid>[] productSkus)
         {
             var specifications = new List<KeyValuePair<string, string>>();
 
             foreach (var item in productSkus)
             {
                 var productType = productTypes.FirstOrDefault(f => f.Id == item.Key);
-                if (productType == null) continue;
-                if (productType.Type == ItemDefineModel.DefineType.Option)
-                {
-                    var option = productType.Options.FirstOrDefault(f => f.Key == item.Value);
-                    specifications.Add(new KeyValuePair<string, string>(productType.Name, option.Value));
-                }
-                else if (productType.Type == ItemDefineModel.DefineType.Text)
-                {
-                    var specification = products.FirstOrDefault(f => f.Key == item.Value);
-                    specifications.Add(new KeyValuePair<string, string>(productType.Name, specification.Value));
-                }
+                var product = products.FirstOrDefault(f => f.Id == item.Key);
+                if (productType == null || product == null) continue;
+                var options = productType.Type == ItemDefineModel.DefineType.Option ? productType.Options : product.Options;
+                var option = options.FirstOrDefault(f => f.Key == item.Value);
+                specifications.Add(new KeyValuePair<string, string>(productType.Name, option.Value));
             }
 
             return specifications.ToArray();

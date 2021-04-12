@@ -11,7 +11,7 @@ namespace Kooboo.Sites.Commerce.Entities
         public string Specifications { get; set; }
         public decimal Price { get; set; }
         public decimal Tax { get; set; }
-        public string Thumbnail { get; set; }
+        public string Image { get; set; }
         public bool Enable { get; set; }
     }
 }

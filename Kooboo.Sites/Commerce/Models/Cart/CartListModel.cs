@@ -10,9 +10,9 @@ namespace Kooboo.Sites.Commerce.Models.Cart
         public Guid CustomerId { get; set; }
         public string CustomerName { get; set; }
         public DateTime LastEditTime => Items.Max(m => m.EditTime);
-        public CartListItem[] Items { get; set; }
+        public Item[] Items { get; set; }
 
-        public class CartListItem
+        public class Item
         {
             public bool Selected { get; set; }
             public Guid ProductId { get; set; }

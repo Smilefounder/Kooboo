@@ -17,12 +17,15 @@ namespace Kooboo.Sites.Commerce
         public RenderContext context { get; set; }
 
         readonly Lazy<KType> _type;
+        readonly Lazy<KProduct> _product;
 
         public KType Type => _type.Value;
+        public KProduct Product => _product.Value;
 
         public KCommerce()
         {
             _type = new Lazy<KType>(() => new KType(context), true);
+            _product = new Lazy<KProduct>(() => new KProduct(context), true);
         }
     }
 }

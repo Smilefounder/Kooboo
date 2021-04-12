@@ -9,7 +9,7 @@ namespace Kooboo.Sites.Commerce.Entities
         public Guid SkuId { get; set; }
         public Guid ProductId { get; set; }
         public int Quantity { get; set; }
-        public StockType StockType { get; set; }
+        public StockType Type { get; set; }
         public DateTime DateTime { get; set; }
         public Guid? OrderItemId { get; set; }
     }

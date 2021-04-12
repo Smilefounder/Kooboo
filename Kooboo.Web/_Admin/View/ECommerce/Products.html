@@ -1,31 +1,17 @@
 <!-- #layout name=blank-->
 <style>
-  .product-item {
-    border-bottom: 1px solid #ddd;
-    display: flex;
-    padding: 10px;
-    height: 80px;
-  }
-  .product-item:hover {
-    background-color: rgba(221, 221, 221, 0.2);
-  }
-
   .product-img {
-    width: 80px;
+    width: 50px;
+    height: 50px;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
     border: 1px solid #ddd;
   }
-  .product-detail {
-    box-sizing: border-box;
-    flex: 1;
-    padding: 0 10px;
-  }
-  .product-ctrl {
-    width: 100px;
+
+  .sku-item {
+    height: 20px;
     display: flex;
-    justify-content: center;
     align-items: center;
   }
 </style>
@@ -42,9 +28,9 @@
           ><span>Add product</span> <i class="fa fa-angle-down"></i
         ></button>
         <ul class="dropdown-menu">
-          <li v-for="type in types" :key="type.id">
-            <a href="javascript:;" @click="startAddProduct(type.id)"
-              >{{type.name}}</a
+          <li v-for="type in types" :key="type.key">
+            <a href="javascript:;" @click="startAddProduct(type.key)"
+              >{{type.value}}</a
             >
           </li>
           <li v-if="!types.length">
@@ -57,34 +43,84 @@
       <a class="btn red navbar-btn">Delete</a>
     </div>
   </div>
-  <div class="product-item" v-for="product in list" :key="product.id">
-    <div
-      style="
-        display: flex;
-        height: 100%;
-        align-items: center;
-        margin-right: 10px;
-      "
-    >
-      <input type="checkbox" />
-    </div>
-    <div
-      class="product-img"
-      :style="{backgroundImage:getPrimaryImg(product.images)}"
-    ></div>
-    <div class="product-detail">
-      <p style="font-size: 15px">{{product.title}}</p>
-      <div style="display: flex">
-        <div style="flex: 1"><span>Status</span>:<span>{{product.stock}}</span></div>
-        <div style="flex: 1"><span>Stock</span>:<span>{{product.stock}}</span></div>
-        <div style="flex: 1"><span>Sales</span>:<span>{{product.sales}}</span></div>
-      </div>
-    </div>
-    <div class="product-ctrl">
-      <a class="btn blue" target="_blank" :href="editProduct(product)">Edit</a>
-      <a class="btn btn-default" target="_blank">下架</a>
-    </div>
-  </div>
+  <table class="table table-striped">
+    <thead>
+      <th style="width: 20px"><input type="checkbox" /></th>
+      <th style="width: 80px"></th>
+      <th>Title</th>
+      <th>Specifications</th>
+      <th>SKU</th>
+      <th>Price</th>
+      <th>Stock</th>
+      <th>Sale</th>
+      <th style="width: 50px">Status</th>
+      <th style="width: 100px"></th>
+    </thead>
+    <tbody>
+      <tr v-for="product in list" :key="product.id">
+        <td><input type="checkbox" /></td>
+        <td>
+          <div
+            class="product-img"
+            :style="{backgroundImage:getPrimaryImg(product.images)}"
+          ></div>
+        </td>
+        <td> {{product.title}} </td>
+        <td>
+          <div>
+            <div class="sku-item" v-for="item in product.items" :key="item.id">
+              {{item.specifications.map(m=>`[${m.key}:${m.value}]`).join('&nbsp')}}
+            </div>
+          </div>
+        </td>
+        <td>
+          <div>
+            <div class="sku-item" v-for="item in product.items" :key="item.id">
+              {{item.name}}
+            </div>
+          </div>
+        </td>
+        <td>
+          <div>
+            <div class="sku-item" v-for="item in product.items" :key="item.id">
+              {{item.price}}
+            </div>
+          </div>
+        </td>
+        <td>
+          <div>
+            <div class="sku-item" v-for="item in product.items" :key="item.id">
+              {{item.stock}}
+            </div>
+          </div>
+        </td>
+        <td>
+          <div>
+            <div class="sku-item" v-for="item in product.items" :key="item.id">
+              {{item.sale}}
+            </div>
+          </div>
+        </td>
+        <td>
+          <span
+            class="label green"
+            :class="product.enable?'green':'gray'"
+            style="cursor: pointer"
+          >
+            <template v-if="product.enable">On</template>
+            <template v-else>Off</template>
+          </span>
+        </td>
+        <td>
+          <div style="text-align: right">
+            <a class="btn blue" target="_blank" :href="editProduct(product)"
+              >Edit</a
+            >
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
   <kb-pager
     :page-nr="pager.pageNr"
     :total-pages="pager.totalPages"

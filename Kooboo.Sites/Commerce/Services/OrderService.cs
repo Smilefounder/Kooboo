@@ -43,7 +43,7 @@ namespace Kooboo.Sites.Commerce.Services
                         ProductId = orderItem.ProductId,
                         Quantity = -orderItem.Quantity,
                         SkuId = orderItem.SkuId,
-                        StockType = Entities.StockType.Sale
+                        Type = Entities.StockType.Sale
                     });
                 }
 

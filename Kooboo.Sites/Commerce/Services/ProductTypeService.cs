@@ -1,10 +1,11 @@
 ﻿using Dapper;
+using FluentValidation;
 using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Models;
-using Kooboo.Sites.Commerce.Models.Product;
 using Kooboo.Sites.Commerce.Models.Type;
+using Kooboo.Sites.Commerce.Validators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,17 +21,43 @@ namespace Kooboo.Sites.Commerce.Services
 
         public void Save(ProductTypeModel viewModel)
         {
-            viewModel.Valid();
+            new ProductTypeModelValidator().ValidateAndThrow(viewModel);
 
             using (var con = DbConnection)
             {
-                con.Open();
-                var tran = con.BeginTransaction();
                 var exist = con.Exist<ProductType>(viewModel.Id);
-                if (exist) con.Update(viewModel.ToEntity());
-                else con.Insert(viewModel.ToEntity());
-                tran.Commit();
+
+                if (exist)
+                {
+                    CheckUpdateRestrain(viewModel);
+                    con.Update(viewModel.ToEntity());
+                }
+                else
+                {
+                    con.Insert(viewModel.ToEntity());
+                }
             }
+        }
+
+        private void CheckUpdateRestrain(ProductTypeModel viewModel)
+        {
+            var old = Get(viewModel.Id);
+            if (old.ProductCount == 0) return;
+
+            if (ItemDefineToEqualString(old.Attributes) != ItemDefineToEqualString(viewModel.Attributes))
+            {
+                throw new Exception("Attributes can't match");
+            }
+
+            if (ItemDefineToEqualString(old.Specifications) != ItemDefineToEqualString(viewModel.Specifications))
+            {
+                throw new Exception("Specifications can't match");
+            }
+        }
+
+        static string ItemDefineToEqualString(ItemDefineModel[] items)
+        {
+            return string.Join(string.Empty, items.OrderBy(o => o.Id).Select(s => s.ToString()));
         }
 
         public ProductTypeDetailModel Get(Guid id)
@@ -46,11 +73,11 @@ SELECT PT.Id,
 FROM ProductType PT
          LEFT JOIN Product P ON PT.Id = P.TypeId
 WHERE PT.Id=@Id
-GROUP BY PT.ID
+GROUP BY PT.Id
 LIMIT 1
 ", new { Id = id });
 
-                if (entity == null) throw new Exception("Not found entity");
+                if (entity == null) throw new Exception("Not found product type");
 
                 return new ProductTypeDetailModel
                 {

@@ -1,11 +1,15 @@
 ﻿using Dapper;
+using FluentValidation;
 using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Product;
+using Kooboo.Sites.Commerce.Models.Sku;
+using Kooboo.Sites.Commerce.Validators;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 
@@ -47,102 +51,94 @@ namespace Kooboo.Sites.Commerce.Services
         {
         }
 
-        public void Save(ProductModel viewModel)
+        public void Save(ProductModel viewModel, IDbConnection connection = null)
         {
-            var stockChangedSkus = viewModel.Skus.Where(w => w.Stock != 0).ToArray();
+            new ProductModelValidator().ValidateAndThrow(viewModel);
+            var con = connection;
 
-            using (var con = DbConnection)
+            if (con.Exist<Product>(viewModel.Id))
             {
-                var oldSkuIds = con.Query<Guid>("select Id from ProductSku where ProductId=@Id", viewModel);
-                var newSkus = viewModel.Skus.Select(s => s.ToSku());
-                var newSkuIds = newSkus.Select(s => s.Id).ToArray();
-                con.Open();
-                var tran = con.BeginTransaction();
-
-                if (!con.Exist<Product>(viewModel.Id))
-                {
-                    con.Insert(viewModel.ToProduct());
-                    con.InsertList(newSkus);
-                }
-                else
-                {
-                    con.Update(viewModel.ToProduct());
-                    con.InsertList(newSkus.Where(w => !oldSkuIds.Contains(w.Id)));
-                    con.DeleteList<ProductSku>(oldSkuIds.Where(w => !newSkuIds.Contains(w)));
-                    con.UpdateList(newSkus.Where(w => oldSkuIds.Contains(w.Id)));
-                }
-
-                var stocks = con.Query<ProductStock>(
-                    "select SkuId,sum(Quantity) as 'Quantity' from ProductStock where SkuId in @Ids group by SkuId",
-                    new { Ids = stockChangedSkus.Select(s => s.Id) });
-
-                var InsertStocks = new List<ProductStock>();
-
-                foreach (var item in stockChangedSkus)
-                {
-                    var lastStock = stocks.FirstOrDefault(f => f.SkuId == item.Id)?.Quantity ?? 0;
-                    if (lastStock + item.Stock < 0) throw new Exception("Negative inventory, please edit again");
-                    InsertStocks.Add(new ProductStock
-                    {
-                        DateTime = DateTime.UtcNow,
-                        Quantity = item.Stock,
-                        SkuId = item.Id,
-                        ProductId = viewModel.Id,
-                        StockType = StockType.Adjust
-                    });
-                }
-
-                con.InsertList(InsertStocks);
-                tran.Commit();
+                //TODO check
+                con.Update(viewModel.ToProduct());
             }
+            else
+            {
+                con.Insert(viewModel.ToProduct());
+            }
+
+            if (connection == null) con.Dispose();
             _matchList = null;
         }
 
-        public ProductModel Query(Guid id)
+        public void Deletes(Guid[] ids)
         {
             using (var con = DbConnection)
             {
-                var skus = con.Query<ProductSku>("select * from ProductSku where ProductId=@Id", new { Id = id });
-                var product = con.QueryFirstOrDefault<Product>("select * from Product where Id=@Id LIMIT 1", new { Id = id });
-                if (!skus.Any() || product == null) throw new Exception("Not find product");
+                con.DeleteList<Product>(ids);
+            }
+        }
 
-                var stocks = con.Query<dynamic>(
-                     "select SkuId,sum(Quantity) as 'Quantity' from ProductStock where SkuId in @Ids group by SkuId",
-                     new { Ids = skus.Select(s => s.Id) });
+        public ProductEditModel Query(Guid id)
+        {
+            using (var con = DbConnection)
+            {
+                var entity = con.Get<Product>(id);
 
-                var skuViewModels = new List<ProductModel.Sku>();
-
-                foreach (var item in skus)
+                var model = new ProductEditModel(entity)
                 {
-                    var stock = stocks.FirstOrDefault(f => f.SkuId == item.Id)?.Quantity ?? 0;
-                    skuViewModels.Add(new ProductModel.Sku(item, (int)stock));
-                }
+                    Skus = new ProductSkuService(Context).List(id, con)
+                };
 
-                return new ProductModel(product, skuViewModels.ToArray(), new Guid[0]);
+                return model;
             }
         }
 
         public PagedListModel<ProductListModel> Query(PagingQueryModel viewModel)
         {
-            var result = new PagedListModel<ProductListModel>();
-            result.List = new List<ProductListModel>();
+            var result = new PagedListModel<ProductListModel>
+            {
+                List = new List<ProductListModel>()
+            };
 
             using (var con = DbConnection)
             {
-                var count = con.QuerySingle<long>("select count(1) from Product");
+                var count = con.Count<Product>();
                 result.SetPageInfo(viewModel, count);
 
-                var products = con.Query<Product>("select Id,Title,Images,Enable,TypeId from Product limit @Size offset @Offset", new
+                var products = con.Query(@"
+SELECT P.Id,
+       P.TypeId,
+       P.Images,
+       P.Title,
+       P.Enable,
+       p.TypeId,
+       PT.Name,
+       P.Specifications  AS ProductSpecifications,
+       PT.Specifications AS ProductTypeSpecifications
+FROM Product P
+         LEFT JOIN ProductType PT ON PT.Id = P.TypeId
+ORDER BY CreateTime DESC
+LIMIT @Size OFFSET @Offset
+", new
                 {
                     Size = viewModel.Size,
                     Offset = result.GetOffset(viewModel.Size)
                 });
 
-                var stocks = con.Query<dynamic>(@"
-                select ProductId,sum(Quantity) as Stock,sum(case when StockType = 1 or StockType=2 then Quantity else 0 end) as Sales
-                from ProductStock
-                where ProductId in @Ids
-                group by ProductId
+                var skus = con.Query(@"
+SELECT PS.Id,
+       PS.Name,
+       Ps.Specifications,
+       SUM(CASE WHEN P.Quantity IS NULL THEN 0 ELSE P.Quantity END)       AS Stock,
+       SUM(CASE WHEN P.Type = 1 OR p.Type = 2 THEN p.Quantity ELSE 0 END) AS Sale,
+       PS.Enable,
+       PS.Image,
+       PS.ProductId,
+       PS.Price
+FROM ProductSku PS
+         LEFT JOIN ProductStock P ON PS.Id = P.SkuId
+WHERE PS.ProductId IN @Ids
+GROUP BY PS.Id
                 ", new
                 {
                     Ids = products.Select(s => s.Id)
@@ -153,19 +149,32 @@ namespace Kooboo.Sites.Commerce.Services
                     var product = new ProductListModel
                     {
                         Id = item.Id,
-                        Enable = item.Enable,
+                        Enable = Convert.ToBoolean(item.Enable),
                         Title = item.Title,
-                        Images = item.Images,
-                        CategoryId = item.TypeId
+                        Images = JsonHelper.Deserialize<ProductModel.Image[]>(item.Images),
+                        TypeId = item.TypeId,
+                        TypeName = item.Name
                     };
 
-                    var stock = stocks.FirstOrDefault(f => f.ProductId == item.Id);
+                    var productSpecifications = JsonHelper.Deserialize<ProductModel.Specification[]>(item.ProductSpecifications);
+                    var productTypeSpecifications = JsonHelper.Deserialize<ItemDefineModel[]>(item.ProductTypeSpecifications);
 
-                    if (stock != null)
+                    product.Items = skus.Where(w => w.ProductId == item.Id).Select(s =>
                     {
-                        product.Sales = stock.Sales;
-                        product.Stock = stock.Stock;
-                    }
+                        var specifications = JsonHelper.Deserialize<KeyValuePair<Guid, Guid>[]>(s.Specifications);
+
+                        return new ProductListModel.Item
+                        {
+                            Enable = Convert.ToBoolean(s.Enable),
+                            Id = s.Id,
+                            Image = s.Image == null ? null : JsonHelper.Deserialize<ProductModel.Image>(s.Image),
+                            Name = s.Name,
+                            Sale = (int)s.Sale,
+                            Specifications = Helpers.GetSpecifications(productTypeSpecifications, productSpecifications, specifications),
+                            Stock = (int)s.Stock,
+                            Price = (decimal)s.Price
+                        };
+                    }).ToArray();
 
                     result.List.Add(product);
                 }
@@ -226,9 +235,9 @@ GROUP BY Ps.Id
                     {
                         Id = item.SkuId,
                         ProductId = item.ProductId,
-                        ProductName = item.ProductName,
-                        Stock = Convert.ToInt32(item.Stock),
-                        Specifications = Helpers.GetSpecifications(productTypeSpecifications, productSpecifications, productSkuSpecifications)
+                        //ProductName = item.ProductName,
+                        //Stock = Convert.ToInt32(item.Stock),
+                        //Specifications = Helpers.GetSpecifications(productTypeSpecifications, productSpecifications, productSkuSpecifications)
                     });
                 }
             }

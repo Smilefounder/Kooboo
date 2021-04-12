@@ -50,8 +50,8 @@
                     :disabled="!!editData.productCount"
                     @change="item.options=[]"
                   >
-                    <option :value="0">Text</option>
-                    <option :value="1">Options</option>
+                    <option value="Text">Text</option>
+                    <option value="Option">Options</option>
                   </select>
                   <span
                     class="input-group-addon"
@@ -65,7 +65,7 @@
                 <kb-options-editor
                   ref="optionsEditors"
                   :has-dependent="editData.productCount"
-                  v-if="item.type==1"
+                  v-if="item.type=='Option'"
                   :list.sync="item.options"
                   style="border: 1px solid #e5e5e5; border-top: 0; padding: 5px"
                 />
@@ -102,8 +102,8 @@
                     :disabled="!!editData.productCount"
                     @change="item.options=[]"
                   >
-                    <option :value="0">Text</option>
-                    <option :value="1">Options</option>
+                    <option value="Text">Text</option>
+                    <option value="Option">Options</option>
                   </select>
                   <span
                     class="input-group-addon"
@@ -117,7 +117,7 @@
                 <kb-options-editor
                   ref="optionsEditors"
                   :has-dependent="editData.productCount"
-                  v-if="item.type==1"
+                  v-if="item.type=='Option'"
                   :list.sync="item.options"
                   style="border: 1px solid #e5e5e5; border-top: 0; padding: 5px"
                 />

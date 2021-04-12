@@ -1,4 +1,6 @@
 ﻿using Kooboo.Lib.Helper;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,18 +15,16 @@ namespace Kooboo.Sites.Commerce.Models.Product
 
         }
 
-        public ProductModel(Entities.Product product, Sku[] skus, Guid[] categories)
+        public ProductModel(Entities.Product product)
         {
             Id = product.Id;
             Title = product.Title;
             Images = JsonHelper.Deserialize<Image[]>(product.Images);
             Description = product.Description;
             Attributes = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(product.Attributes);
-            Specifications = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(product.Specifications);
+            Specifications = JsonHelper.Deserialize<Specification[]>(product.Specifications);
             TypeId = product.TypeId;
             Enable = product.Enable;
-            Skus = skus;
-            Categories = categories;
         }
 
         public Guid Id { get; set; }
@@ -32,11 +32,9 @@ namespace Kooboo.Sites.Commerce.Models.Product
         public Image[] Images { get; set; }
         public string Description { get; set; }
         public KeyValuePair<Guid, string>[] Attributes { get; set; }
-        public KeyValuePair<Guid, string>[] Specifications { get; set; }
+        public Specification[] Specifications { get; set; }
         public Guid TypeId { get; set; }
         public bool Enable { get; set; }
-        public Sku[] Skus { get; set; }
-        public Guid[] Categories { get; set; }
 
         public class Image
         {
@@ -46,50 +44,16 @@ namespace Kooboo.Sites.Commerce.Models.Product
             public bool IsPrimary { get; set; }
         }
 
-        public class Sku
+        public class Specification
         {
-            public Sku()
-            {
-
-            }
-
-            public Sku(Entities.ProductSku sku, int stock)
-            {
-                Id = sku.Id;
-                Specifications = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(sku.Specifications);
-                ProductId = sku.ProductId;
-                Name = sku.Name;
-                Price = sku.Price;
-                Tax = sku.Tax;
-                Thumbnail = sku.Thumbnail;
-                Enable = sku.Enable;
-                Stock = stock;
-            }
-
             public Guid Id { get; set; }
-            public KeyValuePair<Guid, string>[] Specifications { get; set; }
-            public Guid ProductId { get; set; }
-            public string Name { get; set; }
-            public decimal Price { get; set; }
-            public decimal Tax { get; set; }
-            public string Thumbnail { get; set; }
-            public bool Enable { get; set; }
-            public int Stock { get; set; }
 
-            public Entities.ProductSku ToSku()
-            {
-                return new Entities.ProductSku
-                {
-                    Id = Id,
-                    Enable = Enable,
-                    Name = Name,
-                    Price = Price,
-                    ProductId = ProductId,
-                    Tax = Tax,
-                    Thumbnail = Thumbnail,
-                    Specifications = JsonHelper.Serialize(Specifications)
-                };
-            }
+            public KeyValuePair<Guid, string>[] Options { get; set; }
+
+            public Guid[] Value { get; set; }
+
+            [JsonConverter(typeof(StringEnumConverter))]
+            public ItemDefineModel.DefineType Type { get; set; }
         }
 
         public Entities.Product ToProduct()
@@ -103,8 +67,67 @@ namespace Kooboo.Sites.Commerce.Models.Product
                 Attributes = JsonHelper.Serialize(Attributes),
                 Specifications = JsonHelper.Serialize(Specifications),
                 Title = Title,
-                TypeId = TypeId
+                TypeId = TypeId,
+                CreateTime=DateTime.UtcNow
             };
+        }
+
+        public Sku.SkuModel[] ToSkus()
+        {
+            var result = new List<Sku.SkuModel>();
+
+            void recursion(int i, List<KeyValuePair<Guid, Guid>> specifications)
+            {
+                if (i > Specifications.Length - 1) return;
+                var specification = Specifications[i];
+
+                for (int k = 0; k < specification.Value.Length; k++)
+                {
+                    var list = specifications.ToList();
+                    var value = specification.Value[k];
+
+                    list.Add(new KeyValuePair<Guid, Guid>(specification.Id, value));
+
+                    if (i == Specifications.Length - 1)
+                    {
+                        result.Add(new Sku.SkuModel
+                        {
+                            Enable = true,
+                            Id = Guid.NewGuid(),
+                            Name = string.Empty,
+                            ProductId = Id,
+                            Image = null,
+                            Specifications = list.ToArray()
+                        });
+                    }
+                    else
+                    {
+                        recursion(i + 1, list);
+                    }
+                }
+            }
+
+            recursion(0, new List<KeyValuePair<Guid, Guid>>());
+
+            if (Specifications.Any() && result.Count == 0)
+            {
+                throw new Exception("No specification was selected");
+            }
+
+            if (Specifications.Length == 0)
+            {
+                result.Add(new Sku.SkuModel
+                {
+                    Enable = true,
+                    Id = Id,
+                    Name = string.Empty,
+                    ProductId = Id,
+                    Image = null,
+                    Specifications = new KeyValuePair<Guid, Guid>[0]
+                });
+            }
+
+            return result.ToArray();
         }
     }
 }

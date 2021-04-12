@@ -1,19 +1,12 @@
 $(function () {
-  var self;
   new Vue({
     el: "#main",
     data: function () {
-      self = this;
       return {
         querySiteId: "?SiteId=" + Kooboo.getQueryString("SiteId"),
         typeId: Kooboo.getQueryString("type"),
         id: Kooboo.getQueryString("id"),
         mediaDialogData: {},
-        title: "",
-        images: [],
-        description: "",
-        attributes: [],
-        specifications: [],
         richeditor: {
           mediaDialogData: null,
           editorConfig: {
@@ -22,232 +15,235 @@ $(function () {
           },
         },
         productsUrl: Kooboo.Route.Product.ListPage,
-        skus: [],
-        enable: true,
         categories: [],
+        type: null,
+        oldSkus: [],
+        model: {
+          id: Kooboo.getQueryString("id"),
+          title: "",
+          images: [],
+          description: "",
+          attributes: [],
+          specifications: [],
+          typeId: Kooboo.getQueryString("type"),
+          enable: true,
+          skus: [],
+        },
       };
     },
     mounted() {
-      if (self.id) {
-        $.when(
-          Kooboo.ProductType.Get({
-            id: self.typeId,
-          }),
-          Kooboo.Product.Get({ id: self.id })
-        ).then(self.initData);
-      } else {
-        self.id = Kooboo.Guid.NewGuid();
+      Kooboo.ProductType.Get({ id: this.model.typeId }).then((rsp) => {
+        this.type = rsp.model;
+        if (this.model.id) {
+          Kooboo.Product.Get({ id: this.model.id }).then((rsp) => {
+            this.model = rsp.model;
+            this.initAttributes();
+            this.oldSkus = JSON.parse(JSON.stringify(this.model.skus));
+          });
+        } else {
+          this.model.id = Kooboo.Guid.NewGuid();
+          this.initAttributes();
+          this.initSpecifications();
+        }
+      });
 
-        $.when(
-          Kooboo.ProductType.Get({
-            id: this.typeId,
-          })
-        ).then(self.initData);
-      }
-
-      Kooboo.EventBus.subscribe("ko/style/list/pickimage/show", function (ctx) {
-        Kooboo.Media.getList().then(function (res) {
+      Kooboo.EventBus.subscribe("ko/style/list/pickimage/show", (ctx) => {
+        Kooboo.Media.getList().then((res) => {
           if (res.success) {
             res.model["show"] = true;
             res.model["context"] = ctx;
-            res.model["onAdd"] = function (selected) {
-              self.images.push({
+            res.model["onAdd"] = (selected) => {
+              this.model.images.push({
                 id: selected.id,
                 url: selected.url,
-                isPrimary: self.images.length == 0,
+                isPrimary: this.model.images.length == 0,
                 thumbnail: selected.thumbnail.substr(
                   0,
                   selected.thumbnail.indexOf("?")
                 ),
               });
             };
-            self.mediaDialogData = res.model;
+            this.mediaDialogData = res.model;
           }
         });
       });
     },
     methods: {
-      switchOption: function (option) {
-        option.checked = !option.checked;
-        self.rebuildSkus();
+      initAttributes() {
+        for (const i of this.type.attributes) {
+          var exist = this.model.attributes.find((f) => f.key == i.id);
+          if (!exist) {
+            this.model.attributes.push({
+              key: i.id,
+              value: i.type == "Option" ? i.options[0].key : "",
+            });
+          }
+        }
+      },
+      getAttribute(id) {
+        return this.model.attributes.find((f) => f.key == id);
+      },
+      initSpecifications() {
+        for (const i of this.type.specifications) {
+          this.model.specifications.push({
+            id: i.id,
+            options: [],
+            value: [],
+            type: i.type,
+          });
+        }
+      },
+      getSpecification(id) {
+        return this.model.specifications.find((f) => f.id == id);
+      },
+      setSpecification(id) {
+        var s = this.getSpecification(id);
+        s.value = s.options.map((m) => m.key);
+      },
+      switchOption(id, optionId) {
+        var s = this.getSpecification(id);
+
+        if (s.value.find((f) => f == optionId)) {
+          s.value = s.value.filter((f) => f != optionId);
+        } else {
+          s.value.push(optionId);
+        }
+      },
+      isCheckOption(id, optionId) {
+        var s = this.getSpecification(id);
+        return s.value.find((f) => f == optionId);
       },
       showMediaDialog: function () {
         Kooboo.EventBus.publish("ko/style/list/pickimage/show");
       },
-      save: function () {
-        var model = {
-          id: self.id,
-          title: self.title,
-          images: self.images,
-          description: self.description,
-          attributes: self.attributes.map((m) => ({
-            key: m.id,
-            value: m.value,
-          })),
-          typeId: self.typeId,
-          enable: self.enable,
-          categories: self.categories,
-          skus: JSON.parse(JSON.stringify(self.skus)),
-          specifications: [],
-        };
+      save: function (callback) {
+        var coped = JSON.parse(JSON.stringify(this.model));
+        var stocks = [];
+        this.removeUnuseSkus(coped);
+        var skus = coped.skus;
+        delete coped.skus;
 
-        model.skus.forEach((f) => {
-          f.stock = f.stock - f.lastStock;
-        });
+        for (const i of skus) {
+          var sku = this.oldSkus.find((f) => f.id == i.id);
+          var stock = sku ? i.stock - sku.stock : i.stock;
+          stocks.push({ key: i.id, value: stock });
+        }
 
-        self.specifications.forEach((f) => {
-          if (f.type == 0) {
-            model.specifications.push(...f.options);
-          }
-        });
-
-        Kooboo.Product.post(model).then(function (res) {
+        Kooboo.Product.post({
+          product: coped,
+          skus: skus,
+          stocks: stocks,
+        }).then(function (res) {
           if (res.success) {
             window.info.show(Kooboo.text.info.save.success, true);
+            if (callback) callback();
           }
         });
       },
       saveAndReturn: function () {
-        self.save();
-        location.href = self.productsUrl;
-      },
-      rebuildSkus: function () {
-        var skus = [];
-        function recursion(specification, item) {
-          var options = self.getOptions(specification);
-          var next =
-            self.specifications[self.specifications.indexOf(specification) + 1];
-
-          options.forEach(function (o) {
-            var coped = JSON.parse(JSON.stringify(item));
-
-            coped.specifications.push({
-              key: specification.id,
-              value: o.key,
-              valueDisplay: o.value,
-            });
-
-            if (next) {
-              recursion(next, coped);
-            } else {
-              coped.id = Kooboo.Guid.computeGuid(
-                self.id + coped.specifications.map((m) => m.value).join("")
-              );
-
-              var old = self.skus.find((f) => f.id == coped.id);
-              if (old) old.specifications = coped.specifications;
-              skus.push(old || coped);
-            }
-          });
-        }
-
-        recursion(self.specifications[0], {
-          specifications: [],
-          price: 0,
-          tax: 0,
-          enable: true,
-          name: "",
-          productId: self.id,
-          stock: 0,
-          lastStock: 0,
+        this.save(() => {
+          location.href = this.productsUrl;
         });
-
-        self.skus = skus;
       },
-      getOptions: function (specification) {
-        if (specification.type == 0) return specification.options;
-        else {
-          return specification.options.filter(function (f) {
-            return f.checked;
-          });
-        }
+      imgUrlWrap(url) {
+        return "url('" + url + this.querySiteId + "')";
       },
-      initData(type, product) {
-        var isNew = typeof product == "string";
-
-        if (isNew) {
-          product = null;
-        } else {
-          type = type[0];
-          product = product[0];
-          self.title = product.model.title;
-          self.images = product.model.images;
-          self.description = product.model.description;
-          self.enable = product.model.enable;
-        }
-
-        var attributes = type.model.attributes;
-        var specifications = type.model.specifications;
-        var productAttributes = product ? product.model.attributes : [];
-        var productSpecifications = product ? product.model.specifications : [];
-        var skus = product ? product.model.skus : [];
-        var skuSpecifications = [];
-
-        for (const sku of skus) {
-          sku.lastStock = sku.stock;
-          for (const i of sku.specifications) {
-            if (
-              !skuSpecifications.find(
-                (f) => f.key == i.key && f.value == i.value
-              )
-            ) {
-              skuSpecifications.push(i);
-            }
-          }
-        }
-
-        for (const attribute of attributes) {
-          var attributeValue = productAttributes.find(
-            (a) => a.key == attribute.id
-          );
-          attribute.value = attributeValue ? attributeValue.value : "";
-
-          if (isNew && attribute.type == 1 && attribute.options.length) {
-            attribute.value = attribute.options[0].key;
-          }
-        }
-
-        for (const specification of specifications) {
-          if (specification.type == 0) {
-            specification.options = skuSpecifications
-              .filter((f) => f.key == specification.id)
-              .map((m) => ({
-                key: m.value,
-                value: productSpecifications.find((f) => f.key == m.value)
-                  .value,
-              }));
-          }
-
-          if (specification.type == 1) {
-            specification.options.forEach(function (o) {
-              o.checked = skuSpecifications.some((s) => s.value == o.key);
-            });
-          }
-        }
-
-        self.specifications = specifications;
-        self.attributes = attributes;
-        self.skus = skus;
-        self.rebuildSkus();
-      },
-      imgUrlWrap: function (url) {
-        return "url('" + url + self.querySiteId + "')";
-      },
-      setIsPrimary: function (item) {
-        this.images.forEach(function (f) {
-          f.isPrimary = false;
-        });
-
+      setIsPrimary(item) {
+        this.model.images.forEach((f) => (f.isPrimary = false));
         item.isPrimary = true;
       },
-      removeImage: function (item) {
-        self.images = self.images.filter(function (f) {
-          return f != item;
-        });
-
-        if (self.images.length && item.isPrimary) {
-          self.images[0].isPrimary = true;
+      removeImage(item) {
+        this.model.images = this.model.images.filter((f) => f != item);
+        if (this.model.images.length && item.isPrimary) {
+          this.model.images[0].isPrimary = true;
         }
+      },
+      getSpecificationValue(specification, sku) {
+        var kv = sku.find((f) => f.key == specification.id);
+
+        var typeSpecification = this.type.specifications.find(
+          (f) => f.id == specification.id
+        );
+
+        var options =
+          specification.type == "Option"
+            ? typeSpecification.options
+            : specification.options;
+
+        return options.find((f) => f.key == kv.value).value;
+      },
+      getSpecificationName(id) {
+        return this.type.specifications.find((f) => f.id == id).name;
+      },
+      getOrNewSpecification(sku) {
+        var s = this.model.skus.find(
+          (f) => this.skuToString(f.specifications) == this.skuToString(sku)
+        );
+
+        if (!s) {
+          s = {
+            id: Kooboo.Guid.NewGuid(),
+            name: "",
+            price: 0,
+            productId: this.model.id,
+            specifications: sku,
+            stock: 0,
+            tax: 0,
+            thumbnail: "",
+            enable: true,
+          };
+
+          this.model.skus.push(s);
+        }
+
+        return s;
+      },
+      skuToString(sku) {
+        return sku
+          .map((m) => `${m.key}${m.value}`)
+          .sort()
+          .join("");
+      },
+      removeUnuseSkus(model) {
+        var skus = this.skus.map((m) => this.skuToString(m));
+        model.skus = model.skus.filter((f) => {
+          var skuString = this.skuToString(f.specifications);
+          return skus.find((f) => f == skuString) !== undefined;
+        });
+      },
+    },
+    computed: {
+      skus() {
+        var result = [];
+
+        var recursion = (i, specifications) => {
+          if (i > this.model.specifications.length - 1) return;
+          var specification = this.model.specifications[i];
+
+          for (var k = 0; k < specification.value.length; k++) {
+            var list = JSON.parse(JSON.stringify(specifications));
+            var value = specification.value[k];
+
+            list.push({
+              key: specification.id,
+              value: value,
+            });
+
+            if (i == this.model.specifications.length - 1) {
+              result.push(list);
+            } else {
+              recursion(i + 1, list);
+            }
+          }
+        };
+
+        recursion(0, []);
+
+        if (this.model.specifications.length == 0) {
+          result.push([]);
+        }
+
+        return result;
       },
     },
   });

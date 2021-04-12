@@ -41,7 +41,7 @@
         <div class="form-group">
           <label class="control-label col-md-2">Title</label>
           <div class="col-md-10">
-            <input class="form-control" v-model="title" />
+            <input class="form-control" v-model="model.title" />
           </div>
         </div>
         <div class="form-group">
@@ -50,7 +50,7 @@
             <div
               class="images"
               :class="{'primary-img':item.isPrimary}"
-              v-for="(item,index) in images"
+              v-for="(item,index) in model.images"
               :key="index"
               style="border: 1px #ddd solid"
               :style="{backgroundImage: imgUrlWrap(item.thumbnail),borderColor:item.isPrimary?'#00c249':'#ddd'}"
@@ -80,21 +80,30 @@
           <label class="control-label col-md-2">Description</label>
           <div class="col-md-10">
             <textarea
-              v-model="description"
+              v-model="model.description"
               v-kb-richeditor="richeditor"
               style="opacity: 0"
             ></textarea>
           </div>
         </div>
+        <div class="form-group">
+          <label class="control-label col-md-2">On</label>
+          <div class="col-md-10">
+            <kb-switch v-model="model.enable"></kb-switch>
+          </div>
+        </div>
       </div>
     </fieldset>
 
-    <fieldset class="margin-bottom-15 clearfix" v-if="attributes.length>0">
+    <fieldset
+      class="margin-bottom-15 clearfix"
+      v-if="type&&type.attributes.length>0"
+    >
       <legend>
-        <div class="pull-left">Category<span>Attributes</span></div>
+        <div class="pull-left">Attributes</div>
       </legend>
       <div class="row">
-        <template class="form-group" v-for="attribute in attributes">
+        <template class="form-group" v-for="attribute in type.attributes">
           <label
             style="text-align: right; padding-top: 7px"
             class="control-label col-md-2"
@@ -107,14 +116,14 @@
             style="margin-bottom: 5px"
           >
             <input
-              v-if="attribute.type==0"
-              v-model="attribute.value"
+              v-if="attribute.type=='Text'&&getAttribute(attribute.id)"
+              v-model="getAttribute(attribute.id).value"
               class="form-control"
             />
             <select
-              v-if="attribute.type==1"
+              v-if="attribute.type=='Option'&&getAttribute(attribute.id)"
               class="form-control"
-              v-model="attribute.value"
+              v-model="getAttribute(attribute.id).value"
             >
               <option
                 v-for="option in attribute.options"
@@ -128,25 +137,28 @@
       </div>
     </fieldset>
 
-    <fieldset class="margin-bottom-15 clearfix" v-if="specifications.length>0">
+    <fieldset
+      class="margin-bottom-15 clearfix"
+      v-if="model.specifications.length>0"
+    >
       <legend>
         <div class="pull-left">Specifications</div>
       </legend>
       <div class="form-horizontal">
         <div
           class="form-group"
-          v-for="specification in specifications"
+          v-for="specification in type.specifications"
           :key="specification.id"
         >
           <label class="control-label col-md-2">{{specification.name}}</label>
           <div class="col-md-8">
-            <template v-if="specification.type==0">
+            <template v-if="specification.type=='Text'">
               <kb-options-editor
-                :list.sync="specification.options"
-                @update:list="rebuildSkus"
+                :list.sync="getSpecification(specification.id).options"
+                @update:list="setSpecification(specification.id)"
               />
             </template>
-            <template v-if="specification.type==1">
+            <template v-if="specification.type=='Option'">
               <div style="display: flex; flex-wrap: wrap">
                 <button
                   type="button"
@@ -158,11 +170,11 @@
                     align-items: center;
                     margin: 5px 5px 5px 0;
                   "
-                  @click.stop="switchOption(option)"
+                  @click.stop="switchOption(specification.id,option.key)"
                 >
                   <input
                     type="checkbox"
-                    :checked="option.checked"
+                    :checked="isCheckOption(specification.id,option.key)"
                     class="form-control"
                     style="width: 12px; height: 12px; margin: 0 5px"
                   />
@@ -176,12 +188,13 @@
       <table
         class="table table-bordered"
         style="margin-top: 15px; text-align: center"
-        v-if="skus.length"
       >
         <thead>
           <tr>
-            <td v-for="specification in specifications" :key="specification.id"
-              >{{specification.name}}</td
+            <td
+              v-for="specification in model.specifications"
+              :key="specification.id"
+              >{{getSpecificationName(specification.id)}}</td
             >
             <td style="width: 80px">Price</td>
             <td style="width: 80px">Tax</td>
@@ -192,45 +205,93 @@
         </thead>
         <tbody>
           <tr v-for="sku in skus">
-            <td v-for="item in sku.specifications">{{item.valueDisplay}}</td>
+            <td v-for="item in model.specifications"
+              >{{getSpecificationValue(item,sku)}}</td
+            >
             <td
               ><input
                 type="number"
-                v-model.number="sku.price"
+                v-model.number="getOrNewSpecification(sku).price"
                 class="table-input"
             /></td>
             <td
               ><input
                 type="number"
-                v-model.number="sku.tax"
+                v-model.number="getOrNewSpecification(sku).tax"
                 class="table-input"
             /></td>
             <td
               ><input
                 type="number"
-                v-model.number="sku.stock"
+                v-model.number="getOrNewSpecification(sku).stock"
                 class="table-input"
             /></td>
-            <td><input v-model="sku.name" class="table-input" /></td>
+            <td
+              ><input
+                v-model="getOrNewSpecification(sku).name"
+                class="table-input"
+            /></td>
             <td>
               <span
-                v-if="sku.enable"
+                v-if="getOrNewSpecification(sku).enable"
                 class="label green"
                 style="cursor: pointer"
-                @click="sku.enable=false"
-                >上架</span
+                @click="getOrNewSpecification(sku).enable=false"
+                >On</span
               >
               <span
                 v-else
                 class="label gray"
-                @click="sku.enable=true"
+                @click="getOrNewSpecification(sku).enable=true"
                 style="cursor: pointer"
-                >下架</span
+                >Off</span
               >
             </td>
           </tr>
         </tbody>
       </table>
+    </fieldset>
+
+    <fieldset class="margin-bottom-15 clearfix" v-if="model.specifications.length==0&&model.id">
+      <legend>
+        <div class="pull-left">Sales Information</div>
+      </legend>
+      <div class="form-horizontal">
+        <div class="form-group">
+          <label class="control-label col-md-2">Price</label>
+          <div class="col-md-4">
+            <input
+              class="form-control"
+              v-model.number="getOrNewSpecification(skus[0]).price"
+            />
+          </div>
+
+          <label class="control-label col-md-2">Tax</label>
+          <div class="col-md-4">
+            <input
+              class="form-control"
+              v-model.number="getOrNewSpecification(skus[0]).tax"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="control-label col-md-2">Stock</label>
+          <div class="col-md-4">
+            <input
+              class="form-control"
+              v-model.number="getOrNewSpecification(skus[0]).stock"
+            />
+          </div>
+          <label class="control-label col-md-2">SKU</label>
+          <div class="col-md-4">
+            <input
+              class="form-control"
+              v-model="getOrNewSpecification(skus[0]).name"
+            />
+          </div>
+        </div>
+      </div>
     </fieldset>
 
     <div class="page-buttons">
@@ -247,7 +308,7 @@
         </a>
         <ul class="dropdown-menu" role="menu">
           <li>
-            <a href="javascript:;" @click="save">Save</a>
+            <a href="javascript:;" @click="save()">Save</a>
           </li>
         </ul>
       </div>
@@ -267,6 +328,12 @@
     "/_Admin/Scripts/kooboo-web-editor/richEditor.min.js",
     "/_Admin/Scripts/components/tinymceMonaco/plugin.min.js",
     "/_Admin/Scripts/components/ECommerce/kb-options-editor.js",
+    "/_Admin/Scripts/lib/bootstrap-switch/bootstrap-switch.min.js",
+    "/_Admin/Scripts/components/kbSwitch.js",
+  ]);
+
+  Kooboo.loadCSS([
+    "/_Admin/Scripts/lib/bootstrap-switch/bootstrap-switch.min.css",
   ]);
 </script>
 <script src="/_Admin/View/ECommerce/Product.js"></script>

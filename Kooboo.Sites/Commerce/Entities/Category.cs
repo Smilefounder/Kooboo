@@ -11,7 +11,7 @@ namespace Kooboo.Sites.Commerce.Entities
         public string Name { get; set; }
         public AddingType Type { get; set; }
         public string Rule { get; set; }
-        public DateTime CreateDate { get; set; } = DateTime.UtcNow;
+        public DateTime CreateTime { get; set; } = DateTime.UtcNow;
 
         public enum AddingType
         {

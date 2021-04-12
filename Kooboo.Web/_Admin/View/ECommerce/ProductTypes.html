@@ -21,13 +21,19 @@
 
     <kb-table-column :label="Kooboo.text.commerce.attributes">
       <template v-slot="row">
-        {{row.attributes.map(m=>m.name).join(",")}}
+        <span v-if="row.attributes.length">
+          {{row.attributes.map(m=>m.name).join(",")}}
+        </span>
+        <span v-else>-</span>
       </template>
     </kb-table-column>
 
     <kb-table-column :label="Kooboo.text.commerce.specifications">
       <template v-slot="row">
-        {{row.specifications.map(m=>m.name).join(",")}}
+        <span v-if="row.specifications.length">
+          {{row.specifications.map(m=>m.name).join(",")}}
+        </span>
+        <span v-else>-</span>
       </template>
     </kb-table-column>
 

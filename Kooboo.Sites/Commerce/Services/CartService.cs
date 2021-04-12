@@ -153,7 +153,7 @@ WHERE CustomerId
                         var skuSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, Guid>[]>(ss.ProductSkuSpecifications);
                         var productSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(ss.ProductSpecifications);
 
-                        return new CartListModel.CartListItem
+                        return new CartListModel.Item
                         {
                             EditTime = ss.EditTime,
                             ProductId = ss.ProductId,

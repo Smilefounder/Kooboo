@@ -35,7 +35,7 @@ create table 'Product'
 	'Description' text not null,
 	'Attributes' text not null,
 	'Specifications' text not null,
-	'CreateDate' datetime not null,
+	'CreateTime' datetime not null,
 
 	'TypeId' uniqueidentifier not null
 		constraint Product_TypeId_ProductType_Id_fk
@@ -60,7 +60,7 @@ create table 'ProductSku'
 	'Specifications' text not null,
 	'Price' real not null,
 	'Tax' real not null,
-	'Thumbnail' text,
+	'Image' text,
 	'Enable' int not null
 );
 
@@ -77,7 +77,7 @@ create table 'ProductStock'
 				on delete cascade,
 
 	'Quantity' int not null,
-	'StockType' int not null,
+	'Type' int not null,
 	'DateTime' datetime not null,
 	'OrderItemId' uniqueidentifier
 );
@@ -90,7 +90,7 @@ create table 'Category'
 
 	Type int not null,
 	Name text not null,
-	CreateDate datetime not null,
+	CreateTime datetime not null,
 	Rule text
 );
 

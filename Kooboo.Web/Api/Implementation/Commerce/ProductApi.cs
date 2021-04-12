@@ -5,6 +5,7 @@ using Kooboo.Sites.Commerce.Models.Product;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Kooboo.Sites.Commerce;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
@@ -16,12 +17,20 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public bool RequireUser => true;
 
-        public void Post(ProductModel viewModel, ApiCall apiCall)
+        public void Post(ProductAggregateModel viewModel, ApiCall apiCall)
         {
-            new ProductService(apiCall.Context).Save(viewModel);
+            using (var con = apiCall.Context.CreateCommerceDbConnection())
+            {
+                con.Open();
+                var tran = con.BeginTransaction();
+                new ProductService(apiCall.Context).Save(viewModel.Product, con);
+                new ProductSkuService(apiCall.Context).Save(viewModel.Product.Id, viewModel.Skus, con);
+                new ProductStockService(apiCall.Context).Adjust(viewModel.Product.Id, viewModel.Stocks, con);
+                tran.Commit();
+            }
         }
 
-        public ProductModel Get(Guid id, ApiCall apiCall)
+        public ProductEditModel Get(Guid id, ApiCall apiCall)
         {
             return new ProductService(apiCall.Context).Query(id);
         }
@@ -36,9 +45,14 @@ namespace Kooboo.Web.Api.Implementation.Commerce
             return new ProductService(apiCall.Context).KeyValue();
         }
 
-        public SkuModel[] SkuList(ApiCall apiCall, Guid id)
+        public void Deletes(Guid[] ids, ApiCall apiCall)
         {
-            return new ProductService(apiCall.Context).SkuList(id);
+            new ProductService(apiCall.Context).Deletes(ids);
         }
+
+        //public SkuModel[] SkuList(ApiCall apiCall, Guid id)
+        //{
+        //    return new ProductService(apiCall.Context).SkuList(id);
+        //}
     }
 }

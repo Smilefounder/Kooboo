@@ -10,11 +10,9 @@ namespace Kooboo.Sites.Commerce.KScripts
     public class KType
     {
         readonly Lazy<ProductTypeService> _productTypeService;
-        readonly RenderContext _context;
 
         public KType(RenderContext context)
         {
-            _context = context;
             _productTypeService = new Lazy<ProductTypeService>(() => new ProductTypeService(context), true);
         }
 
@@ -35,14 +33,14 @@ k.commerce.type.post({
         {
             id: k.security.newGuid(),
             name: 'attribute1',
-            type: 'text' //enum: text option
+            type: 'Text' //enum: Text Option
         }
     ],
     specifications: [
         {
            id: k.security.newGuid(),
             name: 'specification1',
-            type: 'option',
+            type: 'Option', //enum: Text Option
             options: [{
                 key: k.security.newGuid(),
                 value: 'options1'
