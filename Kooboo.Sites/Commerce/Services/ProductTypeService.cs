@@ -8,6 +8,7 @@ using Kooboo.Sites.Commerce.Models.Type;
 using Kooboo.Sites.Commerce.Validators;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 
@@ -60,11 +61,11 @@ namespace Kooboo.Sites.Commerce.Services
             return string.Join(string.Empty, items.OrderBy(o => o.Id).Select(s => s.ToString()));
         }
 
-        public ProductTypeDetailModel Get(Guid id)
+        public ProductTypeDetailModel Get(Guid id, IDbConnection connection = null)
         {
-            using (var con = DbConnection)
-            {
-                var entity = con.QueryFirstOrDefault(@"
+            var con = connection ?? DbConnection;
+
+            var entity = con.QueryFirstOrDefault(@"
 SELECT PT.Id,
        PT.Name,
        PT.attributes,
@@ -77,17 +78,18 @@ GROUP BY PT.Id
 LIMIT 1
 ", new { Id = id });
 
-                if (entity == null) throw new Exception("Not found product type");
+            if (entity == null) throw new Exception("Not found product type");
 
-                return new ProductTypeDetailModel
-                {
-                    Attributes = JsonHelper.Deserialize<ItemDefineModel[]>(entity.Attributes),
-                    Id = entity.Id,
-                    Name = entity.Name,
-                    Specifications = JsonHelper.Deserialize<ItemDefineModel[]>(entity.Specifications),
-                    ProductCount = (int)entity.ProductCount
-                };
-            }
+            return new ProductTypeDetailModel
+            {
+                Attributes = JsonHelper.Deserialize<ItemDefineModel[]>(entity.Attributes),
+                Id = entity.Id,
+                Name = entity.Name,
+                Specifications = JsonHelper.Deserialize<ItemDefineModel[]>(entity.Specifications),
+                ProductCount = (int)entity.ProductCount
+            };
+
+            if (connection == null) con.Dispose();
         }
 
         public ProductTypeDetailModel[] List()

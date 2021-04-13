@@ -70,7 +70,7 @@
       <template v-slot="row"> {{row.typeName}} </template>
     </kb-table-column>
 
-    <kb-table-column label="SKU image" width="1px">
+    <kb-table-column label="" width="1px">
       <template v-slot="row">
         <div
           class="sku-item"
@@ -83,7 +83,6 @@
             class="product-img"
             :style="{backgroundImage:getPrimaryImg([item.image])}"
           ></div>
-          <span v-else>-</span>
         </div>
       </template>
     </kb-table-column>

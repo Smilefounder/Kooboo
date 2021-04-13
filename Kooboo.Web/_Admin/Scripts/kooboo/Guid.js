@@ -16,10 +16,6 @@
 
         Guid.Empty = "00000000-0000-0000-0000-000000000000";
 
-        Guid.computeGuid=function(seed){
-            return uuidv3(seed,Guid.Empty)
-        }
-
         return Guid;
     })();
 
@@ -27,7 +23,6 @@
         Empty: Guid.Empty,
         NewGuid: Guid.NewGuid,
         isValid: Guid.isValid,
-        computeGuid:Guid.computeGuid
     };
 
     Kooboo.Guid = guid;

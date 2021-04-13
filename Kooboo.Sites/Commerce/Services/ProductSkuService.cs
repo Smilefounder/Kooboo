@@ -1,9 +1,11 @@
 ﻿using Dapper;
+using FluentValidation;
 using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Models.Product;
 using Kooboo.Sites.Commerce.Models.Sku;
+using Kooboo.Sites.Commerce.Validators;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -20,6 +22,8 @@ namespace Kooboo.Sites.Commerce.Services
 
         public void Save(Guid id, SkuModel[] skus, IDbConnection connection = null)
         {
+            new SkuModelsValidator().ValidateAndThrow(skus);
+
             var con = connection ?? DbConnection;
             IDbTransaction tran = null;
 

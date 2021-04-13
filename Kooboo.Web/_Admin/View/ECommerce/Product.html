@@ -158,12 +158,16 @@
           <div class="col-md-8">
             <template v-if="specification.type=='Text'">
               <kb-options-editor
+                ref="optionsEditors"
                 :list.sync="getSpecification(specification.id).options"
                 @update:list="setSpecification(specification.id)"
               />
             </template>
             <template v-if="specification.type=='Option'">
-              <div style="display: flex; flex-wrap: wrap">
+              <div
+                style="display: flex; flex-wrap: wrap"
+                v-kb-hint:left="validateModel[specification.id].msg"
+              >
                 <button
                   type="button"
                   class="btn btn-sm"
@@ -366,7 +370,6 @@
 
 <script>
   Kooboo.loadJS([
-    "/_Admin/Scripts/lib/uuidv3.min.js",
     "/_Admin/Scripts/Kooboo/Guid.js",
     "/_Admin/Scripts/components/kb-media-dialog.js",
     "/_Admin/Scripts/kooboo-web-editor/richEditor.min.js",

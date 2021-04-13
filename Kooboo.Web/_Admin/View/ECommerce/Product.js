@@ -44,6 +44,11 @@ $(function () {
     mounted() {
       Kooboo.ProductType.Get({ id: this.model.typeId }).then((rsp) => {
         this.type = rsp.model;
+
+        for (const i of this.type.specifications) {
+          Vue.set(this.validateModel, i.id, { valid: true, msg: "" });
+        }
+
         if (this.model.id) {
           Kooboo.Product.Get({ id: this.model.id }).then((rsp) => {
             this.model = rsp.model;
@@ -261,6 +266,23 @@ $(function () {
           );
           if (!this.validateModel[item.id + prop].valid) valid = false;
         };
+
+        var optionEditors = this.$refs.optionsEditors;
+
+        if (optionEditors) {
+          for (const i of optionEditors) {
+            if (!i.valid()) valid = false;
+          }
+        }
+        
+        for (const i of model.specifications) {
+          this.validateModel[i.id] = Kooboo.validField(
+            i.value.length ? true : undefined,
+            [{ required: Kooboo.text.validation.required }]
+          );
+
+          if (!this.validateModel[i.id].valid) valid = false;
+        }
 
         for (const i of model.skus) {
           validGroup(i, "price");

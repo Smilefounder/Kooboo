@@ -54,11 +54,13 @@ namespace Kooboo.Sites.Commerce.Services
         public void Save(ProductModel viewModel, IDbConnection connection = null)
         {
             new ProductModelValidator().ValidateAndThrow(viewModel);
-            var con = connection;
+            var con = connection ?? DbConnection;
+            var type = new ProductTypeService(Context).Get(viewModel.TypeId, con);
+            if (type == null) throw new Exception("Can not find product type");
+            //CheckRestrain(viewModel, type);
 
             if (con.Exist<Product>(viewModel.Id))
             {
-                //TODO check
                 con.Update(viewModel.ToProduct());
             }
             else
@@ -68,6 +70,11 @@ namespace Kooboo.Sites.Commerce.Services
 
             if (connection == null) con.Dispose();
             _matchList = null;
+        }
+
+        private void CheckRestrain(ProductModel viewModel, Models.Type.ProductTypeDetailModel type)
+        {
+            throw new NotImplementedException();
         }
 
         public void Deletes(Guid[] ids)

@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Kooboo.Sites.Commerce;
+using Kooboo.Sites.Commerce.Validators;
+using FluentValidation;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
@@ -19,6 +21,8 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public void Post(ProductAggregateModel viewModel, ApiCall apiCall)
         {
+            new ProductAggregateModelValidator().ValidateAndThrow(viewModel);
+
             using (var con = apiCall.Context.CreateCommerceDbConnection())
             {
                 con.Open();
