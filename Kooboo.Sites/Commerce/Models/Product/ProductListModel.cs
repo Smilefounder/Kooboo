@@ -23,7 +23,7 @@ namespace Kooboo.Sites.Commerce.Models.Product
             public int Sale { get; set; }
             public dynamic Price { get; set; }
             public bool Enable { get; set; }
-            public ProductModel.Image[] Image { get; set; }
+            public ProductModel.Image Image { get; set; }
         }
     }
 }

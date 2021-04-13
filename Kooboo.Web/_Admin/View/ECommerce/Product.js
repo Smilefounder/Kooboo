@@ -68,15 +68,21 @@ $(function () {
             res.model["show"] = true;
             res.model["context"] = ctx;
             res.model["onAdd"] = (selected) => {
-              this.model.images.push({
+              var image = {
                 id: selected.id,
                 url: selected.url,
-                isPrimary: this.model.images.length == 0,
+                isPrimary: ctx ? true : this.model.images.length == 0,
                 thumbnail: selected.thumbnail.substr(
                   0,
                   selected.thumbnail.indexOf("?")
                 ),
-              });
+              };
+
+              if (ctx) {
+                Vue.set(ctx, "image", image);
+              } else {
+                this.model.images.push(image);
+              }
             };
             this.mediaDialogData = res.model;
           }
@@ -207,6 +213,7 @@ $(function () {
             tax: 0,
             thumbnail: "",
             enable: true,
+            image: null,
           };
 
           this.initValidateModelItem(s.id);
@@ -267,6 +274,9 @@ $(function () {
         Vue.set(this.validateModel, id + "price", { valid: true, msg: "" });
         Vue.set(this.validateModel, id + "tax", { valid: true, msg: "" });
         Vue.set(this.validateModel, id + "stock", { valid: true, msg: "" });
+      },
+      selectSkuImage(sku) {
+        Kooboo.EventBus.publish("ko/style/list/pickimage/show", sku);
       },
     },
     computed: {

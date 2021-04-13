@@ -1,16 +1,17 @@
 <!-- #layout name=blank-->
 <style>
   .product-img {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
     border: 1px solid #ddd;
+    box-sizing: border-box;
   }
 
   .sku-item {
-    height: 20px;
+    height: 45px;
     display: flex;
     align-items: center;
     word-wrap: none;
@@ -52,7 +53,7 @@
     </div>
   </div>
   <kb-table v-if="list" :data="list" show-select :selected.sync="selectedRows">
-    <kb-table-column width="80px">
+    <kb-table-column width="1px">
       <template v-slot="row">
         <div
           class="product-img"
@@ -69,10 +70,31 @@
       <template v-slot="row"> {{row.typeName}} </template>
     </kb-table-column>
 
+    <kb-table-column label="SKU image" width="1px">
+      <template v-slot="row">
+        <div
+          class="sku-item"
+          v-for="item in row.items"
+          :key="item.id"
+          :style="{color:item.enable?'#000':'#ddd'}"
+        >
+          <div
+            v-if="item.image"
+            class="product-img"
+            :style="{backgroundImage:getPrimaryImg([item.image])}"
+          ></div>
+          <span v-else>-</span>
+        </div>
+      </template>
+    </kb-table-column>
+
     <kb-table-column :label="Kooboo.text.commerce.specifications" width="1px">
       <template v-slot="row">
         <div class="sku-item" v-for="item in row.items" :key="item.id">
-          <span v-if="item.specifications.length">
+          <span
+            v-if="item.specifications.length"
+            :style="{color:item.enable?'#000':'#ddd'}"
+          >
             {{item.specifications.map(m=>`[${m.key}:${m.value}]`).join('&nbsp')}}
           </span>
           <span v-else>-</span>
@@ -82,7 +104,12 @@
 
     <kb-table-column label="SKU" width="1px">
       <template v-slot="row">
-        <div class="sku-item" v-for="item in row.items" :key="item.id">
+        <div
+          class="sku-item"
+          v-for="item in row.items"
+          :key="item.id"
+          :style="{color:item.enable?'#000':'#ddd'}"
+        >
           <span v-if="item.name"> {{item.name}} </span>
           <span v-else>-</span>
         </div>
@@ -91,7 +118,12 @@
 
     <kb-table-column label="Price" width="1px">
       <template v-slot="row">
-        <div class="sku-item" v-for="item in row.items" :key="item.id">
+        <div
+          class="sku-item"
+          v-for="item in row.items"
+          :key="item.id"
+          :style="{color:item.enable?'#000':'#ddd'}"
+        >
           <span> {{item.price}} </span>
         </div>
       </template>
@@ -99,7 +131,12 @@
 
     <kb-table-column label="Stock" width="1px">
       <template v-slot="row">
-        <div class="sku-item" v-for="item in row.items" :key="item.id">
+        <div
+          class="sku-item"
+          v-for="item in row.items"
+          :key="item.id"
+          :style="{color:item.enable?'#000':'#ddd'}"
+        >
           <span> {{item.stock}} </span>
         </div>
       </template>
@@ -107,23 +144,13 @@
 
     <kb-table-column label="Sale" width="1px">
       <template v-slot="row">
-        <div class="sku-item" v-for="item in row.items" :key="item.id">
+        <div
+          class="sku-item"
+          v-for="item in row.items"
+          :key="item.id"
+          :style="{color:item.enable?'#000':'#ddd'}"
+        >
           <span> {{item.sale}} </span>
-        </div>
-      </template>
-    </kb-table-column>
-
-    <kb-table-column label="SKU status">
-      <template v-slot="row">
-        <div class="sku-item" v-for="item in row.items" :key="item.id">
-          <span
-            class="label green"
-            :class="item.enable?'green':'gray'"
-            style="cursor: pointer"
-          >
-            <template v-if="item.enable">On</template>
-            <template v-else>Off</template>
-          </span>
         </div>
       </template>
     </kb-table-column>
@@ -133,7 +160,7 @@
         <span
           class="label green"
           :class="row.enable?'green':'gray'"
-          style="cursor: pointer; font-size: small"
+          style="cursor: pointer"
         >
           <template v-if="row.enable">On</template>
           <template v-else>Off</template>
