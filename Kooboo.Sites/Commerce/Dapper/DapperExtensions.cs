@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Kooboo.Sites.Commerce.Entities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,19 +11,25 @@ namespace Kooboo.Sites.Commerce
 {
     public static class DapperExtensions
     {
-        public static ConcurrentDictionary<Type, string[]> _typeMemberStrings = new ConcurrentDictionary<Type, string[]>();
+        static readonly string _fields = "fields";
+        static readonly string _sets = "sets";
+        static readonly string _values = "values";
+
+        public static ConcurrentDictionary<Type, Dictionary<string, string>> _typeMemberStrings = new ConcurrentDictionary<Type, Dictionary<string, string>>();
 
         #region Get
         public static T Get<T>(this IDbConnection connection, Guid id) where T : EntityBase
         {
-            string[] strs = GetTypeMemberString<T>();
-            return connection.QueryFirstOrDefault<T>($"SELECT {strs[0]} FROM '{typeof(T).Name}' WHERE Id=@Id LIMIT 1", new { Id = id });
+            var type = typeof(T);
+            var dic = GetTypeSqls(type);
+            return connection.QueryFirstOrDefault<T>($"SELECT {dic[_fields]} FROM '{type.Name}' WHERE Id=@Id LIMIT 1", new { Id = id });
         }
 
         public static IEnumerable<T> GetList<T>(this IDbConnection connection) where T : class
         {
-            string[] strs = GetTypeMemberString<T>();
-            return connection.Query<T>($"SELECT {strs[0]} FROM '{typeof(T).Name}'");
+            var type = typeof(T);
+            var dic = GetTypeSqls(type);
+            return connection.Query<T>($"SELECT {dic[_fields]} FROM '{type.Name}'");
         }
 
         #endregion
@@ -30,30 +37,34 @@ namespace Kooboo.Sites.Commerce
         #region Insert
         public static void Insert<T>(this IDbConnection connection, T entity) where T : class
         {
-            string[] strs = GetTypeMemberString<T>();
-            connection.Execute($"INSERT INTO '{typeof(T).Name}' ({strs[0]}) VALUES ({strs[2]})", entity);
+            var type = typeof(T);
+            var dic = GetTypeSqls(type);
+            connection.Execute($"INSERT INTO '{type.Name}' ({dic[_fields]}) VALUES ({dic[_values]})", entity);
         }
 
         public static void InsertList<T>(this IDbConnection connection, IEnumerable<T> entities) where T : class
         {
             if (!entities.Any()) return;
-            string[] strs = GetTypeMemberString<T>();
-            connection.Execute($"INSERT INTO '{typeof(T).Name}' ({strs[0]}) VALUES ({strs[2]})", entities);
+            var type = typeof(T);
+            var dic = GetTypeSqls(type);
+            connection.Execute($"INSERT INTO '{type.Name}' ({dic[_fields]}) VALUES ({dic[_values]})", entities);
         }
         #endregion
 
         #region Update
         public static void Update<T>(this IDbConnection connection, T entity) where T : EntityBase
         {
-            string[] strs = GetTypeMemberString<T>();
-            connection.Execute($"UPDATE '{typeof(T).Name}' SET {strs[1]} WHERE Id =@Id", entity);
+            var type = typeof(T);
+            var dic = GetTypeSqls(type);
+            connection.Execute($"UPDATE '{type.Name}' SET {dic[_sets]} WHERE Id =@Id", entity);
         }
 
         public static void UpdateList<T>(this IDbConnection connection, IEnumerable<T> entities) where T : EntityBase
         {
             if (!entities.Any()) return;
-            string[] strs = GetTypeMemberString<T>();
-            connection.Execute($"UPDATE '{typeof(T).Name}' SET {strs[1]} WHERE Id =@Id", entities);
+            var type = typeof(T);
+            var dic = GetTypeSqls(type);
+            connection.Execute($"UPDATE '{type.Name}' SET {dic[_sets]} WHERE Id =@Id", entities);
         }
         #endregion
 
@@ -95,19 +106,22 @@ namespace Kooboo.Sites.Commerce
         }
         #endregion
 
-        private static string[] GetTypeMemberString<T>() where T : class
+        private static Dictionary<string, string> GetTypeSqls(Type type)
         {
-            return _typeMemberStrings.GetOrAdd(typeof(T), type =>
+            return _typeMemberStrings.GetOrAdd(type, _ =>
             {
                 var properties = type.GetProperties()
-                                     .Where(w => w.CustomAttributes.All(a => a.AttributeType != typeof(IgnoreColumnAttribute)))
-                                     .Select(s => s.Name)
-                                     .ToArray();
+                    .Where(w => !w.IsDefined(typeof(IgnoreAttribute), true))
+                    .Select(s => new
+                    {
+                        s.Name,
+                        NotUpdate = s.IsDefined(typeof(NotUpdateAttribute), true),
+                    });
 
-                return new string[] {
-                    string.Join(",",properties.Select(s=>$@"""{s}""")),
-                    string.Join(",",properties.Select(s=>$@"""{s}""=@{s}")),
-                    string.Join(",",properties.Select(s=>$@"@{s}"))
+                return new Dictionary<string, string> {
+                    {_fields,string.Join(",",properties.Select(s=>$@"""{s.Name}"""))},
+                    {_sets,string.Join(",",properties.Where(w=>!w.NotUpdate).Select(s=>$@"""{s.Name}""=@{s.Name}"))},
+                    {_values,string.Join(",",properties.Select(s=>$@"@{s.Name}"))},
                 };
             });
         }

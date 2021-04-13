@@ -10,6 +10,8 @@ namespace Kooboo.Sites.Commerce.Entities
         public Guid ProductId { get; set; }
         public int Quantity { get; set; }
         public StockType Type { get; set; }
+
+        [NotUpdate]
         public DateTime DateTime { get; set; }
         public Guid? OrderItemId { get; set; }
     }

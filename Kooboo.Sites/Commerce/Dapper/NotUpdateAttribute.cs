@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce
+namespace Kooboo.Sites.Commerce.Entities
 {
 
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class IgnoreColumnAttribute : Attribute
+    public class NotUpdateAttribute : Attribute
     {
     }
 }

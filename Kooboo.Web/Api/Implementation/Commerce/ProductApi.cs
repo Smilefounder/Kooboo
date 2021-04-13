@@ -45,7 +45,7 @@ namespace Kooboo.Web.Api.Implementation.Commerce
             return new ProductService(apiCall.Context).KeyValue();
         }
 
-        public void Deletes(Guid[] ids, ApiCall apiCall)
+        public void Delete(Guid[] ids, ApiCall apiCall)
         {
             new ProductService(apiCall.Context).Deletes(ids);
         }

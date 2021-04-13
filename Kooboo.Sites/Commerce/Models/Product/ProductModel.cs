@@ -68,7 +68,7 @@ namespace Kooboo.Sites.Commerce.Models.Product
                 Specifications = JsonHelper.Serialize(Specifications),
                 Title = Title,
                 TypeId = TypeId,
-                CreateTime=DateTime.UtcNow
+                CreateTime = DateTime.UtcNow
             };
         }
 
@@ -92,7 +92,7 @@ namespace Kooboo.Sites.Commerce.Models.Product
                     {
                         result.Add(new Sku.SkuModel
                         {
-                            Enable = true,
+                            Enable = false,
                             Id = Guid.NewGuid(),
                             Name = string.Empty,
                             ProductId = Id,

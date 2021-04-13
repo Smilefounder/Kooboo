@@ -1,9 +1,7 @@
 $(function () {
-  var self;
   new Vue({
     el: "#app",
-    data: function () {
-      self = this;
+    data() {
       return {
         querySiteId: "?SiteId=" + Kooboo.getQueryString("SiteId"),
         breads: [
@@ -24,43 +22,70 @@ $(function () {
         },
         list: [],
         types: [],
+        selectedRows: [],
+        pageSize: 20,
       };
     },
-    mounted: function () {
-      Kooboo.Product.getList({ index: 1, size: 5 }).then(function (res) {
-        if (res.success) {
-          self.list = res.model.list;
-        }
-      });
+    mounted() {
+      this.changePage(1);
 
-      Kooboo.ProductType.keyValue().then(function (res) {
+      Kooboo.ProductType.keyValue().then((res) => {
         if (res.success) {
-          self.types = res.model;
+          this.types = res.model;
         }
       });
     },
     methods: {
-      startAddProduct: function (id) {
+      startAddProduct(id) {
         location.href = Kooboo.Route.Get(Kooboo.Route.Product.DetailPage, {
           type: id,
         });
       },
-      editProduct: function (product) {
+      editProduct(product) {
         return Kooboo.Route.Get(Kooboo.Route.Product.DetailPage, {
           type: product.typeId,
           id: product.id,
         });
       },
-      getPrimaryImg: function (list) {
+      getPrimaryImg(list) {
         if (!list.length) return;
         var item =
           list.filter(function (f) {
             return f.isPrimary;
           })[0] || list[0];
 
-        return "url('" + item.url + self.querySiteId + "')";
+        return "url('" + item.url + this.querySiteId + "')";
       },
-      changePage() {},
+      changePage(index) {
+        Kooboo.Product.getList({ index: index, size: this.pageSize }).then(
+          (res) => {
+            if (res.success) {
+              this.list = res.model.list;
+              this.pager = {
+                pageNr: res.model.pageIndex,
+                totalPages: res.model.pageCount,
+              };
+            }
+          }
+        );
+      },
+      deletes() {
+        // var confirmStr = this.haveRelations
+        //   ? Kooboo.text.confirm.deleteItemsWithRef
+        //   : Kooboo.text.confirm.deleteItems;
+
+        var confirmStr = Kooboo.text.confirm.deleteItemsWithRef;
+
+        if (!confirm(confirmStr)) return;
+
+        Kooboo.Product.Delete(this.selectedRows.map((m) => m.id)).then(
+          (res) => {
+            if (res.success) {
+              this.changePage(1);
+            }
+          }
+        );
+      },
     },
     computed: {},
   });

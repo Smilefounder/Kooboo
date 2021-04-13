@@ -13,6 +13,9 @@
     height: 20px;
     display: flex;
     align-items: center;
+    word-wrap: none;
+    white-space: nowrap;
+    overflow: hidden;
   }
 </style>
 
@@ -40,87 +43,111 @@
           </li>
         </ul></div
       >
-      <a class="btn red navbar-btn">Delete</a>
+      <a
+        class="btn red navbar-btn"
+        v-show="selectedRows.length>0"
+        @click="deletes"
+        >Delete</a
+      >
     </div>
   </div>
-  <table class="table table-striped">
-    <thead>
-      <th style="width: 20px"><input type="checkbox" /></th>
-      <th style="width: 80px"></th>
-      <th>Title</th>
-      <th>Specifications</th>
-      <th>SKU</th>
-      <th>Price</th>
-      <th>Stock</th>
-      <th>Sale</th>
-      <th style="width: 50px">Status</th>
-      <th style="width: 100px"></th>
-    </thead>
-    <tbody>
-      <tr v-for="product in list" :key="product.id">
-        <td><input type="checkbox" /></td>
-        <td>
-          <div
-            class="product-img"
-            :style="{backgroundImage:getPrimaryImg(product.images)}"
-          ></div>
-        </td>
-        <td> {{product.title}} </td>
-        <td>
-          <div>
-            <div class="sku-item" v-for="item in product.items" :key="item.id">
-              {{item.specifications.map(m=>`[${m.key}:${m.value}]`).join('&nbsp')}}
-            </div>
-          </div>
-        </td>
-        <td>
-          <div>
-            <div class="sku-item" v-for="item in product.items" :key="item.id">
-              {{item.name}}
-            </div>
-          </div>
-        </td>
-        <td>
-          <div>
-            <div class="sku-item" v-for="item in product.items" :key="item.id">
-              {{item.price}}
-            </div>
-          </div>
-        </td>
-        <td>
-          <div>
-            <div class="sku-item" v-for="item in product.items" :key="item.id">
-              {{item.stock}}
-            </div>
-          </div>
-        </td>
-        <td>
-          <div>
-            <div class="sku-item" v-for="item in product.items" :key="item.id">
-              {{item.sale}}
-            </div>
-          </div>
-        </td>
-        <td>
+  <kb-table v-if="list" :data="list" show-select :selected.sync="selectedRows">
+    <kb-table-column width="80px">
+      <template v-slot="row">
+        <div
+          class="product-img"
+          :style="{backgroundImage:getPrimaryImg(row.images)}"
+        ></div>
+      </template>
+    </kb-table-column>
+
+    <kb-table-column label="Title">
+      <template v-slot="row"> {{row.title}} </template>
+    </kb-table-column>
+
+    <kb-table-column label="Type">
+      <template v-slot="row"> {{row.typeName}} </template>
+    </kb-table-column>
+
+    <kb-table-column :label="Kooboo.text.commerce.specifications" width="1px">
+      <template v-slot="row">
+        <div class="sku-item" v-for="item in row.items" :key="item.id">
+          <span v-if="item.specifications.length">
+            {{item.specifications.map(m=>`[${m.key}:${m.value}]`).join('&nbsp')}}
+          </span>
+          <span v-else>-</span>
+        </div>
+      </template>
+    </kb-table-column>
+
+    <kb-table-column label="SKU" width="1px">
+      <template v-slot="row">
+        <div class="sku-item" v-for="item in row.items" :key="item.id">
+          <span v-if="item.name"> {{item.name}} </span>
+          <span v-else>-</span>
+        </div>
+      </template>
+    </kb-table-column>
+
+    <kb-table-column label="Price" width="1px">
+      <template v-slot="row">
+        <div class="sku-item" v-for="item in row.items" :key="item.id">
+          <span> {{item.price}} </span>
+        </div>
+      </template>
+    </kb-table-column>
+
+    <kb-table-column label="Stock" width="1px">
+      <template v-slot="row">
+        <div class="sku-item" v-for="item in row.items" :key="item.id">
+          <span> {{item.stock}} </span>
+        </div>
+      </template>
+    </kb-table-column>
+
+    <kb-table-column label="Sale" width="1px">
+      <template v-slot="row">
+        <div class="sku-item" v-for="item in row.items" :key="item.id">
+          <span> {{item.sale}} </span>
+        </div>
+      </template>
+    </kb-table-column>
+
+    <kb-table-column label="SKU status">
+      <template v-slot="row">
+        <div class="sku-item" v-for="item in row.items" :key="item.id">
           <span
             class="label green"
-            :class="product.enable?'green':'gray'"
+            :class="item.enable?'green':'gray'"
             style="cursor: pointer"
           >
-            <template v-if="product.enable">On</template>
+            <template v-if="item.enable">On</template>
             <template v-else>Off</template>
           </span>
-        </td>
-        <td>
-          <div style="text-align: right">
-            <a class="btn blue" target="_blank" :href="editProduct(product)"
-              >Edit</a
-            >
-          </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+        </div>
+      </template>
+    </kb-table-column>
+
+    <kb-table-column label="Product status" width="50px" align="center">
+      <template v-slot="row">
+        <span
+          class="label green"
+          :class="row.enable?'green':'gray'"
+          style="cursor: pointer; font-size: small"
+        >
+          <template v-if="row.enable">On</template>
+          <template v-else>Off</template>
+        </span>
+      </template>
+    </kb-table-column>
+
+    <kb-table-column align="right" width="100px">
+      <template v-slot="row">
+        <a class="btn blue" target="_blank" :href="editProduct(row)">Edit</a>
+      </template>
+    </kb-table-column>
+  </kb-table>
+
   <kb-pager
     :page-nr="pager.pageNr"
     :total-pages="pager.totalPages"

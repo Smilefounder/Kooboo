@@ -1,7 +1,7 @@
 $(function () {
   new Vue({
     el: "#main",
-    data: function () {
+    data() {
       return {
         querySiteId: "?SiteId=" + Kooboo.getQueryString("SiteId"),
         typeId: Kooboo.getQueryString("type"),
@@ -29,6 +29,16 @@ $(function () {
           enable: true,
           skus: [],
         },
+        validateModel: {
+          title: { valid: true, msg: "" },
+        },
+        validRules: [
+          { required: Kooboo.text.validation.required },
+          {
+            min: 0,
+            message: Kooboo.text.validation.minLength + 0,
+          },
+        ],
       };
     },
     mounted() {
@@ -38,6 +48,11 @@ $(function () {
           Kooboo.Product.Get({ id: this.model.id }).then((rsp) => {
             this.model = rsp.model;
             this.initAttributes();
+
+            for (const i of this.model.skus) {
+              this.initValidateModelItem(i.id);
+            }
+
             this.oldSkus = JSON.parse(JSON.stringify(this.model.skus));
           });
         } else {
@@ -120,6 +135,7 @@ $(function () {
         var coped = JSON.parse(JSON.stringify(this.model));
         var stocks = [];
         this.removeUnuseSkus(coped);
+        if (!this.valid(coped)) return;
         var skus = coped.skus;
         delete coped.skus;
 
@@ -193,6 +209,7 @@ $(function () {
             enable: true,
           };
 
+          this.initValidateModelItem(s.id);
           this.model.skus.push(s);
         }
 
@@ -210,6 +227,46 @@ $(function () {
           var skuString = this.skuToString(f.specifications);
           return skus.find((f) => f == skuString) !== undefined;
         });
+      },
+      valid(model) {
+        var valid = true;
+
+        this.validateModel.title = Kooboo.validField(model.title, [
+          { required: Kooboo.text.validation.required },
+          {
+            min: 2,
+            max: 256,
+            message:
+              Kooboo.text.validation.minLength +
+              2 +
+              ", " +
+              Kooboo.text.validation.maxLength +
+              256,
+          },
+        ]);
+
+        if (!this.validateModel.title.valid) valid = false;
+
+        var validGroup = (item, prop) => {
+          this.validateModel[item.id + prop] = Kooboo.validField(
+            item[prop],
+            this.validRules
+          );
+          if (!this.validateModel[item.id + prop].valid) valid = false;
+        };
+
+        for (const i of model.skus) {
+          validGroup(i, "price");
+          validGroup(i, "tax");
+          validGroup(i, "stock");
+        }
+
+        return valid;
+      },
+      initValidateModelItem(id) {
+        Vue.set(this.validateModel, id + "price", { valid: true, msg: "" });
+        Vue.set(this.validateModel, id + "tax", { valid: true, msg: "" });
+        Vue.set(this.validateModel, id + "stock", { valid: true, msg: "" });
       },
     },
     computed: {
@@ -244,6 +301,16 @@ $(function () {
         }
 
         return result;
+      },
+    },
+    watch: {
+      model: {
+        handler() {
+          for (const key in this.validateModel) {
+            this.validateModel[key] = { valid: true, msg: "" };
+          }
+        },
+        deep: true,
       },
     },
   });

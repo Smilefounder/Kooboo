@@ -12,10 +12,14 @@ namespace Kooboo.Sites.Commerce.KScripts
     public class KProduct
     {
         readonly Lazy<ProductService> _productService;
+        readonly Lazy<ProductSkuService> _productSkuService;
+        readonly RenderContext _context;
 
         public KProduct(RenderContext context)
         {
+            _context = context;
             _productService = new Lazy<ProductService>(() => new ProductService(context), true);
+            _productSkuService = new Lazy<ProductSkuService>(() => new ProductSkuService(context), true);
         }
 
 
@@ -26,7 +30,14 @@ namespace Kooboo.Sites.Commerce.KScripts
         public void Post(object obj)
         {
             var model = Helpers.FromKscriptModel<ProductModel>(obj);
-            _productService.Value.Save(model);
+            using (var con = _context.CreateCommerceDbConnection())
+            {
+                con.Open();
+                var tran = con.BeginTransaction();
+                _productService.Value.Save(model, con);
+                _productSkuService.Value.Save(model.Id, model.ToSkus(), con);
+                tran.Commit();
+            }
         }
     }
 }

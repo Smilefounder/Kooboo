@@ -21,13 +21,13 @@
           { required: Kooboo.text.validation.required },
           {
             min: 2,
-            max: 31,
+            max: 30,
             message:
               Kooboo.text.validation.minLength +
               2 +
               ", " +
               Kooboo.text.validation.maxLength +
-              31,
+              30,
           },
         ],
       };
@@ -60,7 +60,7 @@
         items.push({
           id: id,
           name: "",
-          type: 0,
+          type: "Text",
           editingItem: "",
           options: [],
         });
