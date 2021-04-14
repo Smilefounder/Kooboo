@@ -1352,4 +1352,10 @@
 	<key id="Enable Lighthouse optimization">Enable Lighthouse optimization</key>
 	<key id="Specifications">Specifications</key>
 	<key id="Product Count">Product Count</key>
+	<key id="Sales">Sales</key>
+	<key id="Promotions">Promotions</key>
+	<key id="Customers">Customers</key>
+	<key id="Orders">Orders</key>
+	<key id="Carts">Carts</key>
+	<key id="Sales Information">Sales Information</key>
 </Lang>

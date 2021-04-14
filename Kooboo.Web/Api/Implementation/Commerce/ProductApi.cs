@@ -23,20 +23,22 @@ namespace Kooboo.Web.Api.Implementation.Commerce
         {
             new ProductAggregateModelValidator().ValidateAndThrow(viewModel);
 
-            using (var con = apiCall.Context.CreateCommerceDbConnection())
+            apiCall.Context.CreateCommerceDbConnection().ExecuteTask(con =>
             {
-                con.Open();
-                var tran = con.BeginTransaction();
                 new ProductService(apiCall.Context).Save(viewModel.Product, con);
                 new ProductSkuService(apiCall.Context).Save(viewModel.Product.Id, viewModel.Skus, con);
                 new ProductStockService(apiCall.Context).Adjust(viewModel.Product.Id, viewModel.Stocks, con);
-                tran.Commit();
-            }
+
+                if (viewModel.Categories != null)
+                {
+                    new ProductCategoryService(apiCall.Context).SaveByProductId(viewModel.Categories, viewModel.Product.Id, con);
+                }
+            }, true);
         }
 
         public ProductEditModel Get(Guid id, ApiCall apiCall)
         {
-            return new ProductService(apiCall.Context).Query(id);
+            return new ProductService(apiCall.Context).Get(id);
         }
 
         public PagedListModel<ProductListModel> List(PagingQueryModel viewModel, ApiCall apiCall)

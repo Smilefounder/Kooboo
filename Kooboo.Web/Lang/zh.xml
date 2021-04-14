@@ -1352,4 +1352,10 @@
   <key id="Enable Lighthouse optimization">启用 Lighthouse 优化</key>
 	<key id="Specifications">规格</key>
 	<key id="Product Count">商品数量</key>
+	<key id="Sales">销量</key>
+	<key id="Promotions">促销管理</key>
+	<key id="Customers">顾客管理</key>
+	<key id="Orders">订单管理</key>
+	<key id="Carts">购物车</key>
+	<key id="Sales Information">售卖信息</key>
 </Lang>

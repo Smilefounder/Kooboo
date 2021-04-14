@@ -91,9 +91,42 @@
           </div>
         </div>
         <div class="form-group">
-          <label class="control-label col-md-2">On</label>
+          <label class="control-label col-md-2">In stock</label>
           <div class="col-md-10">
             <kb-switch v-model="model.enable"></kb-switch>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-2">Categories</label>
+          <div class="col-md-10">
+            <button
+              type="button"
+              class="btn btn-sm"
+              v-for="item in model.categories"
+              :key="item"
+              style="margin: 5px 5px 5px 0"
+            >
+              <span
+                style="
+                  display: inline-flex;
+                  max-width: 100px;
+                  overflow: hidden;
+                  white-space: nowrap;
+                "
+                >{{getCategoryName(item)}}</span
+              >
+              <i
+                class="fa fa-close"
+                @click.stop="model.categories=model.categories.filter(f=>f!=item)"
+              ></i>
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-default"
+              @click.stop="showSelectorModal=true"
+            >
+              <i class="fa fa-plus"></i>
+            </button>
           </div>
         </div>
       </div>
@@ -206,7 +239,7 @@
               >{{getSpecificationName(specification.id)}}</td
             >
             <td style="width: 80px">Price</td>
-            <td style="width: 80px">Tax</td>
+            <!-- <td style="width: 80px">Tax</td> -->
             <td style="width: 80px">Stock</td>
             <td style="width: 120px">SKU</td>
             <td style="width: 50px">Image</td>
@@ -225,13 +258,13 @@
                 class="table-input"
                 v-kb-hint="validateModel[getOrNewSpecification(sku).id+'price'].msg"
             /></td>
-            <td
+            <!-- <td
               ><input
                 type="number"
                 v-model.number="getOrNewSpecification(sku).tax"
                 class="table-input"
                 v-kb-hint="validateModel[getOrNewSpecification(sku).id+'tax'].msg"
-            /></td>
+            /></td> -->
             <td
               ><input
                 type="number"
@@ -282,14 +315,14 @@
                 class="label green"
                 style="cursor: pointer"
                 @click="getOrNewSpecification(sku).enable=false"
-                >On</span
+                >In stock</span
               >
               <span
                 v-else
                 class="label gray"
                 @click="getOrNewSpecification(sku).enable=true"
                 style="cursor: pointer"
-                >Off</span
+                >Drop off</span
               >
             </td>
           </tr>
@@ -365,6 +398,14 @@
 
     <kb-media-dialog :data.sync="mediaDialogData"></kb-media-dialog>
     <kb-media-dialog :data.sync="richeditor.mediaDialogData"></kb-media-dialog>
+
+    <kb-selector-modal
+      v-model="showSelectorModal"
+      :list="selectorCategories"
+      @ok="categoriesSelected"
+      show-select
+      :show-header="false"
+    />
   </div>
 </div>
 
@@ -377,6 +418,7 @@
     "/_Admin/Scripts/components/ECommerce/kb-options-editor.js",
     "/_Admin/Scripts/lib/bootstrap-switch/bootstrap-switch.min.js",
     "/_Admin/Scripts/components/kbSwitch.js",
+    "/_Admin/Scripts/components/ECommerce/kb-selector-modal.js",
   ]);
 
   Kooboo.loadCSS([

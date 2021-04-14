@@ -106,6 +106,72 @@ namespace Kooboo.Sites.Commerce
         }
         #endregion
 
+
+        #region Transaction
+        public static T ExecuteTask<T>(this IDbConnection connection, Func<IDbConnection, T> func, bool enableTransation = true, bool closeAfterExecuted = true)
+        {
+            try
+            {
+                IDbTransaction tran = null;
+
+                if (enableTransation)
+                {
+                    connection.Open();
+                    tran = connection.BeginTransaction(IsolationLevel.ReadCommitted);
+                }
+
+                var result = func(connection);
+
+                if (enableTransation)
+                {
+                    tran.Commit();
+                    connection.Close();
+                }
+
+                return result;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                if (closeAfterExecuted) connection.Dispose();
+            }
+        }
+
+        public static void ExecuteTask(this IDbConnection connection, Action<IDbConnection> action, bool enableTransation = false, bool closeAfterExecuted = true)
+        {
+            try
+            {
+                IDbTransaction tran = null;
+
+                if (enableTransation)
+                {
+                    connection.Open();
+                    tran = connection.BeginTransaction(IsolationLevel.ReadCommitted);
+                }
+
+                action(connection);
+
+                if (enableTransation)
+                {
+                    tran.Commit();
+                    connection.Close();
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                if (closeAfterExecuted) connection.Dispose();
+            }
+        }
+
+        #endregion
+
         private static Dictionary<string, string> GetTypeSqls(Type type)
         {
             return _typeMemberStrings.GetOrAdd(type, _ =>

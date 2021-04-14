@@ -21,7 +21,7 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public ProductTypeDetailModel Get(ApiCall apiCall, Guid id)
         {
-            return new ProductTypeService(apiCall.Context).Get(id);
+            return new ProductTypeService(apiCall.Context).GetDetail(id);
         }
 
         public void Post(ProductTypeModel viewModel, ApiCall apiCall)

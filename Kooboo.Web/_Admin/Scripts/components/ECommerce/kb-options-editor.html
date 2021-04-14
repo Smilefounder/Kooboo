@@ -27,7 +27,17 @@
         style="margin: 5px 5px 5px 0"
         v-kb-hint="validateModel[item.key].msg"
       >
-        {{item.value}}
+        <span
+          style="
+            display: inline-flex;
+            max-width: 100px;
+            overflow: hidden;
+            white-space: nowrap;
+          "
+        >
+          {{item.value}}
+        </span>
+
         <i
           v-if="!hasDependent"
           class="fa fa-close"

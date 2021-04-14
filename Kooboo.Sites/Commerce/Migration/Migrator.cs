@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Kooboo.Data.Context;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -12,39 +13,38 @@ namespace Kooboo.Sites.Commerce.Migration
     public static class Migrator
     {
         readonly static object _locker = new object();
-        readonly static List<Guid> _migratedSites = new List<Guid>();
+        readonly static List<string> _migratedSites = new List<string>();
         readonly static List<IMigration> _migrationRecords = Lib.IOC.Service.GetInstances<IMigration>();
 
-        public static bool IsMigrated(Guid siteId)
+        public static bool IsMigrated(string id)
         {
             lock (_locker)
             {
-                return _migratedSites.Contains(siteId);
+                return _migratedSites.Contains(id);
             }
         }
 
 
-        public static void TryMigrate(Guid siteId, IDbConnection connection)
+        public static void TryMigrate(RenderContext context)
         {
             lock (_locker)
             {
-                if (!IsMigrated(siteId))
+                if (!IsMigrated($"{context.WebSite.OrganizationId}{context.WebSite.Id}"))
                 {
-                    using (connection)
+                    context.CreateCommerceDbConnection().ExecuteTask((c) =>
                     {
-                        connection.Open();
                         //DeleteTables(connection); //rebuild
-                        Migrate(connection);
-                    }
+                        Migrate(c);
+                    }, true);
                 }
 
-                _migratedSites.Add(siteId);
+                _migratedSites.Add($"{context.WebSite.OrganizationId}{context.WebSite.Id}");
             }
         }
 
         private static void DeleteTables(IDbConnection connection)
         {
-            var tran = connection.BeginTransaction();
+
             connection.Execute(@"
 drop table if exists 'Consignee';
 drop table if exists 'OrderItem';
@@ -60,7 +60,7 @@ drop table if exists 'Promotion';
 drop table if exists 'Customer';
 drop table if exists '_migration';
 ");
-            tran.Commit();
+
         }
 
         public static void Migrate(IDbConnection connection)
@@ -69,8 +69,6 @@ drop table if exists '_migration';
             var lastVersion = connection.QueryFirstOrDefault<int?>("select max(ver) from _migration") ?? 0;
             var appends = _migrationRecords.Where(w => w.Version > lastVersion).OrderBy(o => o.Version);
 
-            var tran = connection.BeginTransaction();
-
             foreach (var item in appends)
             {
                 item.Migrate(connection);
@@ -78,7 +76,6 @@ drop table if exists '_migration';
             }
 
             if (lastVersion == 0) Seed.Insert(connection);
-            tran.Commit();
         }
     }
 }

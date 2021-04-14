@@ -5,13 +5,11 @@ using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Product;
-using Kooboo.Sites.Commerce.Models.Sku;
 using Kooboo.Sites.Commerce.Validators;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text;
 
 namespace Kooboo.Sites.Commerce.Services
 {
@@ -41,10 +39,10 @@ namespace Kooboo.Sites.Commerce.Services
 
         private void GetMatchList()
         {
-            using (var con = DbConnection)
+            DbConnection.ExecuteTask(con =>
             {
                 _matchList = con.Query<MatchRule.TargetModels.Product>("select pro.Id,sku.Price,pro.Title,pro.TypeId from ProductSku sku left join Product pro on sku.ProductId=pro.Id").ToArray();
-            }
+            });
         }
 
         public ProductService(RenderContext context) : base(context)
@@ -54,22 +52,24 @@ namespace Kooboo.Sites.Commerce.Services
         public void Save(ProductModel viewModel, IDbConnection connection = null)
         {
             new ProductModelValidator().ValidateAndThrow(viewModel);
-            var con = connection ?? DbConnection;
-            var type = new ProductTypeService(Context).Get(viewModel.TypeId, con);
-            if (type == null) throw new Exception("Can not find product type");
-            //CheckRestrain(viewModel, type);
 
-            if (con.Exist<Product>(viewModel.Id))
+            (connection ?? DbConnection).ExecuteTask(con =>
             {
-                con.Update(viewModel.ToProduct());
-            }
-            else
-            {
-                con.Insert(viewModel.ToProduct());
-            }
+                var type = new ProductTypeService(Context).Get(viewModel.TypeId, con);
+                if (type == null) throw new Exception("Can not find product type");
+                //TODO CheckRestrain(viewModel, type);
 
-            if (connection == null) con.Dispose();
-            _matchList = null;
+                if (con.Exist<Product>(viewModel.Id))
+                {
+                    con.Update(viewModel.ToProduct());
+                }
+                else
+                {
+                    con.Insert(viewModel.ToProduct());
+                }
+
+                _matchList = null;
+            }, connection == null, connection == null);
         }
 
         private void CheckRestrain(ProductModel viewModel, Models.Type.ProductTypeDetailModel type)
@@ -79,25 +79,21 @@ namespace Kooboo.Sites.Commerce.Services
 
         public void Deletes(Guid[] ids)
         {
-            using (var con = DbConnection)
-            {
-                con.DeleteList<Product>(ids);
-            }
+            DbConnection.ExecuteTask(con => con.DeleteList<Product>(ids));
         }
 
-        public ProductEditModel Query(Guid id)
+        public ProductEditModel Get(Guid id)
         {
-            using (var con = DbConnection)
+            return DbConnection.ExecuteTask(con =>
             {
                 var entity = con.Get<Product>(id);
 
-                var model = new ProductEditModel(entity)
+                return new ProductEditModel(entity)
                 {
-                    Skus = new ProductSkuService(Context).List(id, con)
+                    Skus = new ProductSkuService(Context).List(id, con),
+                    Categories = new ProductCategoryService(Context).GetByProductId(id)
                 };
-
-                return model;
-            }
+            });
         }
 
         public PagedListModel<ProductListModel> Query(PagingQueryModel viewModel)
@@ -107,7 +103,7 @@ namespace Kooboo.Sites.Commerce.Services
                 List = new List<ProductListModel>()
             };
 
-            using (var con = DbConnection)
+            DbConnection.ExecuteTask((con) =>
             {
                 var count = con.Count<Product>();
                 result.SetPageInfo(viewModel, count);
@@ -185,71 +181,14 @@ GROUP BY PS.Id
 
                     result.List.Add(product);
                 }
+            });
 
-                return result;
-            }
+            return result;
         }
 
         public KeyValuePair<Guid, string>[] KeyValue()
         {
-            using (var con = DbConnection)
-            {
-                return con.Query<KeyValuePair<Guid, string>>("select Id as Key,title as value from Product").ToArray();
-            }
-        }
-
-
-        public SkuModel[] SkuList(Guid productId)
-        {
-            var result = new List<SkuModel>();
-
-            using (var con = DbConnection)
-            {
-                var list = con.Query(@"
-SELECT P.Id              AS ProductId,
-       p.Title           AS ProductName,
-       PS.Id             AS SkuId,
-       P.Specifications  AS ProductSpecifications,
-       PS.Specifications AS ProductSkuSpecifications,
-       PT.Specifications AS ProductTypeSpecifications,
-       SUM(S.Quantity)   AS Stock
-FROM Product P
-         LEFT OUTER JOIN ProductType PT ON PT.Id = P.TypeId
-         LEFT JOIN ProductSku PS ON P.Id = PS.ProductId
-         LEFT JOIN ProductStock S ON PS.Id = S.SkuId
-WHERE P.Id = @ProductId
-GROUP BY Ps.Id
-", new { ProductId = productId });
-
-                ItemDefineModel[] productTypeSpecifications = null;
-                KeyValuePair<Guid, string>[] productSpecifications = null;
-
-                foreach (var item in list)
-                {
-                    if (productTypeSpecifications == null)
-                    {
-                        productTypeSpecifications = JsonHelper.Deserialize<ItemDefineModel[]>(item.ProductTypeSpecifications);
-                    }
-
-                    if (productSpecifications == null)
-                    {
-                        productSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(item.ProductSpecifications);
-                    }
-
-                    var productSkuSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, Guid>[]>(item.ProductSkuSpecifications);
-
-                    result.Add(new SkuModel
-                    {
-                        Id = item.SkuId,
-                        ProductId = item.ProductId,
-                        //ProductName = item.ProductName,
-                        //Stock = Convert.ToInt32(item.Stock),
-                        //Specifications = Helpers.GetSpecifications(productTypeSpecifications, productSpecifications, productSkuSpecifications)
-                    });
-                }
-            }
-
-            return result.ToArray();
+            return DbConnection.ExecuteTask(c => c.Query<KeyValuePair<Guid, string>>("select Id as Key,title as value from Product").ToArray());
         }
     }
 }

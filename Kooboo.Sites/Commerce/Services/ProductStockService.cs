@@ -15,20 +15,13 @@ namespace Kooboo.Sites.Commerce.Services
         {
         }
 
-        public void Adjust(Guid productId, KeyValuePair<Guid, int>[] stocks, IDbConnection connection)
+        public void Adjust(Guid productId, KeyValuePair<Guid, int>[] stocks, IDbConnection connection = null)
         {
-            var con = connection ?? DbConnection;
-            IDbTransaction tran = null;
-
-            if (connection == null)
+            (connection ?? DbConnection).ExecuteTask(con =>
             {
-                con.Open();
-                tran = con.BeginTransaction();
-            }
+                var addStocks = new List<ProductStock>();
 
-            var addStocks = new List<ProductStock>();
-
-            var oldStocks = con.Query<KeyValuePair<Guid, int>>(@"
+                var oldStocks = con.Query<KeyValuePair<Guid, int>>(@"
 SELECT PS.Id                                                   AS Key,
        CASE WHEN s.Quantity IS NULL THEN 0 ELSE s.Quantity END AS Value
 FROM Product P
@@ -38,29 +31,23 @@ WHERE P.Id = @Id
 GROUP BY PS.Id
 ", new { Id = productId });
 
-            foreach (var item in stocks)
-            {
-                if (item.Value == 0) continue;
-                var oldStock = oldStocks.FirstOrDefault(f => f.Key == item.Key);
-                if (oldStock.Value + item.Value < 0) throw new Exception("Inventory cannot be negative");
-                addStocks.Add(new ProductStock
+                foreach (var item in stocks)
                 {
-                    DateTime = DateTime.UtcNow,
-                    ProductId = productId,
-                    Quantity = item.Value,
-                    SkuId = item.Key,
-                    Type = StockType.Adjust
-                });
-            }
+                    if (item.Value == 0) continue;
+                    var oldStock = oldStocks.FirstOrDefault(f => f.Key == item.Key);
+                    if (oldStock.Value + item.Value < 0) throw new Exception("Inventory cannot be negative");
+                    addStocks.Add(new ProductStock
+                    {
+                        DateTime = DateTime.UtcNow,
+                        ProductId = productId,
+                        Quantity = item.Value,
+                        SkuId = item.Key,
+                        Type = StockType.Adjust
+                    });
+                }
 
-            con.InsertList(addStocks);
-
-
-            if (connection == null)
-            {
-                tran.Commit();
-                con.Dispose();
-            }
+                con.InsertList(addStocks);
+            }, connection == null, connection == null);
         }
     }
 }

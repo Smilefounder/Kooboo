@@ -1079,6 +1079,9 @@
       attributes:"Attributes",
       specifications:"Specifications",
       productCount:"Product Count",
+      stock:"Stock",
+      sales:"Sales",
+      status: "Status",
       product: {
         inStock: "In stock",
         dropOff: "Drop off",

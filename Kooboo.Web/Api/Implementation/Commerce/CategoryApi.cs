@@ -2,6 +2,7 @@
 using Kooboo.Sites.Commerce.Services;
 using Kooboo.Sites.Commerce.Models.Category;
 using System;
+using System.Collections.Generic;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
@@ -31,6 +32,11 @@ namespace Kooboo.Web.Api.Implementation.Commerce
         public void Delete(Guid[] ids, ApiCall apiCall)
         {
             new CategoryService(apiCall.Context).Delete(ids);
+        }
+
+        public KeyValuePair<Guid, string>[] KeyValue(ApiCall apiCall)
+        {
+            return new CategoryService(apiCall.Context).KeyValue();
         }
     }
 }

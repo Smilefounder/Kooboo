@@ -24,7 +24,7 @@ namespace Kooboo.Sites.Commerce.Services
         {
             new ProductTypeModelValidator().ValidateAndThrow(viewModel);
 
-            using (var con = DbConnection)
+            DbConnection.ExecuteTask((con) =>
             {
                 var exist = con.Exist<ProductType>(viewModel.Id);
 
@@ -37,12 +37,12 @@ namespace Kooboo.Sites.Commerce.Services
                 {
                     con.Insert(viewModel.ToEntity());
                 }
-            }
+            });
         }
 
         private void CheckUpdateRestrain(ProductTypeModel viewModel)
         {
-            var old = Get(viewModel.Id);
+            var old = GetDetail(viewModel.Id);
             if (old.ProductCount == 0) return;
 
             if (ItemDefineToEqualString(old.Attributes) != ItemDefineToEqualString(viewModel.Attributes))
@@ -61,11 +61,11 @@ namespace Kooboo.Sites.Commerce.Services
             return string.Join(string.Empty, items.OrderBy(o => o.Id).Select(s => s.ToString()));
         }
 
-        public ProductTypeDetailModel Get(Guid id, IDbConnection connection = null)
+        public ProductTypeDetailModel GetDetail(Guid id, IDbConnection connection = null)
         {
-            var con = connection ?? DbConnection;
-
-            var entity = con.QueryFirstOrDefault(@"
+            return (connection ?? DbConnection).ExecuteTask((con) =>
+            {
+                var entity = con.QueryFirstOrDefault(@"
 SELECT PT.Id,
        PT.Name,
        PT.attributes,
@@ -78,23 +78,40 @@ GROUP BY PT.Id
 LIMIT 1
 ", new { Id = id });
 
-            if (entity == null) throw new Exception("Not found product type");
+                if (entity == null) throw new Exception("Not found product type");
 
-            return new ProductTypeDetailModel
+                return new ProductTypeDetailModel
+                {
+                    Attributes = JsonHelper.Deserialize<ItemDefineModel[]>(entity.Attributes),
+                    Id = entity.Id,
+                    Name = entity.Name,
+                    Specifications = JsonHelper.Deserialize<ItemDefineModel[]>(entity.Specifications),
+                    ProductCount = (int)entity.ProductCount
+                };
+            }, connection == null, connection == null);
+        }
+
+        public ProductTypeModel Get(Guid id, IDbConnection connection = null)
+        {
+            return (connection ?? DbConnection).ExecuteTask((con) =>
             {
-                Attributes = JsonHelper.Deserialize<ItemDefineModel[]>(entity.Attributes),
-                Id = entity.Id,
-                Name = entity.Name,
-                Specifications = JsonHelper.Deserialize<ItemDefineModel[]>(entity.Specifications),
-                ProductCount = (int)entity.ProductCount
-            };
+                var entity = con.Get<ProductType>(id);
 
-            if (connection == null) con.Dispose();
+                if (entity == null) throw new Exception("Not found product type");
+
+                return new ProductTypeDetailModel
+                {
+                    Attributes = JsonHelper.Deserialize<ItemDefineModel[]>(entity.Attributes),
+                    Id = entity.Id,
+                    Name = entity.Name,
+                    Specifications = JsonHelper.Deserialize<ItemDefineModel[]>(entity.Specifications),
+                };
+            }, connection == null, connection == null);
         }
 
         public ProductTypeDetailModel[] List()
         {
-            using (var con = DbConnection)
+            return DbConnection.ExecuteTask(con =>
             {
                 var result = new List<ProductTypeDetailModel>();
 
@@ -121,23 +138,17 @@ GROUP BY PT.ID
                 }
 
                 return result.ToArray();
-            }
+            });
         }
 
-        internal KeyValuePair<Guid, string>[] KeyValue()
+        public KeyValuePair<Guid, string>[] KeyValue()
         {
-            using (var con = DbConnection)
-            {
-                return con.Query<KeyValuePair<Guid, string>>("select Id as Key,Name as value from ProductType").ToArray();
-            }
+            return DbConnection.ExecuteTask(con => con.Query<KeyValuePair<Guid, string>>("select Id as Key,Name as value from ProductType").ToArray());
         }
 
         public void Delete(Guid[] ids)
         {
-            using (var con = DbConnection)
-            {
-                con.DeleteList<ProductType>(ids);
-            }
+            DbConnection.ExecuteTask(con => con.DeleteList<ProductType>(ids));
         }
     }
 }

@@ -15,8 +15,7 @@ namespace Kooboo.Sites.Commerce
         public ServiceBase(RenderContext context)
         {
             Context = context;
-            if(!Migrator.IsMigrated(context.WebSite.Id)) Migrator.TryMigrate(context.WebSite.Id, DbConnection);
+            Migrator.TryMigrate(context);
         }
-
     }
 }

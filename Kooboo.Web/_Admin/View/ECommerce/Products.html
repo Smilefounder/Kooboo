@@ -62,11 +62,11 @@
       </template>
     </kb-table-column>
 
-    <kb-table-column label="Title">
+    <kb-table-column :label="Kooboo.text.common.title">
       <template v-slot="row"> {{row.title}} </template>
     </kb-table-column>
 
-    <kb-table-column label="Type">
+    <kb-table-column :label="Kooboo.text.common.type">
       <template v-slot="row"> {{row.typeName}} </template>
     </kb-table-column>
 
@@ -115,7 +115,7 @@
       </template>
     </kb-table-column>
 
-    <kb-table-column label="Price" width="1px">
+    <kb-table-column :label="Kooboo.text.common.price" width="1px">
       <template v-slot="row">
         <div
           class="sku-item"
@@ -128,7 +128,7 @@
       </template>
     </kb-table-column>
 
-    <kb-table-column label="Stock" width="1px">
+    <kb-table-column :label="Kooboo.text.commerce.stock" width="1px">
       <template v-slot="row">
         <div
           class="sku-item"
@@ -141,7 +141,7 @@
       </template>
     </kb-table-column>
 
-    <kb-table-column label="Sale" width="1px">
+    <kb-table-column :label="Kooboo.text.commerce.sales" width="1px">
       <template v-slot="row">
         <div
           class="sku-item"
@@ -154,15 +154,15 @@
       </template>
     </kb-table-column>
 
-    <kb-table-column label="Product status" width="50px" align="center">
+    <kb-table-column :label="Kooboo.text.commerce.status" width="50px" align="center">
       <template v-slot="row">
         <span
           class="label green"
           :class="row.enable?'green':'gray'"
           style="cursor: pointer"
         >
-          <template v-if="row.enable">On</template>
-          <template v-else>Off</template>
+          <template v-if="row.enable">In stock</template>
+          <template v-else>Drop off</template>
         </span>
       </template>
     </kb-table-column>

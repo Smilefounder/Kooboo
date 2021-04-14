@@ -30,14 +30,12 @@ namespace Kooboo.Sites.Commerce.KScripts
         public void Post(object obj)
         {
             var model = Helpers.FromKscriptModel<ProductModel>(obj);
-            using (var con = _context.CreateCommerceDbConnection())
+
+            _context.CreateCommerceDbConnection().ExecuteTask(con =>
             {
-                con.Open();
-                var tran = con.BeginTransaction();
                 _productService.Value.Save(model, con);
                 _productSkuService.Value.Save(model.Id, model.ToSkus(), con);
-                tran.Commit();
-            }
+            }, true);
         }
     }
 }

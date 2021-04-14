@@ -11,5 +11,6 @@ namespace Kooboo.Sites.Commerce.Models.Product
         public ProductModel Product { get; set; }
         public SkuModel[] Skus { get; set; }
         public KeyValuePair<Guid,int>[] Stocks { get; set; }
+        public Guid[] Categories { get; set; }
     }
 }

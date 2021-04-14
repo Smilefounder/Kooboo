@@ -18,6 +18,7 @@ $(function () {
         categories: [],
         type: null,
         oldSkus: [],
+        showSelectorModal: false,
         model: {
           id: Kooboo.getQueryString("id"),
           title: "",
@@ -28,6 +29,7 @@ $(function () {
           typeId: Kooboo.getQueryString("type"),
           enable: true,
           skus: [],
+          categories: [],
         },
         validateModel: {
           title: { valid: true, msg: "" },
@@ -42,6 +44,10 @@ $(function () {
       };
     },
     mounted() {
+      Kooboo.Category.keyValue().then((rsp) => {
+        this.categories = rsp.model;
+      });
+
       Kooboo.ProductType.Get({ id: this.model.typeId }).then((rsp) => {
         this.type = rsp.model;
 
@@ -95,6 +101,10 @@ $(function () {
       });
     },
     methods: {
+      getCategoryName(id) {
+        var category = this.categories.find((f) => f.key == id);
+        return category ? category.value : id;
+      },
       initAttributes() {
         for (const i of this.type.attributes) {
           var exist = this.model.attributes.find((f) => f.key == i.id);
@@ -148,7 +158,9 @@ $(function () {
         this.removeUnuseSkus(coped);
         if (!this.valid(coped)) return;
         var skus = coped.skus;
+        var categories = coped.categories;
         delete coped.skus;
+        delete coped.categories;
 
         for (const i of skus) {
           var sku = this.oldSkus.find((f) => f.id == i.id);
@@ -160,6 +172,7 @@ $(function () {
           product: coped,
           skus: skus,
           stocks: stocks,
+          categories,
         }).then(function (res) {
           if (res.success) {
             window.info.show(Kooboo.text.info.save.success, true);
@@ -274,7 +287,7 @@ $(function () {
             if (!i.valid()) valid = false;
           }
         }
-        
+
         for (const i of model.specifications) {
           this.validateModel[i.id] = Kooboo.validField(
             i.value.length ? true : undefined,
@@ -299,6 +312,9 @@ $(function () {
       },
       selectSkuImage(sku) {
         Kooboo.EventBus.publish("ko/style/list/pickimage/show", sku);
+      },
+      categoriesSelected(selected) {
+        this.model.categories.push(...selected.map((m) => m.key));
       },
     },
     computed: {
@@ -333,6 +349,11 @@ $(function () {
         }
 
         return result;
+      },
+      selectorCategories() {
+        return this.categories.filter(
+          (f) => !this.model.categories.includes(f.key)
+        );
       },
     },
     watch: {

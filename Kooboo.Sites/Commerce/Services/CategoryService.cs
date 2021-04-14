@@ -74,10 +74,8 @@ group by CategoryId
 
         public void Save(EditCategoryModel viewModel)
         {
-            using (var con = DbConnection)
+            DbConnection.ExecuteTask(con =>
             {
-                con.Open();
-                var tran = con.BeginTransaction();
                 var exist = con.Exist<Category>(viewModel.Id);
                 if (exist) con.Update(viewModel.ToCategory());
                 else con.Insert(viewModel.ToCategory());
@@ -92,17 +90,20 @@ group by CategoryId
                     }));
 
                 }
-
-                tran.Commit();
-            }
+            }, true);
         }
 
         public void Delete(Guid[] ids)
         {
-            using (var con = DbConnection)
+            DbConnection.ExecuteTask(con => con.DeleteList<Category>(ids));
+        }
+
+        public KeyValuePair<Guid, string>[] KeyValue()
+        {
+            return DbConnection.ExecuteTask(con =>
             {
-                con.DeleteList<Category>(ids);
-            }
+                return con.Query<KeyValuePair<Guid, string>>("select Id as Key,Name as Value from Category").ToArray();
+            });
         }
     }
 }
