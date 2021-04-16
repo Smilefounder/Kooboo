@@ -5,7 +5,26 @@
     template: Kooboo.getTemplate(
       "/_Admin/Scripts/components/ECommerce/kb-selector-modal.html"
     ),
-    props: ["value", "list", "multiSelect", "showHeader"],
+    props: {
+      value: {
+        default: false,
+      },
+      list: {
+        default: [],
+      },
+      multiSelect: {
+        default: false,
+      },
+      showHeader: {
+        default: false,
+      },
+      okText: {
+        default: null,
+      },
+      showSelect: {
+        default: true,
+      },
+    },
     data() {
       return {
         selectedRows: [],
@@ -29,6 +48,11 @@
         }
 
         return result;
+      },
+      okDisplay() {
+        if (!this.okText) return Kooboo.text.common.save;
+        var value = Kooboo.text.common[this.okText];
+        return value ? value : this.okText;
       },
     },
     methods: {

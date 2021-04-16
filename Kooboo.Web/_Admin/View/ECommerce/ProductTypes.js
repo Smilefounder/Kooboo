@@ -21,6 +21,8 @@ $(function () {
         showModal: false,
         list: [],
         id: null,
+        productList: [],
+        showProductModal: false,
       };
     },
     mounted: function () {
@@ -59,6 +61,14 @@ $(function () {
       edit(id) {
         this.id = id;
         this.showModal = true;
+      },
+      showProducts(row) {
+        Kooboo.Product.keyValue({ typeId: row.id }).then((res) => {
+          if (res.success) {
+            this.productList = res.model;
+            this.showProductModal = true;
+          }
+        });
       },
     },
   });

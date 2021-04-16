@@ -197,5 +197,30 @@ GROUP BY PS.Id
         {
             return _cache.GetMatchProducts(Context).Select(s => new KeyValuePair<Guid, string>(s.Id, s.Title)).Distinct().ToArray();
         }
+
+        public KeyValuePair<Guid, string>[] GetByTypeId(Guid id)
+        {
+            return DbConnection.ExecuteTask(con =>
+            {
+                return con.Query<KeyValuePair<Guid, string>>("select Id as Key,Title as Value from Product where TypeId=@Id", new { Id = id }).ToArray();
+            });
+        }
+
+        public KeyValuePair<Guid, string>[] GetByCatrgoryId(Guid id)
+        {
+            var category = _cache.GetCategories(Context).FirstOrDefault(w => w.Id == id);
+            if (category == null) throw new Exception("Category not found");
+            switch (category.Type)
+            {
+                case Category.AddingType.Manual:
+                    var products = new ProductCategoryService(Context).GetByCategoryId(id);
+                    return _cache.GetMatchProducts(Context).Where(w => products.Contains(w.Id)).Select(s => new KeyValuePair<Guid, string>(s.Id, s.Title)).Distinct().ToArray();
+                case Category.AddingType.Auto:
+                    var rule = JsonHelper.Deserialize<MatchRule.Rule>(category.Rule);
+                    return _cache.GetMatchProducts(Context).Where(c => c.Match(rule)).Select(s => new KeyValuePair<Guid, string>(s.Id, s.Title)).Distinct().ToArray();
+                default:
+                    return null;
+            }
+        }
     }
 }

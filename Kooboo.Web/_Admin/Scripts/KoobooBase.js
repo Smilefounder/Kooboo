@@ -164,11 +164,11 @@
     isUniqueName: function (paras) {
       return this._getUrl("isUniqueName", paras);
     },
-    keyValue: function () {
-      return this.executeGet("KeyValue");
+    keyValue: function (paras) {
+      return this.executeGet("KeyValue", paras);
     },
-    KeyValue: function () {
-      return this.executeGet("KeyValue");
+    KeyValue: function (paras) {
+      return this.executeGet("KeyValue", paras);
     },
 
     _getUrl: function (route) {

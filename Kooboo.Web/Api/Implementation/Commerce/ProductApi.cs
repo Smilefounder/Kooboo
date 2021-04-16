@@ -49,6 +49,22 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public KeyValuePair<Guid, string>[] KeyValue(ApiCall apiCall)
         {
+            var service = new ProductService(apiCall.Context);
+
+            var typeId = apiCall.GetGuidValue("typeId");
+
+            if (typeId != default(Guid))
+            {
+                return service.GetByTypeId(typeId);
+            }
+
+            var categoryId = apiCall.GetGuidValue("categoryId");
+
+            if (categoryId != default(Guid))
+            {
+                return service.GetByCatrgoryId(categoryId);
+            }
+
             return new ProductService(apiCall.Context).KeyValue();
         }
 

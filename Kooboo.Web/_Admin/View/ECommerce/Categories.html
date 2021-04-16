@@ -34,7 +34,11 @@
 
     <kb-table-column :label="Kooboo.text.commerce.productCount">
       <template v-slot="row">
-        <span class="label green" style="cursor: pointer">
+        <span
+          class="label green"
+          style="cursor: pointer"
+          @click.stop="showProducts(row)"
+        >
           {{row.productCount}}
         </span>
       </template>
@@ -65,7 +69,12 @@
       </template>
     </kb-table-column>
   </kb-table>
-
+  <kb-selector-modal
+    v-model="showProductsModal"
+    :list="products"
+    :show-header="false"
+    :show-select="false"
+  />
   <div
     v-kb-modal="showModal"
     class="modal fade"
@@ -103,7 +112,7 @@
             </kb-form-item>
             <kb-form-item>
               <label class="col-sm-3 control-label">Enable</label>
-              <div class="col-sm-9"> 
+              <div class="col-sm-9">
                 <kb-switch v-model="editData.enable"></kb-switch>
               </div>
             </kb-form-item>

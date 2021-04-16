@@ -15,7 +15,7 @@
       <div class="modal-body" v-if="show">
         <kb-table
           :data="list"
-          :show-select="true"
+          :show-select="showSelect"
           :selected.sync="selectedRows"
           :show-header="showHeader"
           :multi-select="multiSelect"
@@ -26,8 +26,13 @@
           </template>
         </kb-table>
       </div>
-      <div class="modal-footer">
-        <button class="btn green" @click="save">Save</button>
+      <div class="modal-footer" v-if="showSelect">
+        <button
+          :disabled="selectedRows.length==0"
+          class="btn green"
+          @click="save"
+          >{{okDisplay}}</button
+        >
         <button @click="show=false" class="btn gray">Cancel</button>
       </div>
     </div>
