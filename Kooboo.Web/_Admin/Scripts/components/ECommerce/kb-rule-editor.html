@@ -22,7 +22,7 @@
       @change="propertyChanged(item)"
     >
       <option v-for="define in defines" :value="define.name"
-        >{{define.display}}</option
+        >{{propertyName(define.name)}}</option
       >
     </select>
     <select
@@ -32,8 +32,8 @@
     >
       <option
         v-for="comparer in currentDefine(item.left).comparers"
-        :value="comparer.name"
-        >{{comparer.display}}</option
+        :value="comparer"
+        >{{Kooboo.text.commerce.comparers[comparer]}}</option
       >
     </select>
 

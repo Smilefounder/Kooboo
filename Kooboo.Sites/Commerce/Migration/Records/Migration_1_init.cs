@@ -42,7 +42,7 @@ create table 'Product'
 			references 'ProductType'
 				on delete cascade,
 
-	'Enable' int not null
+	'Enable' bool not null
 );
 
 create table 'ProductSku'
@@ -61,7 +61,7 @@ create table 'ProductSku'
 	'Price' real not null,
 	'Tax' real not null,
 	'Image' text,
-	'Enable' int not null
+	'Enable' bool not null
 );
 
 create table 'ProductStock'
@@ -91,7 +91,8 @@ create table 'Category'
 	Type int not null,
 	Name text not null,
 	CreateTime datetime not null,
-	Rule text
+	Rule text,
+	Enable bool not null
 );
 
 create table 'ProductCategory'
@@ -117,7 +118,7 @@ create table 'Promotion'
 	'Description' Text,
 	'Type' int not null,
 	'Priority' int not null,
-	'Exclusive' int not null,
+	'Exclusive' bool not null,
 	'Discount' real not null,
 	'Rules' text not null,
 	'Target' int not null,

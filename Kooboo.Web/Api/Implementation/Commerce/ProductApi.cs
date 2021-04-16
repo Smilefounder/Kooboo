@@ -8,6 +8,7 @@ using System.Text;
 using Kooboo.Sites.Commerce;
 using Kooboo.Sites.Commerce.Validators;
 using FluentValidation;
+using Kooboo.Sites.Commerce.Models.Sku;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
@@ -56,9 +57,9 @@ namespace Kooboo.Web.Api.Implementation.Commerce
             new ProductService(apiCall.Context).Deletes(ids);
         }
 
-        //public SkuModel[] SkuList(ApiCall apiCall, Guid id)
-        //{
-        //    return new ProductService(apiCall.Context).SkuList(id);
-        //}
+        public SkuDetailModel[] SkuList(ApiCall apiCall, Guid id)
+        {
+            return new ProductSkuService(apiCall.Context).List(id);
+        }
     }
 }

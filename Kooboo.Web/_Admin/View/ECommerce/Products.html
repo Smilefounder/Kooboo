@@ -154,7 +154,11 @@
       </template>
     </kb-table-column>
 
-    <kb-table-column :label="Kooboo.text.commerce.status" width="50px" align="center">
+    <kb-table-column
+      :label="Kooboo.text.commerce.status"
+      width="50px"
+      align="center"
+    >
       <template v-slot="row">
         <span
           class="label green"
@@ -169,7 +173,13 @@
 
     <kb-table-column align="right" width="100px">
       <template v-slot="row">
-        <a class="btn blue" target="_blank" :href="editProduct(row)">Edit</a>
+        <a
+          class="btn blue"
+          @click.stop=""
+          target="_blank"
+          :href="editProduct(row)"
+          >Edit</a
+        >
       </template>
     </kb-table-column>
   </kb-table>

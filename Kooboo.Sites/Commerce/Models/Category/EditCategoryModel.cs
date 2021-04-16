@@ -16,6 +16,7 @@ namespace Kooboo.Sites.Commerce.Models.Category
             Type = category.Type;
             Rule = JsonHelper.Deserialize<MatchRule.Rule>(category.Rule);
             Products = products;
+            Enable = category.Enable;
         }
 
         public Guid[] Products { get; set; }
@@ -27,7 +28,8 @@ namespace Kooboo.Sites.Commerce.Models.Category
                 Id = Id,
                 Name = Name,
                 Rule = JsonHelper.Serialize(Rule),
-                Type = Type
+                Type = Type,
+                Enable = Enable
             };
         }
     }

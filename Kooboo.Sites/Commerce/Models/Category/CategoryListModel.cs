@@ -19,6 +19,7 @@ namespace Kooboo.Sites.Commerce.Models.Category
             Type = category.Type;
             Rule = JsonHelper.Deserialize<MatchRule.Rule>(category.Rule);
             ProductCount = productCount;
+            Enable = category.Enable;
         }
 
         public int ProductCount { get; set; }

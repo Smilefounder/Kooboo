@@ -1358,4 +1358,17 @@
 	<key id="Orders">订单管理</key>
 	<key id="Carts">购物车</key>
 	<key id="Sales Information">售卖信息</key>
+	<key id="Rules">规则</key>
+	<key id="Any">任一</key>
+	<key id="EqualTo">等于</key>
+	<key id="GreaterThan">大于</key>
+	<key id="GreaterThanOrEqual">大于等于</key>
+	<key id="LessThan">小于</key>
+	<key id="LessThanOrEqual">小于等于</key>
+	<key id="NotEqualTo">不等于</key>
+	<key id="StartWith">头部匹配</key>
+	<key id="Contains">包含</key>
+	<key id="AND">并且</key>
+	<key id="OR">或者</key>
+	<key id="Tax">税</key>
 </Lang>

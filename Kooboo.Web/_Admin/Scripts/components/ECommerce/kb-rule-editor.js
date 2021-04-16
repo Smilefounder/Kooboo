@@ -23,13 +23,12 @@
         this.propertyChanged(condition);
       }
     },
-    computed: {},
     methods: {
       addCondition() {
         var condition = {
           id: Kooboo.Guid.NewGuid(),
           left: this.defines[0].name,
-          comparer: this.defines[0].comparers[0].name,
+          comparer: this.defines[0].comparers[0],
           right: "",
         };
 
@@ -42,6 +41,11 @@
       },
       propertyChanged(item) {
         var define = this.currentDefine(item.left);
+
+        if (!define.comparers.find((f) => f == item.comparer)) {
+          item.comparer = define.comparers[0];
+          item.value = "";
+        }
 
         switch (define.valueType) {
           case "ProductTypeId":
@@ -60,6 +64,10 @@
         }
 
         item.value = "";
+      },
+      propertyName(str) {
+        var text = Kooboo.text.commerce.properties[str];
+        return text ? text : str;
       },
     },
   });

@@ -2,6 +2,7 @@
 using FluentValidation;
 using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
+using Kooboo.Sites.Commerce.Cache;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Product;
@@ -15,38 +16,11 @@ namespace Kooboo.Sites.Commerce.Services
 {
     public class ProductService : ServiceBase
     {
-        static MatchRule.TargetModels.Product[] _matchList;
-        readonly static object _locker = new object();
-
-        public IEnumerable<MatchRule.TargetModels.Product> MatchList
-        {
-            get
-            {
-                lock (_locker)
-                {
-                    if (_matchList == null)
-                    {
-                        lock (_locker)
-                        {
-                            GetMatchList();
-                        }
-                    }
-                }
-
-                return _matchList;
-            }
-        }
-
-        private void GetMatchList()
-        {
-            DbConnection.ExecuteTask(con =>
-            {
-                _matchList = con.Query<MatchRule.TargetModels.Product>("select pro.Id,sku.Price,pro.Title,pro.TypeId from ProductSku sku left join Product pro on sku.ProductId=pro.Id").ToArray();
-            });
-        }
+        readonly SiteCache _cache;
 
         public ProductService(RenderContext context) : base(context)
         {
+            _cache = CommerceCache.GetCache(Context);
         }
 
         public void Save(ProductModel viewModel, IDbConnection connection = null)
@@ -57,7 +31,7 @@ namespace Kooboo.Sites.Commerce.Services
             {
                 var type = new ProductTypeService(Context).Get(viewModel.TypeId, con);
                 if (type == null) throw new Exception("Can not find product type");
-                //TODO CheckRestrain(viewModel, type);
+                CheckRestrain(viewModel, type);
 
                 if (con.Exist<Product>(viewModel.Id))
                 {
@@ -68,18 +42,51 @@ namespace Kooboo.Sites.Commerce.Services
                     con.Insert(viewModel.ToProduct());
                 }
 
-                _matchList = null;
+                _cache.ClearMatchProducts();
             }, connection == null, connection == null);
         }
 
-        private void CheckRestrain(ProductModel viewModel, Models.Type.ProductTypeDetailModel type)
+        public object GetForKscript(Guid id)
         {
-            throw new NotImplementedException();
+            return null;
+            //return DbConnection.ExecuteTask(con =>
+            //{
+            //    //con.get
+            //    return null;
+            //});
+        }
+
+        private void CheckRestrain(ProductModel viewModel, Models.Type.ProductTypeModel type)
+        {
+            var modelStr = string.Join(string.Empty, viewModel.Specifications.Select(s => s.Id.ToString()).OrderBy(o => o));
+            var typeStr = string.Join(string.Empty, type.Specifications.Select(s => s.Id.ToString()).OrderBy(o => o));
+            if (modelStr != typeStr) throw new Exception("Specifications doesnot match");
+
+            foreach (var item in viewModel.Specifications)
+            {
+                var typeSpecification = type.Specifications.First(f => f.Id == item.Id);
+                item.Type = typeSpecification.Type;
+
+                if (item.Type == ItemDefineModel.DefineType.Text)
+                {
+                    item.Value = item.Options.Select(s => s.Key).ToArray();
+                }
+                else
+                {
+                    item.Options = new KeyValuePair<Guid, string>[0];
+
+                    if (item.Value.Except(typeSpecification.Options.Select(s => s.Key)).Any())
+                    {
+                        throw new Exception("Specification value doesnot match");
+                    }
+                }
+            }
         }
 
         public void Deletes(Guid[] ids)
         {
             DbConnection.ExecuteTask(con => con.DeleteList<Product>(ids));
+            _cache.ClearMatchProducts();
         }
 
         public ProductEditModel Get(Guid id)
@@ -188,7 +195,7 @@ GROUP BY PS.Id
 
         public KeyValuePair<Guid, string>[] KeyValue()
         {
-            return DbConnection.ExecuteTask(c => c.Query<KeyValuePair<Guid, string>>("select Id as Key,title as value from Product").ToArray());
+            return _cache.GetMatchProducts(Context).Select(s => new KeyValuePair<Guid, string>(s.Id, s.Title)).Distinct().ToArray();
         }
     }
 }

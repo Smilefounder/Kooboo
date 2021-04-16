@@ -14,6 +14,7 @@ namespace Kooboo.Sites.Commerce.Models.Category
         [JsonConverter(typeof(StringEnumConverter))]
         public AddingType Type { get; set; }
         public MatchRule.Rule Rule { get; set; }
+        public bool Enable { get; set; }
     }
 
 }

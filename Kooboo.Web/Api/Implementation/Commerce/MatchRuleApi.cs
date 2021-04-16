@@ -19,31 +19,16 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public object CategoryDefines()
         {
-            return GetDefineDisplay(Helpers.GetConditionDefines<Product>());
+            return Helpers.GetConditionDefines<Product>();
         }
 
         public object PromotionDefines()
         {
             return new
             {
-                Order = GetDefineDisplay(Helpers.GetConditionDefines<Order>()),
-                OrderItem = GetDefineDisplay(Helpers.GetConditionDefines<OrderItem>()),
+                Order = Helpers.GetConditionDefines<Order>(),
+                OrderItem = Helpers.GetConditionDefines<OrderItem>(),
             };
-        }
-
-        public object GetDefineDisplay(IEnumerable<IConditionDefine> defines)
-        {
-            return defines.Select(define => new
-            {
-                define.Name,
-                Display = define.Name,
-                ValueType = define.ValueType.ToString(),
-                Comparers = define.Comparers.Select(s => new
-                {
-                    Name = s.ToString(),
-                    Display = s.ToString()
-                })
-            });
         }
     }
 }

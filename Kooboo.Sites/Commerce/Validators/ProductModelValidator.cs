@@ -34,7 +34,7 @@ namespace Kooboo.Sites.Commerce.Validators
             RuleForEach(r => r.Specifications).ChildRules(c =>
             {
                 c.RuleFor(r => r.Id).NotEmpty();
-                c.RuleFor(r => r.Value).NotEmpty();
+
                 c.When(w => w.Options != null, () =>
                 {
                     c.RuleForEach(r => r.Options).ChildRules(kv =>

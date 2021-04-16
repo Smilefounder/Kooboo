@@ -1,5 +1,4 @@
 $(function () {
-  var self;
   new Vue({
     el: "#app",
     data: function () {

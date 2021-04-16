@@ -18,6 +18,8 @@ namespace Kooboo.Sites.Commerce.Migration
             Product(connection);
             ProductSku(connection);
             ProductStock(connection);
+            Category(connection);
+            ProductCategory(connection);
             Promotion(connection);
         }
 
@@ -347,6 +349,78 @@ INSERT INTO ProductStock (SkuId, ProductId, Quantity, Type, DateTime, OrderItemI
 ");
         }
 
+        private static void Category(IDbConnection connection)
+        {
+            connection.Execute(@"
+INSERT INTO Category (Id, Type, Name, CreateTime, Rule, Enable) VALUES ('7783813d-a426-4974-b2b5-f9bdad59c70f', 1, 'men', '2021-04-16 11:28:31.7341047Z', '{
+  ""type"": ""All"",
+  ""conditions"": [
+    {
+      ""id"": ""8a821f0c-4ddd-49f1-a57e-4851da41c88a"",
+      ""left"": ""Title"",
+      ""comparer"": ""Contains"",
+      ""right"": ""men""
+    }
+  ]
+}', 1);
+INSERT INTO Category (Id, Type, Name, CreateTime, Rule, Enable) VALUES ('63e692ec-344b-469d-ba4a-72c60eeb4750', 1, 'women', '2021-04-16 11:29:05.1804257Z', '{
+  ""type"": ""All"",
+  ""conditions"": [
+    {
+      ""id"": ""e567fe57-b319-4fdd-9ba8-230c12c82a75"",
+      ""left"": ""Title"",
+      ""comparer"": ""Contains"",
+      ""right"": ""women""
+    }
+  ]
+}', 1);
+INSERT INTO Category (Id, Type, Name, CreateTime, Rule, Enable) VALUES ('d343e513-347d-42ff-8e64-e07cd2dd08ed', 0, 'Belts', '2021-04-16 11:29:47.9012504Z', '{
+  ""type"": ""All"",
+  ""conditions"": []
+}', 1);
+INSERT INTO Category (Id, Type, Name, CreateTime, Rule, Enable) VALUES ('2b1cf62a-214e-4380-a122-09e5afb24809', 1, '0-99', '2021-04-16 11:30:24.362346Z', '{
+  ""type"": ""All"",
+  ""conditions"": [
+    {
+      ""id"": ""263bcdec-467d-4eee-b30f-c6d908ee5b1f"",
+      ""left"": ""Price"",
+      ""comparer"": ""GreaterThanOrEqual"",
+      ""right"": ""0""
+    },
+    {
+      ""id"": ""aa9411f7-16c9-4cd6-b2d6-7d24982c5545"",
+      ""left"": ""Price"",
+      ""comparer"": ""LessThanOrEqual"",
+      ""right"": ""99""
+    }
+  ]
+}', 1);
+INSERT INTO Category (Id, Type, Name, CreateTime, Rule, Enable) VALUES ('4e29d66d-35a0-46bb-801f-faf90719f474', 1, '100-199', '2021-04-16 11:30:56.6438849Z', '{
+  ""type"": ""All"",
+  ""conditions"": [
+    {
+      ""id"": ""aa0ca427-e376-40d9-9aa0-cb03443d606d"",
+      ""left"": ""Price"",
+      ""comparer"": ""GreaterThanOrEqual"",
+      ""right"": ""100""
+    },
+    {
+      ""id"": ""28eceea6-a35f-4a09-9039-7ebdfee1d988"",
+      ""left"": ""Price"",
+      ""comparer"": ""LessThanOrEqual"",
+      ""right"": ""199""
+    }
+  ]
+}', 1);
+");
+        }
+        private static void ProductCategory(IDbConnection connection)
+        {
+            connection.Execute(@"
+INSERT INTO ProductCategory (CategoryId, ProductId) VALUES ('d343e513-347d-42ff-8e64-e07cd2dd08ed', '4db04ad7-380a-4af8-b9bc-03f61c6b0a95');
+INSERT INTO ProductCategory (CategoryId, ProductId) VALUES ('d343e513-347d-42ff-8e64-e07cd2dd08ed', '4b92a2c3-abf6-4f44-9931-40ae955b4407');
+");
+        }
         private static void Promotion(IDbConnection connection)
         {
             connection.Execute(@"

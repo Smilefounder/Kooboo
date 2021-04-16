@@ -67,7 +67,7 @@
       balance: "Balance",
       enable: "Enable",
       enabled: "Enabled",
-      authentication:"Authentication",
+      authentication: "Authentication",
 
       API: "API",
       Code: "Code",
@@ -175,7 +175,7 @@
       renew: "Renew",
       chooseObject: "Choose object",
       chooseAction: "Choose action",
-      matcher:"Matcher"
+      matcher: "Matcher",
     },
 
     system: {
@@ -1076,15 +1076,40 @@
 
     commerce: {
       isEnabled: "E-commerce enabled",
-      attributes:"Attributes",
-      specifications:"Specifications",
-      productCount:"Product Count",
-      stock:"Stock",
-      sales:"Sales",
+      attributes: "Attributes",
+      specifications: "Specifications",
+      productCount: "Product Count",
+      stock: "Stock",
+      sales: "Sales",
       status: "Status",
+      rules: "Rules",
       product: {
         inStock: "In stock",
         dropOff: "Drop off",
+      },
+      categoryType: {
+        Manual: "Manual",
+        Auto: "Auto",
+      },
+      comparers: {
+        EqualTo: "EqualTo",
+        GreaterThan: "GreaterThan",
+        GreaterThanOrEqual: "GreaterThanOrEqual",
+        LessThan: "LessThan",
+        LessThanOrEqual: "LessThanOrEqual",
+        NotEqualTo: "NotEqualTo",
+        StartWith: "StartWith",
+        Contains: "Contains",
+      },
+      logical: {
+        All: "AND",
+        Any: "OR",
+      },
+      properties: {
+        Price: "Price",
+        Title: "Title",
+        Tax: "Tax",
+        ProductType: "Product type",
       },
     },
 

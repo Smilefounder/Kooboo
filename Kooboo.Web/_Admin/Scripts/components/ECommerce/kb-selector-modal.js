@@ -34,6 +34,7 @@
     methods: {
       save() {
         this.$emit("ok", this.selectedRows);
+        this.selectedRows = [];
         this.show = false;
       },
     },

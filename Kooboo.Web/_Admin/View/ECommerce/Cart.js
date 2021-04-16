@@ -18,7 +18,7 @@ $(function () {
         showProductModal: false,
         showSkuModal: false,
         products: [],
-        addProductId: null,
+        selectedProductId: null,
         cart: null,
       };
     },
@@ -33,7 +33,7 @@ $(function () {
       },
       productSelected(rows) {
         if (rows.length == 1) {
-          this.addProductId = rows[0].key;
+          this.selectedProductId = rows[0].key;
           this.showSkuModal = true;
         }
       },

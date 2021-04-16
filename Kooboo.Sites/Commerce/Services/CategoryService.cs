@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
+using Kooboo.Sites.Commerce.Cache;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Models.Category;
 using System;
@@ -12,61 +13,50 @@ namespace Kooboo.Sites.Commerce.Services
 {
     public class CategoryService : ServiceBase
     {
+        readonly SiteCache _cache;
+
         public CategoryService(RenderContext context) : base(context)
         {
+            _cache = CommerceCache.GetCache(context);
         }
 
         public EditCategoryModel Get(Guid id)
         {
-            using (var con = DbConnection)
+            var category = _cache.GetCategories(Context).FirstOrDefault(f => f.Id == id);
+            if (category == null) throw new Exception("Not found Category");
+            var products = new Guid[0];
+
+            if (category.Type == Category.AddingType.Manual)
             {
-                var category = con.Get<Category>(id);
-                var products = new Guid[0];
-
-                if (category.Type == Category.AddingType.Manual)
-                {
-                    products = con.Query<Guid>("SELECT ProductId FROM ProductCategory WHERE CategoryId=@Id", category).ToArray();
-                }
-
-                return new EditCategoryModel(category, products);
+                products = new ProductCategoryService(Context).GetByCategoryId(id);
             }
+
+            return new EditCategoryModel(category, products);
         }
 
         public CategoryListModel[] List()
         {
             var result = new List<CategoryListModel>();
-            using (var con = DbConnection)
+
+            foreach (var item in _cache.GetCategories(Context))
             {
-                var entities = con.GetList<Category>();
-                var autoEntities = entities.Where(w => w.Type == Category.AddingType.Auto);
-                var manualEntities = entities.Where(w => w.Type == Category.AddingType.Manual);
+                var rule = JsonHelper.Deserialize<MatchRule.Rule>(item.Rule);
+                int count = 0;
+                var _productCategoryService = new ProductCategoryService(Context);
 
-                if (autoEntities.Count() > 0)
+                switch (item.Type)
                 {
-                    var productService = new ProductService(Context);
-
-                    foreach (var item in autoEntities)
-                    {
-                        var rule = JsonHelper.Deserialize<MatchRule.Rule>(item.Rule);
-                        var count = productService.MatchList.Where(c => c.Match(rule)).Select(s => s.Id).Distinct().Count();
-                        result.Add(new CategoryListModel(item, count));
-                    }
+                    case Category.AddingType.Manual:
+                        count = _productCategoryService.GetByCategoryId(item.Id).Count();
+                        break;
+                    case Category.AddingType.Auto:
+                        count = _cache.GetMatchProducts(Context).Where(c => c.Match(rule)).Select(s => s.Id).Distinct().Count();
+                        break;
+                    default:
+                        break;
                 }
 
-                if (manualEntities.Count() > 0)
-                {
-                    var map = con.Query<KeyValuePair<Guid, int>>(@"
-select CategoryId as Key,count() as Value from ProductCategory 
-where CategoryId in @Ids
-group by CategoryId
-", new { Ids = manualEntities.Select(s => s.Id) });
-
-                    foreach (var item in manualEntities)
-                    {
-                        var count = map.FirstOrDefault(f => f.Key == item.Id).Value;
-                        result.Add(new CategoryListModel(item, count));
-                    }
-                }
+                result.Add(new CategoryListModel(item, count));
             }
 
             return result.ToArray();
@@ -79,31 +69,21 @@ group by CategoryId
                 var exist = con.Exist<Category>(viewModel.Id);
                 if (exist) con.Update(viewModel.ToCategory());
                 else con.Insert(viewModel.ToCategory());
-                con.Execute("DELETE FROM ProductCategory WHERE CategoryId=@Id", viewModel);
-
-                if (viewModel.Type == Category.AddingType.Manual)
-                {
-                    con.InsertList(viewModel.Products.Select(s => new ProductCategory
-                    {
-                        CategoryId = viewModel.Id,
-                        ProductId = s
-                    }));
-
-                }
+                var _productCategoryService = new ProductCategoryService(Context);
+                _productCategoryService.SaveByCategoryId(viewModel.Products, viewModel.Id, con);
+                _cache.ClearCategories();
             }, true);
         }
 
         public void Delete(Guid[] ids)
         {
             DbConnection.ExecuteTask(con => con.DeleteList<Category>(ids));
+            _cache.ClearCategories();
         }
 
         public KeyValuePair<Guid, string>[] KeyValue()
         {
-            return DbConnection.ExecuteTask(con =>
-            {
-                return con.Query<KeyValuePair<Guid, string>>("select Id as Key,Name as Value from Category").ToArray();
-            });
+            return _cache.GetCategories(Context).Select(s => new KeyValuePair<Guid, string>(s.Id, s.Name)).ToArray();
         }
     }
 }

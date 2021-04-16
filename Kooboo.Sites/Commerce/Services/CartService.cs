@@ -4,6 +4,7 @@ using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Cart;
+using Kooboo.Sites.Commerce.Models.Product;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -73,7 +74,7 @@ GROUP BY CI.SkuId
             {
                 var typeSpecifications = JsonHelper.Deserialize<ItemDefineModel[]>(item.ProductTypeSpecifications);
                 var skuSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, Guid>[]>(item.ProductSkuSpecifications);
-                var productSpecifications = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(item.ProductSpecifications);
+                var productSpecifications = JsonHelper.Deserialize<ProductModel.Specification[]>(item.ProductSpecifications);
 
                 items.Add(new CartModel.CartItemModel()
                 {
@@ -164,7 +165,7 @@ WHERE CustomerId
                             Specifications = Helpers.GetSpecifications(typeSpecifications, productSpecifications, skuSpecifications)
                         };
                     }).ToArray()
-                }).OrderByDescending(o=>o.Items.Max(m=>m.EditTime)).ToList();
+                }).OrderByDescending(o => o.Items.Max(m => m.EditTime)).ToList();
 
                 return result;
             }

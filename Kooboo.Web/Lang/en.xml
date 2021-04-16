@@ -1358,4 +1358,17 @@
 	<key id="Orders">Orders</key>
 	<key id="Carts">Carts</key>
 	<key id="Sales Information">Sales Information</key>
+	<key id="Rules">Rules</key>
+	<key id="Any">Any</key>
+	<key id="EqualTo">Equal</key>
+	<key id="GreaterThan">Greater</key>
+	<key id="GreaterThanOrEqual">Greater or equal</key>
+	<key id="LessThan">Less than</key>
+	<key id="LessThanOrEqual">Less or equal</key>
+	<key id="NotEqualTo">Not equal to</key>
+	<key id="StartWith">Start with</key>
+	<key id="Contains">Contains</key>
+	<key id="AND">AND</key>
+	<key id="OR">OR</key>
+	<key id="Tax">Tax</key>
 </Lang>

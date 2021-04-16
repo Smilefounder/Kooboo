@@ -19,16 +19,42 @@
     <kb-table-column :label="Kooboo.text.common.name" prop="name">
     </kb-table-column>
 
-    <kb-table-column label="Type">
-      <template v-slot="row"> {{row.type}} </template>
+    <kb-table-column :label="Kooboo.text.common.type">
+      <template v-slot="row">
+        {{Kooboo.text.commerce.categoryType[row.type]}}
+      </template>
     </kb-table-column>
 
-    <kb-table-column label="Rules">
-      <template v-slot="row"> </template>
+    <kb-table-column :label="Kooboo.text.commerce.rules">
+      <template v-slot="row">
+        <span v-if="row.type=='Auto'">{{getRules(row.rule)}}</span>
+        <span v-else>-</span>
+      </template>
     </kb-table-column>
 
-    <kb-table-column label="Product count">
-      <template v-slot="row">{{row.productCount}}</template>
+    <kb-table-column :label="Kooboo.text.commerce.productCount">
+      <template v-slot="row">
+        <span class="label green" style="cursor: pointer">
+          {{row.productCount}}
+        </span>
+      </template>
+    </kb-table-column>
+
+    <kb-table-column
+      :label="Kooboo.text.commerce.status"
+      width="50px"
+      align="center"
+    >
+      <template v-slot="row">
+        <span
+          class="label green"
+          :class="row.enable?'green':'gray'"
+          style="cursor: pointer"
+        >
+          <template v-if="row.enable">In stock</template>
+          <template v-else>Drop off</template>
+        </span>
+      </template>
     </kb-table-column>
 
     <kb-table-column align="right" width="100px">
@@ -46,7 +72,7 @@
     data-backdrop="static"
     data-keyboard="fasle"
   >
-    <div class="modal-dialog">
+    <div class="modal-dialog" style="width: 40%">
       <div class="modal-content">
         <div class="modal-header">
           <button @click="showModal=false" class="close">
@@ -59,7 +85,11 @@
             <kb-form-item>
               <label class="col-sm-3 control-label">Name</label>
               <div class="col-sm-9">
-                <input class="form-control" v-model="editData.name" />
+                <input
+                  class="form-control"
+                  v-model="editData.name"
+                  v-kb-hint="validateModel.name.msg"
+                />
               </div>
             </kb-form-item>
             <kb-form-item>
@@ -71,35 +101,54 @@
                 </select>
               </div>
             </kb-form-item>
+            <kb-form-item>
+              <label class="col-sm-3 control-label">Enable</label>
+              <div class="col-sm-9"> 
+                <kb-switch v-model="editData.enable"></kb-switch>
+              </div>
+            </kb-form-item>
             <kb-form-item v-if="editData.type=='Manual'">
               <label class="col-sm-3 control-label">Products</label>
-              <div class="col-sm-9">
+              <div class="col-sm-9" style="max-height: 300px; overflow-y: auto">
                 <button
-                  class="btn"
-                  v-for="item in selectedProducts"
-                  :title="item.value"
-                  @click="editData.products=editData.products.filter(f=>f!=item.key)"
+                  type="button"
+                  class="btn btn-sm"
+                  v-for="item in editData.products"
+                  :title="getProductTitle(item)"
+                  :key="item"
+                  style="margin: 5px 5px 5px 0"
                 >
                   <span
                     style="
                       display: inline-flex;
                       max-width: 100px;
                       overflow: hidden;
+                      white-space: nowrap;
                     "
+                    >{{getProductTitle(item)}}</span
                   >
-                    {{item.value}}
-                  </span>
-                  <i class="fa fa-close"></i>
+                  <i
+                    class="fa fa-close"
+                    @click="editData.products=editData.products.filter(f=>f!=item)"
+                  ></i>
                 </button>
-                <button class="btn" @click="showSelectorModal=true">
-                  <i class="fa fa-plus"></i
-                ></button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-default"
+                  @click="showSelectorModal=true"
+                >
+                  <i class="fa fa-plus"></i>
+                </button>
               </div>
             </kb-form-item>
             <kb-form-item v-if="editData.type=='Auto'">
               <label class="col-sm-3 control-label">Matcher</label>
               <div class="col-sm-9">
-                <kb-rule-editor v-if="defines" :defines="defines" :rule="editData.rule">
+                <kb-rule-editor
+                  v-if="defines"
+                  :defines="defines"
+                  :rule="editData.rule"
+                />
               </div>
             </kb-form-item>
           </kb-form>
@@ -129,6 +178,12 @@
       "/_Admin/Scripts/components/kbForm.js",
       "/_Admin/Scripts/components/ECommerce/kb-selector-modal.js",
       "/_Admin/Scripts/components/ECommerce/kb-rule-editor.js",
+      "/_Admin/Scripts/lib/bootstrap-switch/bootstrap-switch.min.js",
+      "/_Admin/Scripts/components/kbSwitch.js",
+    ]);
+
+    Kooboo.loadCSS([
+      "/_Admin/Scripts/lib/bootstrap-switch/bootstrap-switch.min.css",
     ]);
   })();
 </script>

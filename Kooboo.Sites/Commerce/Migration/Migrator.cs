@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Kooboo.Data.Context;
+using Kooboo.Sites.Commerce.Cache;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -27,18 +28,18 @@ namespace Kooboo.Sites.Commerce.Migration
 
         public static void TryMigrate(RenderContext context)
         {
-            lock (_locker)
+            var cache = CommerceCache.GetCache(context);
+
+            lock (cache)
             {
-                if (!IsMigrated($"{context.WebSite.OrganizationId}{context.WebSite.Id}"))
+                if (!cache.IsMigrated)
                 {
                     context.CreateCommerceDbConnection().ExecuteTask((c) =>
                     {
-                        //DeleteTables(connection); //rebuild
-                        Migrate(c);
+                        //DeleteTables(c); //rebuild
+                        cache.LastMigrateVersion = Migrate(c);
                     }, true);
                 }
-
-                _migratedSites.Add($"{context.WebSite.OrganizationId}{context.WebSite.Id}");
             }
         }
 
@@ -63,7 +64,7 @@ drop table if exists '_migration';
 
         }
 
-        public static void Migrate(IDbConnection connection)
+        public static int Migrate(IDbConnection connection)
         {
             connection.Execute("create table if not exists _migration( ver integer not null);");
             var lastVersion = connection.QueryFirstOrDefault<int?>("select max(ver) from _migration") ?? 0;
@@ -76,6 +77,8 @@ drop table if exists '_migration';
             }
 
             if (lastVersion == 0) Seed.Insert(connection);
+
+            return lastVersion;
         }
     }
 }
