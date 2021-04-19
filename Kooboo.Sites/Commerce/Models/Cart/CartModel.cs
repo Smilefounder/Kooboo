@@ -27,7 +27,7 @@ namespace Kooboo.Sites.Commerce.Models.Cart
                             result -= promotion.Discount;
                             break;
                         case Entities.Promotion.PromotionType.PercentOff:
-                            result = result * promotion.Discount / 100;
+                            result -= result * promotion.Discount / 100;
                             break;
                         default:
                             break;

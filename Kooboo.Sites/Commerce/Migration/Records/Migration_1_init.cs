@@ -123,7 +123,8 @@ create table 'Promotion'
 	'Rules' text not null,
 	'Target' int not null,
 	'StartTime' datetime not null,
-	'EndTime' datetime not null
+	'EndTime' datetime not null,
+	'Enable' bool not null
 );
 
 create table 'Customer'

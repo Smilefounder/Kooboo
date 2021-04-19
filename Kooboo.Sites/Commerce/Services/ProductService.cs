@@ -132,7 +132,7 @@ LIMIT @Size OFFSET @Offset
 ", new
                 {
                     Size = viewModel.Size,
-                    Offset = result.GetOffset(viewModel.Size)
+                    Offset = result.GetOffset()
                 });
 
                 var skus = con.Query(@"

@@ -56,7 +56,7 @@ LIMIT @Size OFFSET @Offset
 ", new
                 {
                     model.Size,
-                    Offset = result.GetOffset(model.Size)
+                    Offset = result.GetOffset()
                 }).ToList();
             }
 

@@ -66,7 +66,9 @@
       </legend>
       <div class="form-horizontal" v-for="(define,key) in defines">
         <div class="form-group">
-          <label class="control-label col-md-2">{{key}}</label>
+          <label class="control-label col-md-2"
+            >{{getTargetDisplay(key)}}</label
+          >
           <div class="col-md-10 col-lg-8">
             <kb-rule-editor
               :defines="define"
@@ -102,13 +104,15 @@
           <label class="control-label col-md-2"></label>
           <div class="col-md-10">
             <div class="input-group" style="width: 120px">
-              <span class="input-group-addon" v-if="model.type=='MoneyOff'">-</span>
+              <span class="input-group-addon">-</span>
               <input
                 type="text"
                 class="form-control"
                 v-model.number="model.discount"
               />
-              <span class="input-group-addon" v-if="model.type=='PercentOff'">%</span>
+              <span class="input-group-addon" v-if="model.type=='PercentOff'"
+                >%</span
+              >
             </div>
           </div>
         </div>

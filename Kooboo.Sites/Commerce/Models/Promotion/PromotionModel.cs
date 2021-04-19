@@ -28,6 +28,7 @@ namespace Kooboo.Sites.Commerce.Models.Promotion
             Target = promotion.Target;
             StartTime = promotion.StartTime;
             EndTime = promotion.EndTime;
+            Enable = promotion.Enable;
         }
 
         public Guid Id { get; set; }
@@ -45,6 +46,8 @@ namespace Kooboo.Sites.Commerce.Models.Promotion
         public Entities.Promotion.PromotionTarget Target { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
+
+        public bool Enable { get; set; }
 
         public class PromotionRules
         {
@@ -66,7 +69,8 @@ namespace Kooboo.Sites.Commerce.Models.Promotion
                 StartTime = StartTime.ToUniversalTime(),
                 Target = Target,
                 Type = Type,
-                Discount = Discount
+                Discount = Discount,
+                Enable = Enable
             };
         }
     }

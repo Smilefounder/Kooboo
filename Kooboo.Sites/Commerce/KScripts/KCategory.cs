@@ -19,8 +19,8 @@ namespace Kooboo.Sites.Commerce.KScripts
             _categoryService = new Lazy<CategoryService>(() => new CategoryService(context), true);
         }
 
-        [Description("Get product type list")]
-        [KDefineType(Return = typeof(CategoryKscriptModel[]))]
+        [Description("Get catrgory list")]
+        [KDefineType(Return = typeof(CategoryListModel[]))]
         public object List()
         {
             var list = _categoryService.Value.List();

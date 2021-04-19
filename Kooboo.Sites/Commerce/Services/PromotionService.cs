@@ -1,120 +1,69 @@
 ﻿using Dapper;
 using Kooboo.Data.Context;
-using Kooboo.Lib.Helper;
+using Kooboo.Sites.Commerce.Cache;
 using Kooboo.Sites.Commerce.Entities;
+using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Promotion;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using static Kooboo.Sites.Commerce.Entities.Promotion;
-using static Kooboo.Sites.Commerce.Models.Promotion.PromotionModel;
 
 namespace Kooboo.Sites.Commerce.Services
 {
     public class PromotionService : ServiceBase
     {
-        static PromotionMatchModel[] _matchList = null;
-        readonly static object _locker = new object();
 
         public PromotionService(RenderContext context) : base(context)
         {
-
-        }
-
-        public IEnumerable<PromotionMatchModel> MatchList
-        {
-            get
-            {
-                lock (_locker)
-                {
-                    if (_matchList == null)
-                    {
-                        lock (_locker)
-                        {
-                            GetMatchList();
-                        }
-                    }
-                }
-
-                return _matchList.Where(w => w.StartTime <= DateTime.UtcNow);
-            }
-        }
-
-        private void GetMatchList()
-        {
-            using (var con = DbConnection)
-            {
-                var list = con.Query<Promotion>(@"
-SELECT Id,
-       Name,
-       Type,
-       Priority,
-       Exclusive,
-       Discount,
-       Rules,
-       Target,
-       StartTime
-FROM Promotion
-WHERE CURRENT_TIMESTAMP <= DATETIME(Promotion.EndTime)
-");
-                _matchList = list.Select(s => new PromotionMatchModel
-                {
-                    Discount = s.Discount,
-                    Exclusive = s.Exclusive,
-                    Id = s.Id,
-                    Name = s.Name,
-                    Priority = s.Priority,
-                    Rules = JsonHelper.Deserialize<PromotionRules>(s.Rules),
-                    StartTime = s.StartTime.ToUniversalTime(),
-                    Target = s.Target,
-                    Type = s.Type
-                }).OrderByDescending(o => o.Exclusive).ThenByDescending(t => t.Priority).ToArray();
-            }
         }
 
         public PromotionModel Get(Guid id)
         {
-            using (var con = DbConnection)
+            return DbConnection.ExecuteTask(con =>
             {
                 var entity = con.Get<Promotion>(id);
+                if (entity == null) throw new Exception("Not found promotion");
                 return new PromotionModel(entity);
-            }
+            });
         }
 
-        public PromotionListModel[] List()
+        public PagedListModel<PromotionListModel> List(PagingQueryModel model)
         {
-            var result = new List<PromotionListModel>();
-            using (var con = DbConnection)
+            var result = new PagedListModel<PromotionListModel>();
+
+            return DbConnection.ExecuteTask(con =>
             {
-                var list = con.Query("SELECT Id,Name,StartTime,EndTime,Exclusive,Priority,Target,Discount,Type FROM Promotion");
+                var count = con.Count<Promotion>();
+                result.SetPageInfo(model, count);
 
-                foreach (var item in list)
+                result.List = con.Query<PromotionListModel>(@"
+SELECT id,
+       name,
+       type,
+       priority,
+       exclusive,
+       discount,
+       target,
+       starttime,
+       endtime,
+       enable
+FROM Promotion
+LIMIT @Limit OFFSET @Offset
+", new
                 {
-                    var startTime = ((DateTime)item.StartTime).ToUniversalTime();
-                    var endTime = ((DateTime)item.EndTime).ToUniversalTime();
-                    result.Add(new PromotionListModel
-                    {
-                        Active = DateTime.UtcNow >= startTime && DateTime.UtcNow <= endTime,
-                        Exclusive = Convert.ToBoolean(item.Exclusive),
-                        Id = item.Id,
-                        Name = item.Name,
-                        Priority = item.Priority,
-                        Target = (PromotionTarget)item.Target,
-                        Discount = item.Type == 0 ? $"-{item.Discount}" : $"{item.Discount}%"
-                    }); ;
-                }
-            }
+                    Limit = model.Size,
+                    Offset = result.GetOffset()
+                }).ToList();
 
-            return result.ToArray();
+                return result;
+            });
         }
 
         public void Save(PromotionModel model)
         {
-            var entity = model.ToPromotion();
-
-            using (var con = DbConnection)
+            DbConnection.ExecuteTask(con =>
             {
+                var entity = model.ToPromotion();
+
                 if (con.Exist<Promotion>(entity.Id))
                 {
                     con.Update(entity);
@@ -123,19 +72,15 @@ WHERE CURRENT_TIMESTAMP <= DATETIME(Promotion.EndTime)
                 {
                     con.Insert(entity);
                 }
-            }
 
-            _matchList = null;
+                CommerceCache.GetCache(Context).ClearPromotions();
+            });
         }
 
         public void Deletes(Guid[] ids)
         {
-            using (var con = DbConnection)
-            {
-                con.DeleteList<Promotion>(ids);
-            }
-
-            _matchList = null;
+            DbConnection.ExecuteTask(c => c.DeleteList<Promotion>(ids));
+            CommerceCache.GetCache(Context).ClearPromotions();
         }
     }
 }

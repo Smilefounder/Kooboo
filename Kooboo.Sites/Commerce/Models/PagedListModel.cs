@@ -6,6 +6,7 @@ namespace Kooboo.Sites.Commerce.Models
 {
     public class PagedListModel<T>
     {
+        public long PageSize { get; set; }
         public long PageIndex { get; set; }
         public long PageCount { get; set; }
         public List<T> List { get; set; }
@@ -13,14 +14,15 @@ namespace Kooboo.Sites.Commerce.Models
         public void SetPageInfo(PagingQueryModel paging, long count)
         {
             PageIndex = paging.Index;
-            PageCount = count / paging.Size + (count % paging.Size > 0 ? 1 : 0);
+            PageSize = paging.Size;
+            PageCount = count / PageSize + (count % PageSize > 0 ? 1 : 0);
             if (PageCount == 0) PageCount = 1;
             if (PageIndex > PageCount) PageIndex = PageCount;
         }
 
-        public long GetOffset(long size)
+        public long GetOffset()
         {
-            return (PageIndex - 1) * size;
+            return (PageIndex - 1) * PageSize;
         }
     }
 }

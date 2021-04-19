@@ -36,7 +36,7 @@ namespace Kooboo.Sites.Commerce.Migration
                 {
                     context.CreateCommerceDbConnection().ExecuteTask((c) =>
                     {
-                        //DeleteTables(c); //rebuild
+                       // DeleteTables(c); //rebuild
                         cache.LastMigrateVersion = Migrate(c);
                     }, true);
                 }

@@ -1353,7 +1353,7 @@
 	<key id="Specifications">规格</key>
 	<key id="Product Count">商品数量</key>
 	<key id="Sales">销量</key>
-	<key id="Promotions">促销管理</key>
+	<key id="Promotions">促销方案</key>
 	<key id="Customers">顾客管理</key>
 	<key id="Orders">订单管理</key>
 	<key id="Carts">购物车</key>
@@ -1371,4 +1371,12 @@
 	<key id="AND">并且</key>
 	<key id="OR">或者</key>
 	<key id="Tax">税</key>
+	<key id="Add new promotion">新增促销方案</key>
+	<key id="Exclusive">互斥</key>
+	<key id="Priority">优先级</key>
+	<key id="Discount">折扣</key>
+	<key id="Target">目标</key>
+	<key id="Order item">订单商品</key>
+	<key id="Money off">优惠金额</key>
+	<key id="Percent off">优惠百分比</key>
 </Lang>

@@ -3,6 +3,7 @@ using Kooboo.Data.Context;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.MatchRule.TargetModels;
 using Kooboo.Sites.Commerce.Models.ProductCategory;
+using Kooboo.Sites.Commerce.Models.Promotion;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace Kooboo.Sites.Commerce.Cache
 {
     public class SiteCache
     {
-        readonly ConcurrentDictionary<string, CacheItem<object>> _caches = new ConcurrentDictionary<string, CacheItem<object>>();
+        readonly ConcurrentDictionary<string, CacheItem<dynamic>> _caches = new ConcurrentDictionary<string, CacheItem<dynamic>>();
         public int? LastMigrateVersion { get; set; }
         public bool IsMigrated => LastMigrateVersion != null;
 
@@ -36,12 +37,12 @@ FROM ProductSku PS
 ");
                                 });
 
-                return new CacheItem<object>
+                return new CacheItem<dynamic>
                 {
                     Data = data,
                     Lifetime = TimeSpan.FromDays(30)
                 };
-            }).Data as IEnumerable<MatchRule.TargetModels.Product>;
+            }).Data;
         }
 
         public void ClearMatchProducts()
@@ -62,12 +63,12 @@ FROM ProductCategory PC
          LEFT JOIN Category C ON C.Id = PC.CategoryId
 "));
 
-                return new CacheItem<object>
+                return new CacheItem<dynamic>
                 {
                     Data = data,
                     Lifetime = TimeSpan.FromDays(30)
                 };
-            }).Data as IEnumerable<ProductCategoryModel>;
+            }).Data;
         }
 
         public void ClearProductCategories()
@@ -81,18 +82,55 @@ FROM ProductCategory PC
             {
                 var data = context.CreateCommerceDbConnection().ExecuteTask(con => con.GetList<Category>());
 
-                return new CacheItem<object>
+                return new CacheItem<dynamic>
                 {
                     Data = data,
                     Lifetime = TimeSpan.FromDays(30)
                 };
-            }).Data as IEnumerable<Category>;
+            }).Data;
         }
 
         public void ClearCategories()
         {
             _caches.TryRemove(nameof(GetCategories), out _);
             ClearProductCategories();
+        }
+
+        public IEnumerable<PromotionMatchModel> GetPromotions(RenderContext context)
+        {
+            var now = DateTime.UtcNow;
+
+            IEnumerable<PromotionMatchModel> result = _caches.GetOrAdd(nameof(GetPromotions), _ =>
+             {
+                 var data = context.CreateCommerceDbConnection().ExecuteTask(con => con.Query<PromotionMatchModel>(@"
+SELECT Id,
+       Name,
+       Type,
+       Priority,
+       Exclusive,
+       Discount,
+       Rules,
+       Target,
+       StartTime
+FROM Promotion
+WHERE CURRENT_TIMESTAMP < DATETIME(Promotion.EndTime)
+  AND Enable = 1
+ORDER BY Exclusive DESC, Priority DESC
+"));
+
+                 return new CacheItem<dynamic>
+                 {
+                     Data = data,
+                     Lifetime = TimeSpan.FromDays(30)
+                 };
+             }).Data;
+
+            return result.Where(w => w.StartTime < now);
+        }
+
+        public void ClearPromotions()
+        {
+            _caches.TryRemove(nameof(GetPromotions), out _);
         }
     }
 }

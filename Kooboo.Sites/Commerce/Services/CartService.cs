@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
+using Kooboo.Sites.Commerce.Cache;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Cart;
@@ -90,7 +91,7 @@ GROUP BY CI.SkuId
                 });
             }
 
-            var promotions = new PromotionService(Context).MatchList;
+            var promotions = CommerceCache.GetCache(Context).GetPromotions(Context);
             cart.Items = items.ToArray();
             cart.Discount(promotions);
             if (connection == null) con.Dispose();
@@ -141,7 +142,7 @@ WHERE CustomerId
 ", new
                 {
                     PageSize = model.Size,
-                    Offset = result.GetOffset(model.Size)
+                    Offset = result.GetOffset()
                 });
 
                 result.List = list.GroupBy(g => g.CustomerId).Select(s => new CartListModel

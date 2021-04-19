@@ -19,14 +19,14 @@
     <kb-table-column :label="Kooboo.text.common.name" prop="name">
     </kb-table-column>
 
-    <kb-table-column label="Active">
+    <kb-table-column :label="Kooboo.text.common.enable">
       <template v-slot="row">
-        <span class="label label-sm label-success" v-if="row.active">Yes</span>
+        <span class="label label-sm label-success" v-if="row.enable">Yes</span>
         <span class="label label-sm label-success red" v-else>No</span>
       </template>
     </kb-table-column>
 
-    <kb-table-column label="Exclusive">
+    <kb-table-column :label="Kooboo.text.commerce.exclusive">
       <template v-slot="row">
         <span class="label label-sm label-success" v-if="row.exclusive"
           >Yes</span
@@ -35,16 +35,28 @@
       </template>
     </kb-table-column>
 
-    <kb-table-column label="Priority">
+    <kb-table-column :label="Kooboo.text.commerce.priority">
       <template v-slot="row">{{row.priority}}</template>
     </kb-table-column>
 
-    <kb-table-column label="Target">
-      <template v-slot="row">{{row.target}}</template>
+    <kb-table-column :label="Kooboo.text.commerce.target">
+      <template v-slot="row">{{getTargetDisplay(row.target)}}</template>
     </kb-table-column>
 
-    <kb-table-column label="Discount">
+    <kb-table-column :label="Kooboo.text.commerce.discount">
       <template v-slot="row">{{row.discount}}</template>
+    </kb-table-column>
+
+    <kb-table-column :label="Kooboo.text.commerce.startTime">
+      <template v-slot="row"
+        >{{new Date(row.startTime).toDefaultLangString() }}</template
+      >
+    </kb-table-column>
+
+    <kb-table-column :label="Kooboo.text.commerce.endTime">
+      <template v-slot="row"
+        >{{new Date(row.endTime).toDefaultLangString()}}</template
+      >
     </kb-table-column>
 
     <kb-table-column align="right" width="100px">
@@ -55,6 +67,11 @@
       </template>
     </kb-table-column>
   </kb-table>
+  <kb-pager
+    :page-nr="pager.pageNr"
+    :total-pages="pager.totalPages"
+    @change="changePage"
+  ></kb-pager>
 </div>
 <script>
   (function () {
@@ -62,6 +79,7 @@
       "/_Admin/Scripts/kooboo/Guid.js",
       "/_Admin/Scripts/components/kbBreadcrumb.js",
       "/_Admin/Scripts/components/kbTable.js",
+      "/_Admin/Scripts/components/kbPager.js",
     ]);
   })();
 </script>

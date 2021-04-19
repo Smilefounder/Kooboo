@@ -1371,4 +1371,12 @@
 	<key id="AND">AND</key>
 	<key id="OR">OR</key>
 	<key id="Tax">Tax</key>
+	<key id="Add new promotion">Add new promotion</key>
+	<key id="Exclusive">Exclusive</key>
+	<key id="Priority">Priority</key>
+	<key id="Discount">Discount</key>
+	<key id="Target">Target</key>
+	<key id="Order item">Order item</key>
+	<key id="Money off">Money off</key>
+	<key id="Percent off">Percent off</key>
 </Lang>

@@ -58,6 +58,10 @@ $(function () {
       save() {
         Kooboo.Promotion.post(this.model);
       },
+      getTargetDisplay(text) {
+        var display = Kooboo.text.commerce.promotionTarget[text.toLowerCase()];
+        return display ? display : text;
+      },
     },
   });
 });

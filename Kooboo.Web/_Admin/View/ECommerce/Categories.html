@@ -69,12 +69,16 @@
       </template>
     </kb-table-column>
   </kb-table>
-  <kb-selector-modal
-    v-model="showProductsModal"
-    :list="products"
-    :show-header="false"
-    :show-select="false"
-  />
+
+  <div>
+    <kb-selector-modal
+      v-model="showProductsModal"
+      :list="products"
+      :show-header="false"
+      :show-select="false"
+    />
+  </div>
+
   <div
     v-kb-modal="showModal"
     class="modal fade"
@@ -170,13 +174,14 @@
     </div>
   </div>
 
-  <kb-selector-modal
-    v-model="showSelectorModal"
-    :list="selectorProducts"
-    @ok="productSelected"
-    show-select
-    :show-header="false"
-  />
+  <div>
+    <kb-selector-modal
+      v-model="showSelectorModal"
+      :list="selectorProducts"
+      @ok="productSelected"
+      :show-header="false"
+    />
+  </div>
 </div>
 <script>
   (function () {

@@ -4,6 +4,7 @@ using Kooboo.Sites.Commerce.Models.Promotion;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Kooboo.Sites.Commerce.Models;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
@@ -20,12 +21,12 @@ namespace Kooboo.Web.Api.Implementation.Commerce
             new PromotionService(apiCall.Context).Save(model);
         }
 
-        public object List(ApiCall apiCall)
+        public PagedListModel<PromotionListModel> List(ApiCall apiCall, PagingQueryModel model)
         {
-            return new PromotionService(apiCall.Context).List();
+            return new PromotionService(apiCall.Context).List(model);
         }
 
-        public object Get(ApiCall apiCall, Guid id)
+        public PromotionModel Get(ApiCall apiCall, Guid id)
         {
             return new PromotionService(apiCall.Context).Get(id);
         }

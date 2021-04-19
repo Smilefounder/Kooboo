@@ -81,7 +81,7 @@ $(function () {
         Kooboo.Product.Delete(this.selectedRows.map((m) => m.id)).then(
           (res) => {
             if (res.success) {
-              this.changePage(1);
+              this.changePage(this.pager.pageNr);
             }
           }
         );

@@ -23,8 +23,9 @@ namespace Kooboo.Sites.Commerce.Entities
         public bool Exclusive { get; set; }
 
         /// <summary>
-        /// for percentOff 75 =>75% amount
-        /// for MoneyOff 20 =>amount-20
+        /// amount=200
+        /// for percentOff 75 =>amount-amount*75% 200*0.25=50
+        /// for MoneyOff 20 =>amount-20=150
         /// </summary>
         public decimal Discount { get; set; }
 
@@ -35,6 +36,8 @@ namespace Kooboo.Sites.Commerce.Entities
         public DateTime StartTime { get; set; }
 
         public DateTime EndTime { get; set; }
+
+        public bool Enable { get; set; }
 
         public enum PromotionType
         {
