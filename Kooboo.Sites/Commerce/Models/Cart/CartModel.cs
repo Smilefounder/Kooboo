@@ -1,10 +1,11 @@
-﻿using Kooboo.Sites.Commerce.Services;
+﻿using Kooboo.Data.Context;
+using Kooboo.Lib.Helper;
+using Kooboo.Sites.Commerce.Cache;
 using Kooboo.Sites.Commerce.Models.Promotion;
+using Kooboo.Sites.Commerce.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Kooboo.Lib.Helper;
 
 namespace Kooboo.Sites.Commerce.Models.Cart
 {
@@ -43,8 +44,11 @@ namespace Kooboo.Sites.Commerce.Models.Cart
         public CartItemModel[] Items { get; set; }
         public int Quantity { get; set; }
 
-        public void Discount(IEnumerable<PromotionMatchModel> promotions)
+        public void Discount(RenderContext context)
         {
+            var cache = CommerceCache.GetCache(context);
+            var promotions = cache.GetPromotions(context);
+            var productCategoryService = new ProductCategoryService(context);
 
             foreach (var promotion in promotions)
             {
@@ -64,7 +68,9 @@ namespace Kooboo.Sites.Commerce.Models.Cart
                         Amount = item.DiscountAmount,
                         ProductId = item.ProductId,
                         Quantity = item.Quantity,
-                        SkuId = item.SkuId
+                        SkuId = item.SkuId,
+                        Price = item.Price,
+                        Categories = productCategoryService.GetByProductId(item.ProductId)
                     };
 
                     var matchOrderItem = orderItem.Match(promotion.Rules.OrderItem);

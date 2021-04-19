@@ -1,9 +1,11 @@
 ﻿using Dapper;
+using FluentValidation;
 using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Cache;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Models.Category;
+using Kooboo.Sites.Commerce.Validators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,6 +66,8 @@ namespace Kooboo.Sites.Commerce.Services
 
         public void Save(EditCategoryModel viewModel)
         {
+            new EditCategoryModelValidator().ValidateAndThrow(viewModel);
+
             DbConnection.ExecuteTask(con =>
             {
                 var exist = con.Exist<Category>(viewModel.Id);

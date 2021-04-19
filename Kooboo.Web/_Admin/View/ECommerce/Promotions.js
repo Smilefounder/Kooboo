@@ -20,7 +20,7 @@ $(function () {
           pageNr: 1,
           totalPages: 1,
         },
-        pageSize: 3,
+        pageSize: 20,
       };
     },
     mounted() {

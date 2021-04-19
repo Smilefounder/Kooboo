@@ -10,5 +10,7 @@ namespace Kooboo.Sites.Commerce.MatchRule.TargetModels
         public decimal Quantity { get; set; }
         public Guid ProductId { get; set; }
         public Guid SkuId { get; set; }
+        public decimal Price { get; set; }
+        public Guid[] Categories { get; set; }
     }
 }

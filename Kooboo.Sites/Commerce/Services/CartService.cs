@@ -91,9 +91,9 @@ GROUP BY CI.SkuId
                 });
             }
 
-            var promotions = CommerceCache.GetCache(Context).GetPromotions(Context);
+           
             cart.Items = items.ToArray();
-            cart.Discount(promotions);
+            cart.Discount(Context);
             if (connection == null) con.Dispose();
             return cart;
         }

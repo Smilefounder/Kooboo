@@ -10,7 +10,11 @@
         <div class="form-group">
           <label class="control-label col-md-2">Name</label>
           <div class="col-md-10">
-            <input class="form-control" v-model="model.name" />
+            <input
+              class="form-control"
+              v-model="model.name"
+              v-kb-hint="validateModel.name.msg"
+            />
           </div>
         </div>
 
@@ -28,17 +32,21 @@
           <label class="control-label col-md-2">Start time</label>
           <div class="col-md-4">
             <input
-              type="datetime-local"
+              type="text"
+              v-kb-datetimepicker
               class="form-control"
               v-model="model.startTime"
+              v-kb-hint="validateModel.startTime.msg"
             />
           </div>
           <label class="control-label col-md-2">End time</label>
           <div class="col-md-4">
             <input
-              type="datetime-local"
+              type="text"
+              v-kb-datetimepicker
               class="form-control"
               v-model="model.endTime"
+              v-kb-hint="validateModel.endTime.msg"
             />
           </div>
         </div>
@@ -55,6 +63,12 @@
           <label class="control-label col-md-2">Exclusive</label>
           <div class="col-md-4">
             <kb-switch v-model="model.exclusive"></kb-switch>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-md-2">Enable</label>
+          <div class="col-md-4">
+            <kb-switch v-model="model.enable"></kb-switch>
           </div>
         </div>
       </div>
@@ -102,13 +116,14 @@
         </div>
         <div class="form-group">
           <label class="control-label col-md-2"></label>
-          <div class="col-md-10">
-            <div class="input-group" style="width: 120px">
+          <div class="col-md-3">
+            <div class="input-group">
               <span class="input-group-addon">-</span>
               <input
-                type="text"
+                type="number"
                 class="form-control"
                 v-model.number="model.discount"
+                v-kb-hint="validateModel.discount.msg"
               />
               <span class="input-group-addon" v-if="model.type=='PercentOff'"
                 >%</span
@@ -152,9 +167,13 @@
     "/_Admin/Scripts/components/ECommerce/kb-rule-editor.js",
     "/_Admin/Scripts/lib/bootstrap-switch/bootstrap-switch.min.js",
     "/_Admin/Scripts/components/kbSwitch.js",
+    "/_Admin/Scripts/lib/moment.min.js",
+    "/_Admin/Scripts/lib/bootstrap-datetimepicker.js",
+    "/_Admin/Scripts/components/kbDatetimepicker.js",
   ]);
 
   Kooboo.loadCSS([
+    "/_Admin/Styles/bootstrap-datetimepicker.min.css",
     "/_Admin/Scripts/lib/bootstrap-switch/bootstrap-switch.min.css",
   ]);
 </script>

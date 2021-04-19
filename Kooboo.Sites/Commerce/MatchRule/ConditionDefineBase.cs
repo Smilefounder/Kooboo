@@ -1,17 +1,23 @@
 ﻿using Kooboo.Data.Context;
 using Kooboo.Data.Definition;
 using Kooboo.Sites.Commerce.Services;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Kooboo.Sites.Commerce.MatchRule
 {
-    public abstract class ConditionDefineBase<T> : IConditionDefine where T : TargetModelBase<T>
+    public abstract class ConditionDefineBase<T> where T : TargetModelBase<T>
     {
         private readonly Comparer[] _comparers;
         public abstract string Name { get; }
+
+        [JsonProperty(nameof(Comparers), ItemConverterType = typeof(StringEnumConverter))]
         public virtual Comparer[] Comparers => _comparers;
+
+        [JsonConverter(typeof(StringEnumConverter))]
         public abstract ConditionValueType ValueType { get; }
 
         public ConditionDefineBase()

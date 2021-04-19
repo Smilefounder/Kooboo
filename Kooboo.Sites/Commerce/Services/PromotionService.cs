@@ -1,9 +1,11 @@
 ﻿using Dapper;
+using FluentValidation;
 using Kooboo.Data.Context;
 using Kooboo.Sites.Commerce.Cache;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Promotion;
+using Kooboo.Sites.Commerce.Validators;
 using System;
 using System.Linq;
 
@@ -60,6 +62,8 @@ LIMIT @Limit OFFSET @Offset
 
         public void Save(PromotionModel model)
         {
+            new PromotionModelValidator().ValidateAndThrow(model);
+
             DbConnection.ExecuteTask(con =>
             {
                 var entity = model.ToPromotion();
