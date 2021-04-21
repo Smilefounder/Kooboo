@@ -1,7 +1,9 @@
 ﻿using Dapper;
 using Kooboo.Data.Context;
+using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.MatchRule.TargetModels;
+using Kooboo.Sites.Commerce.Models.Category;
 using Kooboo.Sites.Commerce.Models.ProductCategory;
 using Kooboo.Sites.Commerce.Models.Promotion;
 using System;
@@ -9,6 +11,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static Kooboo.Sites.Commerce.Entities.Promotion;
 
 namespace Kooboo.Sites.Commerce.Cache
 {
@@ -76,11 +79,14 @@ FROM ProductCategory PC
             _caches.TryRemove(nameof(GetProductCategories), out _);
         }
 
-        public IEnumerable<Category> GetCategories(RenderContext context)
+        public IEnumerable<CategoryModel> GetCategories(RenderContext context)
         {
             return _caches.GetOrAdd(nameof(GetCategories), _ =>
             {
-                var data = context.CreateCommerceDbConnection().ExecuteTask(con => con.GetList<Category>());
+                var data = context.CreateCommerceDbConnection().ExecuteTask(con =>
+                {
+                    return con.GetList<Category>().Select(s => new CategoryModel(s));
+                });
 
                 return new CacheItem<dynamic>
                 {
@@ -102,7 +108,10 @@ FROM ProductCategory PC
 
             IEnumerable<PromotionMatchModel> result = _caches.GetOrAdd(nameof(GetPromotions), _ =>
              {
-                 var data = context.CreateCommerceDbConnection().ExecuteTask(con => con.Query<PromotionMatchModel>(@"
+                 var data = context.CreateCommerceDbConnection().ExecuteTask(con =>
+                 {
+
+                     var list = con.Query(@"
 SELECT Id,
        Name,
        Type,
@@ -116,11 +125,26 @@ FROM Promotion
 WHERE CURRENT_TIMESTAMP < DATETIME(Promotion.EndTime)
   AND Enable = 1
 ORDER BY Exclusive DESC, Priority DESC
-"));
+");
+
+                     return list.Select(s => new PromotionMatchModel
+                     {
+                         Id = s.Id,
+                         Name = s.Name,
+                         Type = (PromotionType)s.Type,
+                         Priority = (int)s.Priority,
+                         Exclusive = s.Exclusive,
+                         Discount = (decimal)s.Discount,
+                         Rules = JsonHelper.Deserialize<PromotionModel.PromotionRules>(s.Rules),
+                         Target = (PromotionTarget)s.Target,
+                         StartTime = s.StartTime
+                     });
+                 });
+
 
                  return new CacheItem<dynamic>
                  {
-                     Data = data,
+                     Data = data.ToArray(),
                      Lifetime = TimeSpan.FromDays(30)
                  };
              }).Data;

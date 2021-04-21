@@ -135,6 +135,8 @@ create table 'Customer'
 
 	'UserName' text not null,
 	'Password' text not null,
+	'Email' text not null,
+	'Phone' text not null,
 	'CreateTime' datetime not null
 );
 
@@ -149,7 +151,7 @@ create table 'CartItem'
 			references 'Customer'
 				on delete cascade,
 
-	'Selected' int not null,
+	'Selected' bool not null,
 
 	'ProductId' uniqueidentifier not null
 		constraint CartItem_ProductId_Product_Id_fk

@@ -58,7 +58,10 @@ SELECT CI.ProductId,
        P.Specifications  AS ProductSpecifications,
        PS.Specifications AS ProductSkuSpecifications,
        PT.Specifications AS ProductTypeSpecifications,
-       SUM(S.Quantity)   AS Stock
+       SUM(S.Quantity)   AS Stock,
+       PT.Id             AS TypeId,
+       PS.Tax            AS Tax,
+       P.Title           AS Title
 FROM CartItem CI
          LEFT JOIN ProductSku PS ON CI.SkuId = PS.Id
          LEFT JOIN Product P ON P.Id = PS.ProductId
@@ -81,17 +84,20 @@ GROUP BY CI.SkuId
                 {
                     Id = item.Id,
                     Price = (decimal)item.Price,
-                    Quantity = item.Quantity,
+                    Quantity = (int)item.Quantity,
                     ProductId = item.ProductId,
                     ProductName = item.ProductName,
                     SkuId = item.SkuId,
-                    Selected = Convert.ToBoolean(item.Selected),
+                    Selected = item.Selected,
                     Specifications = Helpers.GetSpecifications(typeSpecifications, productSpecifications, skuSpecifications),
-                    Stock = Convert.ToInt32(item.Stock)
+                    Stock = Convert.ToInt32(item.Stock),
+                    TypeId = item.TypeId,
+                    Tax = (decimal)item.Tax,
+                    Title = item.Title
                 });
             }
 
-           
+
             cart.Items = items.ToArray();
             cart.Discount(Context);
             if (connection == null) con.Dispose();

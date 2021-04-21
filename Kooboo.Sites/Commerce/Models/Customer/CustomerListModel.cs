@@ -6,15 +6,17 @@ using Kooboo.Sites.Commerce.Entities;
 
 namespace Kooboo.Sites.Commerce.Models
 {
-    public class CustomerModel
+    public class CustomerListModel
     {
-        public CustomerModel()
+        public CustomerListModel()
         {
 
         }
 
         public Guid Id { get; set; }
         public string UserName { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
         public DateTime CreateTime { get; set; }
         public int Cart { get; set; }
     }

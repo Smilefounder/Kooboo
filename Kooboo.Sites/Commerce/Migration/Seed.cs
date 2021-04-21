@@ -21,6 +21,7 @@ namespace Kooboo.Sites.Commerce.Migration
             Category(connection);
             ProductCategory(connection);
             Promotion(connection);
+            Customer(connection);
         }
 
         private static void ProductType(IDbConnection connection)
@@ -424,6 +425,65 @@ INSERT INTO ProductCategory (CategoryId, ProductId) VALUES ('d343e513-347d-42ff-
         private static void Promotion(IDbConnection connection)
         {
             connection.Execute(@"
+INSERT INTO Promotion (Id, Name, Description, Type, Priority, Exclusive, Discount, Rules, Target, StartTime, EndTime, Enable) VALUES ('51ab5b2d-f685-490f-95c6-b25f8d58c60b', 'Full 200 subtract 50', 'Full 200 subtract 50 Full 200 subtract 50 Full 200 subtract 50', 0, 0, 0, 50, '{
+  ""order"": {
+    ""type"": ""All"",
+    ""conditions"": [
+      {
+        ""id"": ""c6209286-f2c3-4fd8-bf1a-90f226670dd8"",
+        ""left"": ""TotalAmount"",
+        ""comparer"": ""GreaterThan"",
+        ""right"": ""200""
+      }
+    ]
+  },
+  ""orderItem"": {
+    ""type"": ""All"",
+    ""conditions"": []
+  }
+}', 0, '2020-01-27 21:25:00Z', '2030-12-27 11:55:00Z', 1);
+INSERT INTO Promotion (Id, Name, Description, Type, Priority, Exclusive, Discount, Rules, Target, StartTime, EndTime, Enable) VALUES ('ed7bbf9a-d2a2-4e64-95a1-cde41a3464aa', 'Ms 7 fold', '', 1, 20, 1, 30, '{
+  ""order"": {
+    ""type"": ""All"",
+    ""conditions"": []
+  },
+  ""orderItem"": {
+    ""type"": ""All"",
+    ""conditions"": [
+      {
+        ""id"": ""fbe47d59-19a6-4509-862a-8a45929ae3c4"",
+        ""left"": ""Category"",
+        ""comparer"": ""Contains"",
+        ""right"": ""63e692ec-344b-469d-ba4a-72c60eeb4750""
+      }
+    ]
+  }
+}', 0, '2021-04-21 06:50:00Z', '2026-08-20 07:20:00Z', 1);
+INSERT INTO Promotion (Id, Name, Description, Type, Priority, Exclusive, Discount, Rules, Target, StartTime, EndTime, Enable) VALUES ('850751fa-1503-4ab1-aa66-a8c6c9c9f646', 'Dress Shirt subtract 100', '', 0, 0, 0, 100, '{
+  ""order"": {
+    ""type"": ""All"",
+    ""conditions"": []
+  },
+  ""orderItem"": {
+    ""type"": ""All"",
+    ""conditions"": [
+      {
+        ""id"": ""36ccf690-b7b9-4594-9f35-6255d91659f5"",
+        ""left"": ""Product"",
+        ""comparer"": ""EqualTo"",
+        ""right"": ""3ad592c8-96b7-44d2-9f49-a707125b1fd4""
+      }
+    ]
+  }
+}', 1, '2021-03-30 22:30:00Z', '2032-07-08 02:50:00Z', 1);
+");
+        }
+        private static void Customer(IDbConnection connection)
+        {
+            connection.Execute(@"
+INSERT INTO Customer (Id, UserName, Password, Email, Phone, CreateTime) VALUES ('ec1da530-d112-4d91-adbb-3d44be81026b', 'test1', 'c4189ae9cb28d538f260853678922e03', 'test1@kooboo.cn', '18600000000', '2021-04-21 09:43:48.0005916Z');
+INSERT INTO Customer (Id, UserName, Password, Email, Phone, CreateTime) VALUES ('db9b12a4-41fb-4b19-a1ce-15b6f8cdf5d5', 'test2', 'c4189ae9cb28d538f260853678922e03', 'test2@kooboo.cn', '', '2021-04-21 09:44:05.8905971Z');
+INSERT INTO Customer (Id, UserName, Password, Email, Phone, CreateTime) VALUES ('771bff28-ed3d-48e8-a3a1-5b16ca1fd68f', 'test3', 'c4189ae9cb28d538f260853678922e03', '', '18600000001', '2021-04-21 09:44:26.9975627Z');
 ");
         }
     }

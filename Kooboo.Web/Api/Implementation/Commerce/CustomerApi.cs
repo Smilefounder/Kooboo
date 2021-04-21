@@ -4,6 +4,7 @@ using Kooboo.Sites.Commerce.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Kooboo.Sites.Commerce.Models.Customer;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
@@ -15,12 +16,12 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public bool RequireUser => false;
 
-        public void Register(string userName, string password, ApiCall apiCall)
+        public void Register(CreateCustomerModel model, ApiCall apiCall)
         {
-            new CustomerService(apiCall.Context).Register(userName, password);
+            new CustomerService(apiCall.Context).Register(model);
         }
 
-        public PagedListModel<CustomerModel> List(PagingQueryModel viewModel, ApiCall apiCall)
+        public PagedListModel<CustomerListModel> List(PagingQueryModel viewModel, ApiCall apiCall)
         {
             return new CustomerService(apiCall.Context).List(viewModel);
         }

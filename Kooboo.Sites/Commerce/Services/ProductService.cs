@@ -214,10 +214,18 @@ GROUP BY PS.Id
             {
                 case Category.AddingType.Manual:
                     var products = new ProductCategoryService(Context).GetByCategoryId(id);
-                    return _cache.GetMatchProducts(Context).Where(w => products.Contains(w.Id)).Select(s => new KeyValuePair<Guid, string>(s.Id, s.Title)).Distinct().ToArray();
+
+                    return _cache.GetMatchProducts(Context)
+                                 .Where(w => products.Contains(w.Id))
+                                 .Select(s => new KeyValuePair<Guid, string>(s.Id, s.Title))
+                                 .Distinct()
+                                 .ToArray();
                 case Category.AddingType.Auto:
-                    var rule = JsonHelper.Deserialize<MatchRule.Rule>(category.Rule);
-                    return _cache.GetMatchProducts(Context).Where(c => c.Match(rule)).Select(s => new KeyValuePair<Guid, string>(s.Id, s.Title)).Distinct().ToArray();
+                    return _cache.GetMatchProducts(Context)
+                                 .Where(c => c.Match(category.Rule))
+                                 .Select(s => new KeyValuePair<Guid, string>(s.Id, s.Title))
+                                 .Distinct()
+                                 .ToArray();
                 default:
                     return null;
             }

@@ -1,4 +1,7 @@
 ﻿using Kooboo.Data.Context;
+using Kooboo.Data.Events;
+using Kooboo.Data.Models;
+using Kooboo.Events;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -8,17 +11,29 @@ namespace Kooboo.Sites.Commerce.Cache
 {
     public static class CommerceCache
     {
-        static ConcurrentDictionary<Guid, ConcurrentDictionary<Guid, SiteCache>> _globalCache = new ConcurrentDictionary<Guid, ConcurrentDictionary<Guid, SiteCache>>();
-
-        static CommerceCache()
-        {
-            // TODO auto clean
-        }
+        static readonly ConcurrentDictionary<WebSite, SiteCache> _siteCache = new ConcurrentDictionary<WebSite, SiteCache>();
 
         public static SiteCache GetCache(RenderContext context)
         {
-            var org = _globalCache.GetOrAdd(context.WebSite.OrganizationId, _ => new ConcurrentDictionary<Guid, SiteCache>());
-            return org.GetOrAdd(context.WebSite.Id, _ => new SiteCache());
+            var site = _siteCache.GetOrAdd(context.WebSite, _ =>
+            {
+                return new SiteCache();
+            });
+
+            return site;
+        }
+
+        public static void RemoveCache(WebSite webSite)
+        {
+            _siteCache.TryRemove(webSite, out _);
+        }
+    }
+
+    class CommerceCacheWebSiteChangeHandler : IHandler<WebSiteChange>
+    {
+        public void Handle(WebSiteChange theEvent, RenderContext context)
+        {
+            CommerceCache.RemoveCache(theEvent.WebSite);
         }
     }
 }

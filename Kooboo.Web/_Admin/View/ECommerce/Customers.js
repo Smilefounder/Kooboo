@@ -15,7 +15,6 @@ $(function () {
           },
         ],
         list: null,
-        selectedRows: [],
         showRegisterModal: false,
         registerModel: null,
         pageSize: 20,
@@ -34,14 +33,6 @@ $(function () {
           id: id,
         });
       },
-      deletes() {
-        Kooboo.Category.Delete(this.selectedRows.map((m) => m.id)).then(
-          (rsp) => {
-            if (!rsp.success) return;
-            this.getData();
-          }
-        );
-      },
       changePage(index) {
         Kooboo.Customer.getList({ index: index, size: this.pageSize }).then(
           (res) => {
@@ -57,12 +48,20 @@ $(function () {
       },
       saveRegister() {
         Kooboo.Customer.register(this.registerModel).then((rsp) => {
-          this.changePage(1);
-          this.showRegisterModal = false;
+          if (rsp.success) {
+            this.changePage(1);
+            this.showRegisterModal = false;
+          }
         });
       },
       registerCustomer() {
-        this.registerModel = { userName: "", password: "" };
+        this.registerModel = {
+          userName: "",
+          password: "",
+          email: "",
+          phone: "",
+        };
+
         this.showRegisterModal = true;
       },
     },

@@ -1379,4 +1379,9 @@
 	<key id="Order item">Order item</key>
 	<key id="Money off">Money off</key>
 	<key id="Percent off">Percent off</key>
+	<key id="NotContains">Not Contains</key>
+	<key id="Product">Product</key>
+	<key id="Phone">Phone</key>
+	<key id="Add new customer">Add new customer</key>
+	<key id="Cart">Cart</key>
 </Lang>

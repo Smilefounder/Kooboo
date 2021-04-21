@@ -63,6 +63,21 @@ namespace Kooboo.Sites.Commerce.Models.Cart
 
                 foreach (var item in Items)
                 {
+                    var product = new MatchRule.TargetModels.Product
+                    {
+                        Id = item.Id,
+                        Enable = true,
+                        Price = item.Price,
+                        TypeId = item.TypeId,
+                        Tax = item.Tax,
+                        Title = item.Title
+                    };
+
+                    var categories = cache.GetCategories(context)
+                                        .Where(w => product.Match(w.Rule))
+                                        .Select(s => s.Id)
+                                        .Union(productCategoryService.GetByProductId(item.Id));
+
                     var orderItem = new MatchRule.TargetModels.OrderItem
                     {
                         Amount = item.DiscountAmount,
@@ -70,7 +85,7 @@ namespace Kooboo.Sites.Commerce.Models.Cart
                         Quantity = item.Quantity,
                         SkuId = item.SkuId,
                         Price = item.Price,
-                        Categories = productCategoryService.GetByProductId(item.ProductId)
+                        Categories = categories.ToArray()
                     };
 
                     var matchOrderItem = orderItem.Match(promotion.Rules.OrderItem);
@@ -146,6 +161,9 @@ namespace Kooboo.Sites.Commerce.Models.Cart
             }
             public KeyValuePair<Guid, string>[] Promotions => _promotions.Select(s => new KeyValuePair<Guid, string>(s.Id, s.Name)).ToArray();
             public int Stock { get; set; }
+            public Guid TypeId { get; set; }
+            public decimal Tax { get; set; }
+            public string Title { get; set; }
 
             public Entities.OrderItem ToOrderItem(Guid orderId, CartModel cart)
             {
@@ -161,7 +179,7 @@ namespace Kooboo.Sites.Commerce.Models.Cart
                     SkuId = SkuId,
                     Specifications = JsonHelper.Serialize(Specifications),
                     State = Entities.OrderItem.OrderItemState.WaitingPay,
-                    Tax = 0
+                    Tax = Tax
                 };
             }
         }

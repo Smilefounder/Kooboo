@@ -1,12 +1,8 @@
-﻿using Kooboo.Data.Context;
-using Kooboo.Data.Definition;
-using Kooboo.Sites.Commerce.Services;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
-using System.Collections.Generic;
-using System.Text;
-
+using System.Collections;
+using System.Linq;
 namespace Kooboo.Sites.Commerce.MatchRule
 {
     public abstract class ConditionDefineBase<T> where T : TargetModelBase<T>
@@ -25,7 +21,7 @@ namespace Kooboo.Sites.Commerce.MatchRule
             switch (ValueType)
             {
                 case ConditionValueType.String:
-                    _comparers = new[] { Comparer.Contains, Comparer.EqualTo, Comparer.NotEqualTo, Comparer.StartWith };
+                    _comparers = new[] { Comparer.Contains, Comparer.NotContains, Comparer.EqualTo, Comparer.NotEqualTo, Comparer.StartWith };
                     break;
                 case ConditionValueType.Datetime:
                 case ConditionValueType.Number:
@@ -67,20 +63,14 @@ namespace Kooboo.Sites.Commerce.MatchRule
             {
                 case Comparer.EqualTo:
                     return property == value;
-                case Comparer.GreaterThan:
-                    return false;
-                case Comparer.GreaterThanOrEqual:
-                    return false;
-                case Comparer.LessThan:
-                    return false;
-                case Comparer.LessThanOrEqual:
-                    return false;
                 case Comparer.NotEqualTo:
                     return property != value;
                 case Comparer.StartWith:
                     return property.StartsWith(value);
                 case Comparer.Contains:
                     return property.Contains(value);
+                case Comparer.NotContains:
+                    return !property.Contains(value);
                 default:
                     return false;
             }
@@ -99,20 +89,8 @@ namespace Kooboo.Sites.Commerce.MatchRule
                 {
                     case Comparer.EqualTo:
                         return property == right;
-                    case Comparer.GreaterThan:
-                        return false;
-                    case Comparer.GreaterThanOrEqual:
-                        return false;
-                    case Comparer.LessThan:
-                        return false;
-                    case Comparer.LessThanOrEqual:
-                        return false;
                     case Comparer.NotEqualTo:
                         return property != right;
-                    case Comparer.StartWith:
-                        return false;
-                    case Comparer.Contains:
-                        return false;
                     default:
                         return false;
                 }
@@ -147,10 +125,6 @@ namespace Kooboo.Sites.Commerce.MatchRule
                         return property <= right;
                     case Comparer.NotEqualTo:
                         return property != right;
-                    case Comparer.StartWith:
-                        return false;
-                    case Comparer.Contains:
-                        return false;
                     default:
                         return false;
                 }
@@ -185,10 +159,6 @@ namespace Kooboo.Sites.Commerce.MatchRule
                         return property <= right;
                     case Comparer.NotEqualTo:
                         return property != right;
-                    case Comparer.StartWith:
-                        return false;
-                    case Comparer.Contains:
-                        return false;
                     default:
                         return false;
                 }
@@ -202,26 +172,25 @@ namespace Kooboo.Sites.Commerce.MatchRule
 
         bool ComparerId(object left, Comparer comparer, string value)
         {
-            var property = left?.ToString() ?? "";
+            Guid id;
+            IEnumerable list;
 
             switch (comparer)
             {
                 case Comparer.EqualTo:
-                    return property.Equals(value);
-                case Comparer.GreaterThan:
-                    return false;
-                case Comparer.GreaterThanOrEqual:
-                    return false;
-                case Comparer.LessThan:
-                    return false;
-                case Comparer.LessThanOrEqual:
-                    return false;
+                    if (!Guid.TryParse(value, out id)) return false;
+                    return id.Equals(left);
                 case Comparer.NotEqualTo:
-                    return !property.Equals(value);
-                case Comparer.StartWith:
-                    return false;
+                    if (!Guid.TryParse(value, out id)) return true;
+                    return !id.Equals(left);
                 case Comparer.Contains:
-                    return false;
+                    list = left as IEnumerable;
+                    if (list == null || !Guid.TryParse(value, out id)) return false;
+                    return list.Cast<Guid>().Contains(id);
+                case Comparer.NotContains:
+                    list = left as IEnumerable;
+                    if (list == null || !Guid.TryParse(value, out id)) return true;
+                    return !list.Cast<Guid>().Contains(id);
                 default:
                     return false;
             }

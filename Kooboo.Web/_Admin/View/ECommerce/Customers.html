@@ -11,24 +11,34 @@
       <a class="btn green navbar-btn" @click="registerCustomer"
         >Add new customer</a
       >
-      <a class="btn red navbar-btn" v-if="selectedRows.length" @click="deletes"
-        >Delete</a
-      >
     </div>
   </div>
 
-  <kb-table v-if="list" :data="list" show-select :selected.sync="selectedRows">
-    <kb-table-column label="UserName" prop="userName"> </kb-table-column>
+  <kb-table v-if="list" :data="list">
+    <kb-table-column :label="Kooboo.text.common.username" prop="userName">
+    </kb-table-column>
+    <kb-table-column :label="Kooboo.text.common.Email">
+      <template v-slot="row">
+        <template v-if="row.email"> {{row.email}} </template>
+        <template v-else>-</template>
+      </template>
+    </kb-table-column>
+    <kb-table-column :label="Kooboo.text.common.phone">
+      <template v-slot="row">
+        <template v-if="row.phone"> {{row.phone}} </template>
+        <template v-else>-</template>
+      </template>
+    </kb-table-column>
 
-    <kb-table-column label="Cart">
+    <kb-table-column :label="Kooboo.text.commerce.cart">
       <template v-slot="row">
         <span class="label label-sm label-success">{{row.cart}}</span>
       </template>
     </kb-table-column>
 
-    <kb-table-column label="Create time">
+    <kb-table-column :label="Kooboo.text.commerce.createTime">
       <template v-slot="row">
-        {{row.createTime}}
+        {{new Date(row.createTime).toDefaultLangString()}}
       </template>
     </kb-table-column>
 
@@ -69,6 +79,18 @@
                   type="password"
                   v-model="registerModel.password"
                 />
+              </div>
+            </kb-form-item>
+            <kb-form-item>
+              <label class="col-sm-3 control-label">Email</label>
+              <div class="col-sm-9">
+                <input class="form-control" v-model="registerModel.email" />
+              </div>
+            </kb-form-item>
+            <kb-form-item>
+              <label class="col-sm-3 control-label">Phone</label>
+              <div class="col-sm-9">
+                <input class="form-control" v-model="registerModel.phone" />
               </div>
             </kb-form-item>
           </kb-form>

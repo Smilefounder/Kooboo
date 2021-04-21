@@ -58,6 +58,11 @@
               this.keyValues = rsp.model;
             });
             break;
+          case "CategoryId":
+            Kooboo.Category.keyValue().then((rsp) => {
+              this.keyValues = rsp.model;
+            });
+            break;
 
           default:
             break;
@@ -68,6 +73,10 @@
       propertyName(str) {
         var text = Kooboo.text.commerce.properties[str];
         return text ? text : str;
+      },
+      comparerDisplay(comparer) {
+        var text = Kooboo.text.commerce.comparers[comparer];
+        return text ? text : comparer;
       },
     },
   });

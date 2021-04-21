@@ -115,6 +115,7 @@
       Images: "Images",
       File: "File",
       Email: "Email",
+      phone: "Phone",
       Relation: "Relation",
       Multilingual: "Multilingual",
       URL: "URL",
@@ -1092,6 +1093,8 @@
       startTime: "Start time",
       endTime: "End time",
       promotions: "Promotions",
+      cart: "Cart",
+      createTime: "Create time",
       promotionTarget: {
         order: "Order",
         orderitem: "Order item",
@@ -1113,6 +1116,7 @@
         NotEqualTo: "NotEqualTo",
         StartWith: "StartWith",
         Contains: "Contains",
+        NotContains: "NotContains",
       },
       logical: {
         All: "AND",
@@ -1123,6 +1127,10 @@
         Title: "Title",
         Tax: "Tax",
         ProductType: "Product type",
+        TotalAmount: "Total amount",
+        ProductCount: "Product count",
+        Category: "Category",
+        Product: "Product",
       },
     },
 

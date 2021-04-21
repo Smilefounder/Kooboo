@@ -7,19 +7,10 @@ namespace Kooboo.Sites.Commerce.Models.Category
 {
     public class CategoryListModel : CategoryModel
     {
-        public CategoryListModel()
+        public CategoryListModel(CategoryModel category, int productCount)
         {
-
-        }
-
-        public CategoryListModel(Entities.Category category, int productCount)
-        {
-            Id = category.Id;
-            Name = category.Name;
-            Type = category.Type;
-            Rule = JsonHelper.Deserialize<MatchRule.Rule>(category.Rule);
+            Helpers.FillBase(category, this);
             ProductCount = productCount;
-            Enable = category.Enable;
         }
 
         public int ProductCount { get; set; }

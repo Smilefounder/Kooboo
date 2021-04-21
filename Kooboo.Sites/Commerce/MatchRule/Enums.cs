@@ -14,6 +14,7 @@ namespace Kooboo.Sites.Commerce.MatchRule
         NotEqualTo = 5,
         StartWith = 6,
         Contains = 7,
+        NotContains = 8,
     }
 
     public enum MatchingType
@@ -29,6 +30,7 @@ namespace Kooboo.Sites.Commerce.MatchRule
         Boolean = 2,
         Datetime = 3,
         ProductId = 4,
-        ProductTypeId = 5
+        ProductTypeId = 5,
+        CategoryId = 6,
     }
 }

@@ -6,7 +6,7 @@ namespace Kooboo.Sites.Commerce.MatchRule.ConditionDefines.OrderItem
 {
     public class QuantityCondition : ConditionDefineBase<TargetModels.OrderItem>
     {
-        public override string Name => "Quantity";
+        public override string Name => "ProductCount";
 
         public override ConditionValueType ValueType => ConditionValueType.Number;
 

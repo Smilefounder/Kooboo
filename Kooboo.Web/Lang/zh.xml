@@ -1379,4 +1379,9 @@
 	<key id="Order item">订单商品</key>
 	<key id="Money off">优惠金额</key>
 	<key id="Percent off">优惠百分比</key>
+	<key id="NotContains">不包含</key>
+	<key id="Product">商品</key>
+	<key id="Phone">手机</key>
+	<key id="Add new customer">新增顾客</key>
+	<key id="Cart">购物车</key>
 </Lang>

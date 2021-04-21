@@ -42,7 +42,6 @@ namespace Kooboo.Sites.Commerce.Services
 
             foreach (var item in _cache.GetCategories(Context))
             {
-                var rule = JsonHelper.Deserialize<MatchRule.Rule>(item.Rule);
                 int count = 0;
                 var _productCategoryService = new ProductCategoryService(Context);
 
@@ -52,7 +51,7 @@ namespace Kooboo.Sites.Commerce.Services
                         count = _productCategoryService.GetByCategoryId(item.Id).Count();
                         break;
                     case Category.AddingType.Auto:
-                        count = _cache.GetMatchProducts(Context).Where(c => c.Match(rule)).Select(s => s.Id).Distinct().Count();
+                        count = _cache.GetMatchProducts(Context).Where(c => c.Match(item.Rule)).Select(s => s.Id).Distinct().Count();
                         break;
                     default:
                         break;

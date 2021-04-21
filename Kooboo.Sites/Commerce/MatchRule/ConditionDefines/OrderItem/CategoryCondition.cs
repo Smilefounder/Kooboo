@@ -8,11 +8,13 @@ namespace Kooboo.Sites.Commerce.MatchRule.ConditionDefines.OrderItem
     {
         public override string Name => "Category";
 
-        public override ConditionValueType ValueType => throw new NotImplementedException();
+        public override ConditionValueType ValueType => ConditionValueType.CategoryId;
+
+        public override Comparer[] Comparers => new[] { Comparer.Contains, Comparer.NotContains };
 
         protected override object GetPropertyValue(TargetModels.OrderItem model)
         {
-            throw new NotImplementedException();
+            return model.Categories;
         }
     }
 }

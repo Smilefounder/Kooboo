@@ -1,7 +1,4 @@
-﻿using Kooboo.Lib.Helper;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 
 namespace Kooboo.Sites.Commerce.Models.Category
 {
@@ -9,28 +6,12 @@ namespace Kooboo.Sites.Commerce.Models.Category
     {
         public EditCategoryModel() { }
 
-        public EditCategoryModel(Entities.Category category, Guid[] products)
+        public EditCategoryModel(CategoryModel category, Guid[] products)
         {
-            Id = category.Id;
-            Name = category.Name;
-            Type = category.Type;
-            Rule = JsonHelper.Deserialize<MatchRule.Rule>(category.Rule);
+            Helpers.FillBase(category, this);
             Products = products;
-            Enable = category.Enable;
         }
 
         public Guid[] Products { get; set; }
-
-        public Entities.Category ToCategory()
-        {
-            return new Entities.Category
-            {
-                Id = Id,
-                Name = Name,
-                Rule = JsonHelper.Serialize(Rule),
-                Type = Type,
-                Enable = Enable
-            };
-        }
     }
 }

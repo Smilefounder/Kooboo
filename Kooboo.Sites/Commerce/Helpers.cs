@@ -91,5 +91,18 @@ namespace Kooboo.Sites.Commerce
 
             return type.GetProperties().ToDictionary(k => k.Name, v => ToKscriptModel(v.GetValue(obj)));
         }
+
+        public static void FillBase<TBase, T>(TBase @base, T value) where T : TBase
+        {
+            var type = typeof(TBase);
+
+            foreach (var property in type.GetProperties())
+            {
+                if (property.CanWrite)
+                {
+                    property.SetValue(value, property.GetValue(@base, null), null);
+                }
+            }
+        }
     }
 }
