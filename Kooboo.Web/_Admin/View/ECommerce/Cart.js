@@ -16,9 +16,6 @@ $(function () {
         ],
         customerId: Kooboo.getQueryString("id"),
         showProductModal: false,
-        showSkuModal: false,
-        products: [],
-        selectedProductId: null,
         cart: null,
       };
     },
@@ -31,34 +28,21 @@ $(function () {
           id: this.customerId,
         });
       },
-      productSelected(rows) {
-        if (rows.length == 1) {
-          this.selectedProductId = rows[0].key;
-          this.showSkuModal = true;
-        }
-      },
       skuSelected(row) {
-        if (row.length == 1) {
-          var existItem = this.cart.items.find((f) => f.skuId == row[0].id);
-          Kooboo.Cart.post({
-            customerId: this.customerId,
-            selected: existItem ? existItem.selected : true,
-            productId: row[0].productId,
-            skuId: row[0].id,
-            quantity: existItem ? existItem.quantity + 1 : 1,
-          }).then((rsp) => {
-            this.showSkuModal = false;
-            this.getData();
-          });
-        }
+        var existItem = this.cart.items.find((f) => f.skuId == row.id);
+        Kooboo.Cart.post({
+          customerId: this.customerId,
+          selected: existItem ? existItem.selected : true,
+          skuId: row.id,
+          quantity: existItem ? existItem.quantity + 1 : 1,
+        }).then((rsp) => {
+          this.showProductModal = false;
+          this.getData();
+        });
       },
       getData() {
-        $.when(
-          Kooboo.Product.keyValue(),
-          Kooboo.Cart.Get({ id: this.customerId })
-        ).then((products, cart) => {
-          this.products = products[0].model;
-          this.cart = cart[0].model;
+        Kooboo.Cart.Get({ id: this.customerId }).then((rsp) => {
+          this.cart = rsp.model;
         });
       },
       changeItem(id) {
@@ -66,7 +50,6 @@ $(function () {
         Kooboo.Cart.post({
           customerId: this.customerId,
           selected: item.selected,
-          productId: item.productId,
           skuId: item.skuId,
           quantity: item.quantity,
         }).then((rsp) => {

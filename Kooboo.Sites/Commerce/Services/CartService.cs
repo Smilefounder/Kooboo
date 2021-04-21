@@ -20,28 +20,6 @@ namespace Kooboo.Sites.Commerce.Services
         {
         }
 
-        public void SaveItem(CartItem cartItem)
-        {
-            using (var con = DbConnection)
-            {
-                var existEntity = con.QueryFirstOrDefault<CartItem>("select * from CartItem where CustomerId=@CustomerId and SkuId=@SkuId", cartItem);
-
-                if (existEntity != null)
-                {
-                    existEntity.Selected = cartItem.Selected;
-                    existEntity.Quantity = cartItem.Quantity;
-                    existEntity.EditTime = DateTime.UtcNow;
-                    con.Update(existEntity);
-                }
-                else
-                {
-                    cartItem.Id = Guid.NewGuid();
-                    cartItem.EditTime = DateTime.UtcNow;
-                    con.Insert(cartItem);
-                }
-            }
-        }
-
         public CartModel GetCart(Guid customerId, IDbConnection connection = null, bool filterNotSelected = false)
         {
             var con = connection ?? DbConnection;
@@ -110,6 +88,58 @@ GROUP BY CI.SkuId
             {
                 con.DeleteList<CartItem>(ids);
             }
+        }
+
+        public void Post(Guid customerId, Guid skuId, int quantity, bool selected)
+        {
+
+            DbConnection.ExecuteTask(con =>
+            {
+                var result = con.QueryFirstOrDefault(@"
+SELECT P.ProductId,
+       SUM(CASE WHEN PS.Quantity IS NULL THEN 0 ELSE PS.Quantity END) AS Stock,
+       CI.Id                                                          AS CartItemId,
+       CI.Selected
+FROM ProductSku P
+         LEFT JOIN ProductStock PS ON P.Id = PS.SkuId
+         LEFT JOIN CartItem CI ON P.Id = CI.SkuId AND CI.CustomerId = @CustomerId
+WHERE P.Id = @SkuId
+GROUP BY P.Id
+", new { SkuId = skuId, CustomerId = customerId });
+
+
+                if (result == null) throw new Exception("Not found sku");
+                if (quantity > result.Stock) throw new Exception("Out of stock");
+
+                if (result.CartItemId == null)
+                {
+                    con.Insert(new CartItem
+                    {
+                        CustomerId = customerId,
+                        EditTime = DateTime.UtcNow,
+                        Id = Guid.NewGuid(),
+                        ProductId = result.ProductId,
+                        Quantity = quantity,
+                        Selected = selected,
+                        SkuId = skuId
+                    });
+
+                }
+                else
+                {
+                    con.Update(new CartItem
+                    {
+                        CustomerId = customerId,
+                        EditTime = DateTime.UtcNow,
+                        Id = result.CartItemId,
+                        ProductId = result.ProductId,
+                        Quantity = quantity,
+                        Selected = selected,
+                        SkuId = skuId
+                    });
+                }
+
+            }, true);
         }
 
         public PagedListModel<CartListModel> Query(PagingQueryModel model)

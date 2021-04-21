@@ -1,0 +1,187 @@
+<div
+  v-kb-modal="show"
+  class="modal fade"
+  data-backdrop="static"
+  data-keyboard="fasle"
+>
+  <div class="modal-dialog" style="width: 70%">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button @click="show=false" class="close">
+          <i class="fa fa-close"></i>
+        </button>
+        <h4 class="modal-title">Select</h4>
+      </div>
+      <div class="modal-body" v-if="show">
+        <kb-table v-if="list" :data="list">
+          <kb-table-column label="" width="1px">
+            <template v-slot="row">
+              <div
+                style="height: 45px; display: flex; align-items: center"
+                v-for="item in row.items"
+                :key="item.id"
+                @click="changeSelected(row,item)"
+              >
+                <input
+                  type="checkbox"
+                  :checked="selected==item"
+                  :disabled="disabledCheckbox(row,item)"
+                  @click.stop="changeSelected(row,item)"
+                />
+              </div>
+            </template>
+          </kb-table-column>
+
+          <kb-table-column
+            :label="Kooboo.text.commerce.specifications"
+            width="1px"
+          >
+            <template v-slot="row">
+              <div
+                style="
+                  height: 45px;
+                  display: flex;
+                  align-items: center;
+                  word-wrap: none;
+                  white-space: nowrap;
+                  overflow: hidden;
+                "
+                v-for="item in row.items"
+                :key="item.id"
+                @click="changeSelected(row,item)"
+              >
+                <span
+                  v-if="item.specifications.length"
+                  :style="{color:item.enable?'#000':'#ddd'}"
+                >
+                  {{item.specifications.map(m=>`[${m.key}:${m.value}]`).join('&nbsp')}}
+                </span>
+                <span v-else>-</span>
+              </div>
+            </template>
+          </kb-table-column>
+
+          <kb-table-column label="SKU" width="1px">
+            <template v-slot="row">
+              <div
+                style="
+                  height: 45px;
+                  display: flex;
+                  align-items: center;
+                  word-wrap: none;
+                  white-space: nowrap;
+                  overflow: hidden;
+                "
+                v-for="item in row.items"
+                :key="item.id"
+                :style="{color:item.enable?'#000':'#ddd'}"
+                @click="changeSelected(row,item)"
+              >
+                <span v-if="item.name"> {{item.name}} </span>
+                <span v-else>-</span>
+              </div>
+            </template>
+          </kb-table-column>
+
+          <kb-table-column :label="Kooboo.text.common.price" width="1px">
+            <template v-slot="row">
+              <div
+                style="
+                  height: 45px;
+                  display: flex;
+                  align-items: center;
+                  word-wrap: none;
+                  white-space: nowrap;
+                  overflow: hidden;
+                "
+                v-for="item in row.items"
+                :key="item.id"
+                :style="{color:item.enable?'#000':'#ddd'}"
+                @click="changeSelected(row,item)"
+              >
+                <span> {{item.price}} </span>
+              </div>
+            </template>
+          </kb-table-column>
+
+          <kb-table-column :label="Kooboo.text.commerce.stock" width="1px">
+            <template v-slot="row">
+              <div
+                style="
+                  height: 45px;
+                  display: flex;
+                  align-items: center;
+                  word-wrap: none;
+                  white-space: nowrap;
+                  overflow: hidden;
+                "
+                v-for="item in row.items"
+                :key="item.id"
+                :style="{color:item.enable?'#000':'#ddd'}"
+                @click="changeSelected(row,item)"
+              >
+                <span> {{item.stock}} </span>
+              </div>
+            </template>
+          </kb-table-column>
+
+          <kb-table-column :label="Kooboo.text.commerce.sales" width="1px">
+            <template v-slot="row">
+              <div
+                style="
+                  height: 45px;
+                  display: flex;
+                  align-items: center;
+                  word-wrap: none;
+                  white-space: nowrap;
+                  overflow: hidden;
+                "
+                v-for="item in row.items"
+                :key="item.id"
+                :style="{color:item.enable?'#000':'#ddd'}"
+                @click="changeSelected(row,item)"
+              >
+                <span> {{item.sale}} </span>
+              </div>
+            </template>
+          </kb-table-column>
+
+          <kb-table-column
+            :label="Kooboo.text.commerce.status"
+            width="50px"
+            align="center"
+          >
+            <template v-slot="row">
+              <span
+                class="label green"
+                :class="row.enable?'green':'gray'"
+                style="cursor: pointer"
+              >
+                <template v-if="row.enable">In stock</template>
+                <template v-else>Drop off</template>
+              </span>
+            </template>
+          </kb-table-column>
+
+          <kb-table-column :label="Kooboo.text.common.title">
+            <template v-slot="row"> {{row.title}} </template>
+          </kb-table-column>
+
+          <kb-table-column :label="Kooboo.text.common.type">
+            <template v-slot="row"> {{row.typeName}} </template>
+          </kb-table-column>
+        </kb-table>
+
+        <kb-pager
+          :page-nr="pager.pageNr"
+          :total-pages="pager.totalPages"
+          @change="changePage"
+        ></kb-pager>
+      </div>
+      <div class="modal-footer">
+        <button class="btn green" @click="save" v-if="selected">Save</button>
+        <button @click="show=false" class="btn gray">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>

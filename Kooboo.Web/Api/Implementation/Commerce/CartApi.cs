@@ -15,9 +15,9 @@ namespace Kooboo.Web.Api.Implementation.Commerce
 
         public bool RequireUser => false;
 
-        public void Post(CartItem cartItem, ApiCall apiCall)
+        public void Post(Guid customerId, Guid skuId, int quantity, bool selected, ApiCall apiCall)
         {
-            new CartService(apiCall.Context).SaveItem(cartItem);
+            new CartService(apiCall.Context).Post(customerId, skuId, quantity, selected);
         }
 
         public CartModel Get(Guid id, ApiCall apiCall)

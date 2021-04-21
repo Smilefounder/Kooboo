@@ -89,7 +89,7 @@ GROUP BY PS.Id
                 return list.Select(s => new SkuDetailModel
                 {
                     Id = s.Id,
-                    Enable = Convert.ToBoolean(s.Enable),
+                    Enable = s.Enable,
                     Name = s.Name,
                     Price = (decimal)s.Price,
                     ProductId = s.ProductId,
