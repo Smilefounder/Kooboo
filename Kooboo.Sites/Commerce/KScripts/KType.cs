@@ -13,7 +13,8 @@ namespace Kooboo.Sites.Commerce.KScripts
 
         public KType(RenderContext context)
         {
-            _productTypeService = new Lazy<ProductTypeService>(() => new ProductTypeService(context), true);
+            var commerce = SiteCommerce.Get(context.WebSite);
+            _productTypeService = new Lazy<ProductTypeService>(() => new ProductTypeService(commerce), true);
         }
 
         [Description("Get product type list")]

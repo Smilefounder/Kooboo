@@ -5,19 +5,18 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text;
 
 namespace Kooboo.Sites.Commerce.Services
 {
     public class ProductStockService : ServiceBase
     {
-        public ProductStockService(RenderContext context) : base(context)
+        public ProductStockService(SiteCommerce commerce) : base(commerce)
         {
         }
 
         public void Adjust(Guid productId, KeyValuePair<Guid, int>[] stocks, IDbConnection connection = null)
         {
-            (connection ?? DbConnection).ExecuteTask(con =>
+            (connection ?? Commerce.CreateDbConnection()).ExecuteTask(con =>
             {
                 var addStocks = new List<ProductStock>();
 

@@ -1,55 +1,52 @@
-﻿using Kooboo.Api;
-using Kooboo.Sites.Commerce.Services;
+﻿using FluentValidation;
+using Kooboo.Api;
+using Kooboo.Sites.Commerce;
 using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Product;
+using Kooboo.Sites.Commerce.Models.Sku;
+using Kooboo.Sites.Commerce.Services;
+using Kooboo.Sites.Commerce.Validators;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Kooboo.Sites.Commerce;
-using Kooboo.Sites.Commerce.Validators;
-using FluentValidation;
-using Kooboo.Sites.Commerce.Models.Sku;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
-    public class ProductApi : IApi
+    public class ProductApi : CommerceApi
     {
-        public string ModelName => "Product";
-
-        public bool RequireSite => true;
-
-        public bool RequireUser => true;
+        public override string ModelName => "Product";
 
         public void Post(ProductAggregateModel viewModel, ApiCall apiCall)
         {
             new ProductAggregateModelValidator().ValidateAndThrow(viewModel);
+            var commerce = SiteCommerce.Get(apiCall.WebSite);
 
-            apiCall.Context.CreateCommerceDbConnection().ExecuteTask(con =>
+            commerce.CreateDbConnection().ExecuteTask(con =>
             {
-                new ProductService(apiCall.Context).Save(viewModel.Product, con);
-                new ProductSkuService(apiCall.Context).Save(viewModel.Product.Id, viewModel.Skus, con);
-                new ProductStockService(apiCall.Context).Adjust(viewModel.Product.Id, viewModel.Stocks, con);
+                new ProductService(commerce).Save(viewModel.Product, con);
+                new ProductSkuService(commerce).Save(viewModel.Product.Id, viewModel.Skus, con);
+                new ProductStockService(commerce).Adjust(viewModel.Product.Id, viewModel.Stocks, con);
 
                 if (viewModel.Categories != null)
                 {
-                    new ProductCategoryService(apiCall.Context).SaveByProductId(viewModel.Categories, viewModel.Product.Id, con);
+                    new ProductCategoryService(commerce).SaveByProductId(viewModel.Categories, viewModel.Product.Id, con);
                 }
             }, true);
         }
 
         public ProductEditModel Get(Guid id, ApiCall apiCall)
         {
-            return new ProductService(apiCall.Context).Get(id);
+            return GetService<ProductService>(apiCall).Get(id);
         }
 
-        public PagedListModel<ProductListModel> List(PagingQueryModel viewModel, ApiCall apiCall)
+        public PagedListModel<ProductListModel> List(ProductQueryModel viewModel, ApiCall apiCall)
         {
-            return new ProductService(apiCall.Context).Query(viewModel);
+            return GetService<ProductService>(apiCall).Query(viewModel);
         }
 
         public KeyValuePair<Guid, string>[] KeyValue(ApiCall apiCall)
         {
-            var service = new ProductService(apiCall.Context);
+            var commerce = SiteCommerce.Get(apiCall.WebSite);
+            var service = new ProductService(commerce);
 
             var typeId = apiCall.GetGuidValue("typeId");
 
@@ -65,17 +62,17 @@ namespace Kooboo.Web.Api.Implementation.Commerce
                 return service.GetByCatrgoryId(categoryId);
             }
 
-            return new ProductService(apiCall.Context).KeyValue();
+            return new ProductService(commerce).KeyValue();
         }
 
         public void Delete(Guid[] ids, ApiCall apiCall)
         {
-            new ProductService(apiCall.Context).Deletes(ids);
+            GetService<ProductService>(apiCall).Deletes(ids);
         }
 
         public SkuDetailModel[] SkuList(ApiCall apiCall, Guid id)
         {
-            return new ProductSkuService(apiCall.Context).List(id);
+            return GetService<ProductSkuService>(apiCall).List(id);
         }
     }
 }

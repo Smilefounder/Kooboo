@@ -16,7 +16,8 @@ namespace Kooboo.Sites.Commerce.KScripts
 
         public KCategory(RenderContext context)
         {
-            _categoryService = new Lazy<CategoryService>(() => new CategoryService(context), true);
+            var commerce = SiteCommerce.Get(context.WebSite);
+            _categoryService = new Lazy<CategoryService>(() => new CategoryService(commerce), true);
         }
 
         [Description("Get catrgory list")]

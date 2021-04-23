@@ -1,31 +1,85 @@
 ﻿using Dapper;
+using Kooboo.Data;
 using Kooboo.Data.Context;
+using Kooboo.Data.Events;
+using Kooboo.Data.Models;
+using Kooboo.Events;
 using Kooboo.Lib.Helper;
+using Kooboo.Sites.Commerce.Cache;
 using Kooboo.Sites.Commerce.Entities;
-using Kooboo.Sites.Commerce.MatchRule.TargetModels;
+using Kooboo.Sites.Commerce.Migration;
 using Kooboo.Sites.Commerce.Models.Category;
 using Kooboo.Sites.Commerce.Models.ProductCategory;
 using Kooboo.Sites.Commerce.Models.Promotion;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SQLite;
+using System.IO;
 using System.Linq;
-using System.Text;
 using static Kooboo.Sites.Commerce.Entities.Promotion;
 
-namespace Kooboo.Sites.Commerce.Cache
+namespace Kooboo.Sites.Commerce
 {
-    public class SiteCache
+    public class SiteCommerce
     {
+        static readonly ConcurrentDictionary<WebSite, SiteCommerce> _siteCache = new ConcurrentDictionary<WebSite, SiteCommerce>();
         readonly ConcurrentDictionary<string, CacheItem<dynamic>> _caches = new ConcurrentDictionary<string, CacheItem<dynamic>>();
-        public int? LastMigrateVersion { get; set; }
-        public bool IsMigrated => LastMigrateVersion != null;
+        readonly string _connectionString;
+        readonly Dictionary<Type, ServiceBase> _serviceMap;
+        readonly Dictionary<Type, dynamic> _cacheMap;
 
-        public IEnumerable<MatchRule.TargetModels.Product> GetMatchProducts(RenderContext context)
+
+        public static SiteCommerce Get(WebSite webSite)
+        {
+            return _siteCache.GetOrAdd(webSite, _ =>
+            {
+                return new SiteCommerce(webSite);
+            });
+        }
+
+        public static void Remove(WebSite webSite)
+        {
+            _siteCache.TryRemove(webSite, out _);
+        }
+
+        public int LastMigrateVersion { get; }
+
+        public SiteCommerce(WebSite site)
+        {
+            _serviceMap = Lib.IOC.Service.GetImplementationTypes<ServiceBase>().ToDictionary(k => k, v =>
+            {
+                return Activator.CreateInstance(v, new[] { this }) as ServiceBase;
+            });
+
+            _cacheMap = Lib.IOC.Service.GetImplementationTypes(typeof(ICacheBase)).ToDictionary(k => k, v =>
+            {
+                return Activator.CreateInstance(v, new[] { this });
+            });
+
+            var path = Path.Combine(AppSettings.GetFileIORoot(site), "commerce.db");
+            _connectionString = $"Data source = '{path}';Version=3;BinaryGUID=False;foreign keys=true";
+            LastMigrateVersion = Migrator.Migrate(CreateDbConnection());
+        }
+
+        public T Service<T>() where T : ServiceBase
+        {
+            return _serviceMap[typeof(T)] as T;
+        }
+
+        public T Cache<T>() where T : class, ICacheBase
+        {
+            return _cacheMap[typeof(T)] as T;
+        }
+
+        public IDbConnection CreateDbConnection() => new SQLiteConnection(_connectionString);
+
+        public IEnumerable<MatchRule.TargetModels.Product> GetMatchProducts()
         {
             return _caches.GetOrAdd(nameof(GetMatchProducts), _ =>
             {
-                var data = context.CreateCommerceDbConnection()
+                var data = CreateDbConnection()
                                 .ExecuteTask(con =>
                                 {
                                     return con.Query<MatchRule.TargetModels.Product>(@"
@@ -54,11 +108,11 @@ FROM ProductSku PS
             ClearProductCategories();
         }
 
-        public IEnumerable<ProductCategoryModel> GetProductCategories(RenderContext context)
+        public IEnumerable<ProductCategoryModel> GetProductCategories()
         {
             return _caches.GetOrAdd(nameof(GetProductCategories), _ =>
             {
-                var data = context.CreateCommerceDbConnection()
+                var data = CreateDbConnection()
                                 .ExecuteTask(con => con.Query<ProductCategoryModel>(@"
 SELECT PC.ProductId, PC.CategoryId,P.Enable AS ProductEnable,C.Enable AS CategoryEnable
 FROM ProductCategory PC
@@ -79,11 +133,11 @@ FROM ProductCategory PC
             _caches.TryRemove(nameof(GetProductCategories), out _);
         }
 
-        public IEnumerable<CategoryModel> GetCategories(RenderContext context)
+        public IEnumerable<CategoryModel> GetCategories()
         {
             return _caches.GetOrAdd(nameof(GetCategories), _ =>
             {
-                var data = context.CreateCommerceDbConnection().ExecuteTask(con =>
+                var data = CreateDbConnection().ExecuteTask(con =>
                 {
                     return con.GetList<Category>().Select(s => new CategoryModel(s));
                 });
@@ -102,13 +156,13 @@ FROM ProductCategory PC
             ClearProductCategories();
         }
 
-        public IEnumerable<PromotionMatchModel> GetPromotions(RenderContext context)
+        public IEnumerable<PromotionMatchModel> GetPromotions()
         {
             var now = DateTime.UtcNow;
 
             IEnumerable<PromotionMatchModel> result = _caches.GetOrAdd(nameof(GetPromotions), _ =>
              {
-                 var data = context.CreateCommerceDbConnection().ExecuteTask(con =>
+                 var data = CreateDbConnection().ExecuteTask(con =>
                  {
 
                      var list = con.Query(@"
@@ -155,6 +209,14 @@ ORDER BY Exclusive DESC, Priority DESC
         public void ClearPromotions()
         {
             _caches.TryRemove(nameof(GetPromotions), out _);
+        }
+    }
+
+    class CommerceCacheWebSiteChangeHandler : IHandler<WebSiteChange>
+    {
+        public void Handle(WebSiteChange theEvent, RenderContext context)
+        {
+            SiteCommerce.Remove(theEvent.WebSite);
         }
     }
 }

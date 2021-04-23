@@ -16,13 +16,13 @@ namespace Kooboo.Sites.Commerce.Services
 {
     public class CartService : ServiceBase
     {
-        public CartService(RenderContext context) : base(context)
+        public CartService(SiteCommerce commerce) : base(commerce)
         {
         }
 
         public CartModel GetCart(Guid customerId, IDbConnection connection = null, bool filterNotSelected = false)
         {
-            var con = connection ?? DbConnection;
+            var con = connection ?? Commerce.CreateDbConnection();
             var whereSelected = filterNotSelected ? "AND CI.Selected=1" : string.Empty;
 
             var list = con.Query($@"
@@ -77,14 +77,14 @@ GROUP BY CI.SkuId
 
 
             cart.Items = items.ToArray();
-            cart.Discount(Context);
+            cart.Discount(Commerce);
             if (connection == null) con.Dispose();
             return cart;
         }
 
         public void DeleteItems(Guid[] ids)
         {
-            using (var con = DbConnection)
+            using (var con = Commerce.CreateDbConnection())
             {
                 con.DeleteList<CartItem>(ids);
             }
@@ -93,7 +93,7 @@ GROUP BY CI.SkuId
         public void Post(Guid customerId, Guid skuId, int quantity, bool selected)
         {
 
-            DbConnection.ExecuteTask(con =>
+            Commerce.CreateDbConnection().ExecuteTask(con =>
             {
                 var result = con.QueryFirstOrDefault(@"
 SELECT P.ProductId,
@@ -144,7 +144,7 @@ GROUP BY P.Id
 
         public PagedListModel<CartListModel> Query(PagingQueryModel model)
         {
-            using (var con = DbConnection)
+            using (var con = Commerce.CreateDbConnection())
             {
                 var result = new PagedListModel<CartListModel>();
                 var count = con.QuerySingleOrDefault<int>("SELECT COUNT(1) FROM (SELECT 1 FROM CartItem GROUP BY CustomerId)");

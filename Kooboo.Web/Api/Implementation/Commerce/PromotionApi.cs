@@ -8,32 +8,28 @@ using Kooboo.Sites.Commerce.Models;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
-    public class PromotionApi : IApi
+    public class PromotionApi : CommerceApi
     {
-        public string ModelName => "Promotion";
-
-        public bool RequireSite => true;
-
-        public bool RequireUser => false;
+        public override string ModelName => "Promotion";
 
         public void Post(PromotionModel model, ApiCall apiCall)
         {
-            new PromotionService(apiCall.Context).Save(model);
+            GetService<PromotionService>(apiCall).Save(model);
         }
 
         public PagedListModel<PromotionListModel> List(ApiCall apiCall, PagingQueryModel model)
         {
-            return new PromotionService(apiCall.Context).List(model);
+            return GetService<PromotionService>(apiCall).List(model);
         }
 
         public PromotionModel Get(ApiCall apiCall, Guid id)
         {
-            return new PromotionService(apiCall.Context).Get(id);
+            return GetService<PromotionService>(apiCall).Get(id);
         }
 
         public void Deletes(Guid[] ids, ApiCall apiCall)
         {
-            new PromotionService(apiCall.Context).Deletes(ids);
+            GetService<PromotionService>(apiCall).Deletes(ids);
         }
     }
 }

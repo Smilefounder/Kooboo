@@ -44,11 +44,10 @@ namespace Kooboo.Sites.Commerce.Models.Cart
         public CartItemModel[] Items { get; set; }
         public int Quantity { get; set; }
 
-        public void Discount(RenderContext context)
+        public void Discount(SiteCommerce commerce)
         {
-            var cache = CommerceCache.GetCache(context);
-            var promotions = cache.GetPromotions(context);
-            var productCategoryService = new ProductCategoryService(context);
+            var promotions = commerce.GetPromotions();
+            var productCategoryService = new ProductCategoryService(commerce);
 
             foreach (var promotion in promotions)
             {
@@ -73,7 +72,7 @@ namespace Kooboo.Sites.Commerce.Models.Cart
                         Title = item.Title
                     };
 
-                    var categories = cache.GetCategories(context)
+                    var categories = commerce.GetCategories()
                                         .Where(w => product.Match(w.Rule))
                                         .Select(s => s.Id)
                                         .Union(productCategoryService.GetByProductId(item.Id));

@@ -8,22 +8,18 @@ using Kooboo.Sites.Commerce.Models.Customer;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
-    public class CustomerApi : IApi
+    public class CustomerApi : CommerceApi
     {
-        public string ModelName => "Customer";
-
-        public bool RequireSite => true;
-
-        public bool RequireUser => false;
+        public override string ModelName => "Customer";
 
         public void Register(CreateCustomerModel model, ApiCall apiCall)
         {
-            new CustomerService(apiCall.Context).Register(model);
+            GetService<CustomerService>(apiCall).Register(model);
         }
 
         public PagedListModel<CustomerListModel> List(PagingQueryModel viewModel, ApiCall apiCall)
         {
-            return new CustomerService(apiCall.Context).List(viewModel);
+            return GetService<CustomerService>(apiCall).List(viewModel);
         }
     }
 }

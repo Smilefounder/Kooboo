@@ -314,7 +314,7 @@ $(function () {
         Kooboo.EventBus.publish("ko/style/list/pickimage/show", sku);
       },
       categoriesSelected(selected) {
-        this.model.categories.push(...selected.map((m) => m.key));
+        this.model.categories = selected.map((m) => m.key);
       },
     },
     computed: {
@@ -350,9 +350,9 @@ $(function () {
 
         return result;
       },
-      selectorCategories() {
-        return this.categories.filter(
-          (f) => !this.model.categories.includes(f.key)
+      selecteds() {
+        return this.categories.filter((f) =>
+          this.model.categories.includes(f.key)
         );
       },
     },

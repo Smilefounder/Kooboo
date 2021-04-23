@@ -12,7 +12,7 @@ namespace Kooboo.Sites.Commerce.Services
 {
     public class CustomerService : ServiceBase
     {
-        public CustomerService(RenderContext context) : base(context)
+        public CustomerService(SiteCommerce commerce) : base(commerce)
         {
         }
 
@@ -20,7 +20,7 @@ namespace Kooboo.Sites.Commerce.Services
         {
             new CreateCustomerModelValidator().ValidateAndThrow(model);
 
-            DbConnection.ExecuteTask(con =>
+            Commerce.CreateDbConnection().ExecuteTask(con =>
             {
                 var exist = con.QuerySingle<bool>(@"
 SELECT EXISTS(
@@ -48,7 +48,7 @@ SELECT EXISTS(
         {
             var result = new PagedListModel<CustomerListModel>();
 
-            DbConnection.ExecuteTask(con =>
+            Commerce.CreateDbConnection().ExecuteTask(con =>
             {
                 var count = con.Count<Customer>();
                 result.SetPageInfo(model, count);

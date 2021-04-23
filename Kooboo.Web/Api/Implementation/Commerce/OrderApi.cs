@@ -8,32 +8,28 @@ using System.Text;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
-    public class OrderApi : IApi
+    public class OrderApi : CommerceApi
     {
-        public string ModelName => "Order";
-
-        public bool RequireSite => true;
-
-        public bool RequireUser => false;
+        public override string ModelName => "Order";
 
         public void Create(CreateOrderModel model, ApiCall apiCall)
         {
-            new OrderService(apiCall.Context).Create(model);
+            GetService<OrderService>(apiCall).Create(model);
         }
 
         public OrderDetailModel Get(Guid id, ApiCall apiCall)
         {
-            return new OrderService(apiCall.Context).Get(id);
+            return GetService<OrderService>(apiCall).Get(id);
         }
 
         public OrderPreviewModel Preview(Guid id, ApiCall apiCall)
         {
-            return new OrderService(apiCall.Context).Preview(id);
+            return GetService<OrderService>(apiCall).Preview(id);
         }
 
         public PagedListModel<OrderListModel> List(PagingQueryModel model, ApiCall apiCall)
         {
-            return new OrderService(apiCall.Context).Query(model);
+            return GetService<OrderService>(apiCall).Query(model);
         }
     }
 }

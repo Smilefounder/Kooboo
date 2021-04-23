@@ -17,9 +17,9 @@ namespace Kooboo.Sites.Commerce.KScripts
 
         public KProduct(RenderContext context)
         {
-            _context = context;
-            _productService = new Lazy<ProductService>(() => new ProductService(context), true);
-            _productSkuService = new Lazy<ProductSkuService>(() => new ProductSkuService(context), true);
+            var commerce = SiteCommerce.Get(context.WebSite);
+            _productService = new Lazy<ProductService>(() => new ProductService(commerce), true);
+            _productSkuService = new Lazy<ProductSkuService>(() => new ProductSkuService(commerce), true);
         }
 
 
@@ -54,7 +54,7 @@ k.commerce.product.post({
         {
             var model = Helpers.FromKscriptModel<ProductModel>(obj);
 
-            _context.CreateCommerceDbConnection().ExecuteTask(con =>
+            SiteCommerce.Get(_context.WebSite).CreateDbConnection().ExecuteTask(con =>
             {
                 _productService.Value.Save(model, con);
                 _productSkuService.Value.Save(model.Id, model.ToSkus(), con);

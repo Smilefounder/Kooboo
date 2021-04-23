@@ -1,21 +1,21 @@
-﻿using Kooboo.Data;
-using Kooboo.Data.Context;
-using Kooboo.Sites.Commerce.Migration;
-using System.Data;
-using System.Data.SQLite;
-using System.IO;
+﻿using Kooboo.Data.Context;
+using System;
 
 namespace Kooboo.Sites.Commerce
 {
     public class ServiceBase
     {
-        protected RenderContext Context { get; set; }
-        protected IDbConnection DbConnection => Context.CreateCommerceDbConnection();
+        public SiteCommerce Commerce { get; }
 
-        public ServiceBase(RenderContext context)
+        public event Action<Guid> OnChanged;
+        public event Action<Guid[]> OnDeleted;
+
+        public ServiceBase(SiteCommerce commerce)
         {
-            Context = context;
-            Migrator.TryMigrate(context);
+            Commerce = commerce;
         }
+
+        protected void Changed(Guid id) => OnChanged?.Invoke(id);
+        protected void Deleted(Guid[] ids) => OnDeleted?.Invoke(ids);
     }
 }

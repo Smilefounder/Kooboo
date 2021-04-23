@@ -6,37 +6,33 @@ using Kooboo.Sites.Commerce.Models.Type;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
-    public class ProductTypeApi : IApi
+    public class ProductTypeApi : CommerceApi
     {
-        public string ModelName => "ProductType";
-
-        public bool RequireSite => true;
-
-        public bool RequireUser => false;
+        public override string ModelName => "ProductType";
 
         public ProductTypeDetailModel[] List(ApiCall apiCall)
         {
-            return new ProductTypeService(apiCall.Context).List();
+            return GetService<ProductTypeService>(apiCall).List();
         }
 
         public ProductTypeDetailModel Get(ApiCall apiCall, Guid id)
         {
-            return new ProductTypeService(apiCall.Context).GetDetail(id);
+            return GetService<ProductTypeService>(apiCall).GetDetail(id);
         }
 
         public void Post(ProductTypeModel viewModel, ApiCall apiCall)
         {
-            new ProductTypeService(apiCall.Context).Save(viewModel);
+            GetService<ProductTypeService>(apiCall).Save(viewModel);
         }
 
         public void Delete(Guid[] ids, ApiCall apiCall)
         {
-            new ProductTypeService(apiCall.Context).Delete(ids);
+            GetService<ProductTypeService>(apiCall).Delete(ids);
         }
 
         public KeyValuePair<Guid, string>[] KeyValue(ApiCall apiCall)
         {
-            return new ProductTypeService(apiCall.Context).KeyValue();
+            return GetService<ProductTypeService>(apiCall).KeyValue();
         }
     }
 }

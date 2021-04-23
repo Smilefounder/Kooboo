@@ -13,18 +13,16 @@ namespace Kooboo.Sites.Commerce.Services
 {
     public class OrderService : ServiceBase
     {
-        public OrderService(RenderContext context) : base(context)
+        public OrderService(SiteCommerce commerce) : base(commerce)
         {
         }
 
         public void Create(CreateOrderModel model)
         {
-            using (var con = DbConnection)
+            Commerce.CreateDbConnection().ExecuteTask(con =>
             {
-                con.Open();
-                var tran = con.BeginTransaction();
-                var cart = new CartService(Context).GetCart(model.CustomerId, con, true);
-                var consignee = new ConsigneeService(Context).Get(model.ConsigneeId, con);
+                var cart = new CartService(Commerce).GetCart(model.CustomerId, con, true);
+                var consignee = new ConsigneeService(Commerce).Get(model.ConsigneeId, con);
                 CheckStock(cart);
                 var order = model.ToOrder(cart);
                 order.Consignee = JsonHelper.Serialize(consignee);
@@ -51,15 +49,14 @@ namespace Kooboo.Sites.Commerce.Services
                 con.InsertList(orderItems);
                 con.InsertList(stocks);
                 con.DeleteList<Entities.CartItem>(cart.Items.Select(s => s.Id));
-                tran.Commit();
-            }
+            }, true);
         }
 
         public OrderDetailModel Get(Guid id)
         {
-            using (var con = DbConnection)
-            {
-                var order = con.QueryFirstOrDefault(@"
+            return Commerce.CreateDbConnection().ExecuteTask(con =>
+             {
+                 var order = con.QueryFirstOrDefault(@"
 SELECT C.UserName,
        O.CreateTime,
        O.PaymentTime,
@@ -74,45 +71,43 @@ WHERE O.Id = @Id
 LIMIT 1
 ", new { Id = id });
 
-                var result = new OrderDetailModel
-                {
-                    Id = id,
-                    Amount = (decimal)order.Amount,
-                    CreateTime = order.CreateTime,
-                    Customer = order.UserName,
-                    PaymentMethod = order.PaymentMethod,
-                    PaymentTime = order.PaymentTime,
-                    Promotions = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(order.Promotions),
-                    State = (Order.OrderState)order.State,
-                    Consignee = JsonHelper.Deserialize<Consignee>(order.Consignee),
-                };
+                 var result = new OrderDetailModel
+                 {
+                     Id = id,
+                     Amount = (decimal)order.Amount,
+                     CreateTime = order.CreateTime,
+                     Customer = order.UserName,
+                     PaymentMethod = order.PaymentMethod,
+                     PaymentTime = order.PaymentTime,
+                     Promotions = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(order.Promotions),
+                     State = (Order.OrderState)order.State,
+                     Consignee = JsonHelper.Deserialize<Consignee>(order.Consignee),
+                 };
 
-                var items = new List<OrderDetailModel.Item>();
-                var orderItems = con.Query(@"
+                 var items = new List<OrderDetailModel.Item>();
+                 var orderItems = con.Query(@"
 SELECT ProductName, Specifications, Price, Tax, Promotions, Quantity, State
 FROM 'OrderItem'
 WHERE OrderId = @Id
 ", new { Id = id });
 
-                foreach (var item in orderItems)
-                {
-                    items.Add(new OrderDetailModel.Item
-                    {
-                        Price = (decimal)item.Price,
-                        ProductName = item.ProductName,
-                        Quantity = (int)item.Quantity,
-                        Promotions = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(item.Promotions),
-                        Specifications = JsonHelper.Deserialize<KeyValuePair<string, string>[]>(item.Specifications),
-                        State = (OrderItem.OrderItemState)item.State,
-                        Tax = (decimal)item.Tax
-                    });
-                }
+                 foreach (var item in orderItems)
+                 {
+                     items.Add(new OrderDetailModel.Item
+                     {
+                         Price = (decimal)item.Price,
+                         ProductName = item.ProductName,
+                         Quantity = (int)item.Quantity,
+                         Promotions = JsonHelper.Deserialize<KeyValuePair<Guid, string>[]>(item.Promotions),
+                         Specifications = JsonHelper.Deserialize<KeyValuePair<string, string>[]>(item.Specifications),
+                         State = (OrderItem.OrderItemState)item.State,
+                         Tax = (decimal)item.Tax
+                     });
+                 }
 
-                result.Items = items.ToArray();
-                return result;
-            }
-
-
+                 result.Items = items.ToArray();
+                 return result;
+             });
         }
 
         private static void CheckStock(Models.Cart.CartModel cart)
@@ -125,7 +120,7 @@ WHERE OrderId = @Id
 
         public OrderPreviewModel Preview(Guid id)
         {
-            var cart = new CartService(Context).GetCart(id, filterNotSelected: true);
+            var cart = new CartService(Commerce).GetCart(id, filterNotSelected: true);
             CheckStock(cart);
 
             var order = new OrderPreviewModel
@@ -147,7 +142,7 @@ WHERE OrderId = @Id
         {
             var result = new PagedListModel<OrderListModel>();
 
-            using (var con = DbConnection)
+            Commerce.CreateDbConnection().ExecuteTask(con =>
             {
                 var count = con.Count<Order>();
                 result.SetPageInfo(model, count);
@@ -168,7 +163,7 @@ LIMIT @Size OFFSET @Offset
                     model.Size,
                     Offset = result.GetOffset()
                 }).ToList();
-            }
+            });
 
             return result;
         }

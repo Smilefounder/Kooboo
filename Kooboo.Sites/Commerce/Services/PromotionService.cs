@@ -1,7 +1,5 @@
 ﻿using Dapper;
 using FluentValidation;
-using Kooboo.Data.Context;
-using Kooboo.Sites.Commerce.Cache;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Promotion;
@@ -13,14 +11,13 @@ namespace Kooboo.Sites.Commerce.Services
 {
     public class PromotionService : ServiceBase
     {
-
-        public PromotionService(RenderContext context) : base(context)
+        public PromotionService(SiteCommerce commerce) : base(commerce)
         {
         }
 
         public PromotionModel Get(Guid id)
         {
-            return DbConnection.ExecuteTask(con =>
+            return Commerce.CreateDbConnection().ExecuteTask(con =>
             {
                 var entity = con.Get<Promotion>(id);
                 if (entity == null) throw new Exception("Not found promotion");
@@ -32,7 +29,7 @@ namespace Kooboo.Sites.Commerce.Services
         {
             var result = new PagedListModel<PromotionListModel>();
 
-            return DbConnection.ExecuteTask(con =>
+            return Commerce.CreateDbConnection().ExecuteTask(con =>
             {
                 var count = con.Count<Promotion>();
                 result.SetPageInfo(model, count);
@@ -64,7 +61,7 @@ LIMIT @Limit OFFSET @Offset
         {
             new PromotionModelValidator().ValidateAndThrow(model);
 
-            DbConnection.ExecuteTask(con =>
+            Commerce.CreateDbConnection().ExecuteTask(con =>
             {
                 var entity = model.ToPromotion();
 
@@ -77,14 +74,14 @@ LIMIT @Limit OFFSET @Offset
                     con.Insert(entity);
                 }
 
-                CommerceCache.GetCache(Context).ClearPromotions();
+                Commerce.ClearPromotions();
             });
         }
 
         public void Deletes(Guid[] ids)
         {
-            DbConnection.ExecuteTask(c => c.DeleteList<Promotion>(ids));
-            CommerceCache.GetCache(Context).ClearPromotions();
+            Commerce.CreateDbConnection().ExecuteTask(c => c.DeleteList<Promotion>(ids));
+            Commerce.ClearPromotions();
         }
     }
 }

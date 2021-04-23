@@ -1,8 +1,6 @@
 ﻿using Dapper;
 using FluentValidation;
-using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
-using Kooboo.Sites.Commerce.Cache;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Product;
@@ -16,23 +14,18 @@ namespace Kooboo.Sites.Commerce.Services
 {
     public class ProductService : ServiceBase
     {
-        readonly SiteCache _cache;
-
-        public ProductService(RenderContext context) : base(context)
+        public ProductService(SiteCommerce commerce) : base(commerce)
         {
-            _cache = CommerceCache.GetCache(Context);
         }
 
         public void Save(ProductModel viewModel, IDbConnection connection = null)
         {
             new ProductModelValidator().ValidateAndThrow(viewModel);
+            var type = new ProductTypeService(Commerce).Get(viewModel.TypeId);
+            CheckRestrain(viewModel, type);
 
-            (connection ?? DbConnection).ExecuteTask(con =>
+            (connection ?? Commerce.CreateDbConnection()).ExecuteTask(con =>
             {
-                var type = new ProductTypeService(Context).Get(viewModel.TypeId, con);
-                if (type == null) throw new Exception("Can not find product type");
-                CheckRestrain(viewModel, type);
-
                 if (con.Exist<Product>(viewModel.Id))
                 {
                     con.Update(viewModel.ToProduct());
@@ -42,7 +35,7 @@ namespace Kooboo.Sites.Commerce.Services
                     con.Insert(viewModel.ToProduct());
                 }
 
-                _cache.ClearMatchProducts();
+                Changed(viewModel.Id);
             }, connection == null, connection == null);
         }
 
@@ -85,32 +78,36 @@ namespace Kooboo.Sites.Commerce.Services
 
         public void Deletes(Guid[] ids)
         {
-            DbConnection.ExecuteTask(con => con.DeleteList<Product>(ids));
-            _cache.ClearMatchProducts();
+            Commerce.CreateDbConnection().ExecuteTask(con => con.DeleteList<Product>(ids));
+            Deleted(ids);
         }
 
         public ProductEditModel Get(Guid id)
         {
-            return DbConnection.ExecuteTask(con =>
+            return Commerce.CreateDbConnection().ExecuteTask(con =>
             {
                 var entity = con.Get<Product>(id);
 
                 return new ProductEditModel(entity)
                 {
-                    Skus = new ProductSkuService(Context).List(id, con),
-                    Categories = new ProductCategoryService(Context).GetByProductId(id)
+                    Skus = new ProductSkuService(Commerce).List(id, con),
+                    Categories = new ProductCategoryService(Commerce).GetByProductId(id)
                 };
             });
         }
 
-        public PagedListModel<ProductListModel> Query(PagingQueryModel viewModel)
+        public PagedListModel<ProductListModel> Query(ProductQueryModel viewModel)
         {
             var result = new PagedListModel<ProductListModel>
             {
                 List = new List<ProductListModel>()
             };
 
-            DbConnection.ExecuteTask((con) =>
+            //var sb = new SqlBuilder();
+            //sb.Where("");
+            //sb.AddTemplate("select count(1) from Product /**where**/");
+
+            Commerce.CreateDbConnection().ExecuteTask((con) =>
             {
                 var count = con.Count<Product>();
                 result.SetPageInfo(viewModel, count);
@@ -195,12 +192,12 @@ GROUP BY PS.Id
 
         public KeyValuePair<Guid, string>[] KeyValue()
         {
-            return _cache.GetMatchProducts(Context).Select(s => new KeyValuePair<Guid, string>(s.Id, s.Title)).Distinct().ToArray();
+            return Commerce.GetMatchProducts().Select(s => new KeyValuePair<Guid, string>(s.Id, s.Title)).Distinct().ToArray();
         }
 
         public KeyValuePair<Guid, string>[] GetByTypeId(Guid id)
         {
-            return DbConnection.ExecuteTask(con =>
+            return Commerce.CreateDbConnection().ExecuteTask(con =>
             {
                 return con.Query<KeyValuePair<Guid, string>>("select Id as Key,Title as Value from Product where TypeId=@Id", new { Id = id }).ToArray();
             });
@@ -208,20 +205,20 @@ GROUP BY PS.Id
 
         public KeyValuePair<Guid, string>[] GetByCatrgoryId(Guid id)
         {
-            var category = _cache.GetCategories(Context).FirstOrDefault(w => w.Id == id);
+            var category = Commerce.GetCategories().FirstOrDefault(w => w.Id == id);
             if (category == null) throw new Exception("Category not found");
             switch (category.Type)
             {
                 case Category.AddingType.Manual:
-                    var products = new ProductCategoryService(Context).GetByCategoryId(id);
+                    var products = new ProductCategoryService(Commerce).GetByCategoryId(id);
 
-                    return _cache.GetMatchProducts(Context)
+                    return Commerce.GetMatchProducts()
                                  .Where(w => products.Contains(w.Id))
                                  .Select(s => new KeyValuePair<Guid, string>(s.Id, s.Title))
                                  .Distinct()
                                  .ToArray();
                 case Category.AddingType.Auto:
-                    return _cache.GetMatchProducts(Context)
+                    return Commerce.GetMatchProducts()
                                  .Where(c => c.Match(category.Rule))
                                  .Select(s => new KeyValuePair<Guid, string>(s.Id, s.Title))
                                  .Distinct()

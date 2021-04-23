@@ -9,6 +9,19 @@ namespace Kooboo.Sites.Commerce.Models.Type
 {
     public class ProductTypeModel
     {
+        public ProductTypeModel()
+        {
+
+        }
+
+        public ProductTypeModel(ProductType productType)
+        {
+            Id = productType.Id;
+            Name = productType.Name;
+            Attributes = JsonHelper.Deserialize<ItemDefineModel[]>(productType.Attributes);
+            Specifications = JsonHelper.Deserialize<ItemDefineModel[]>(productType.Specifications);
+        }
+
         public Guid Id { get; set; }
         public string Name { get; set; }
         public ItemDefineModel[] Attributes { get; set; }

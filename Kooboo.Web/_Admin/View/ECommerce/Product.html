@@ -401,10 +401,12 @@
 
     <kb-selector-modal
       v-model="showSelectorModal"
-      :list="selectorCategories"
+      :list="categories"
       @ok="categoriesSelected"
-      show-select
+      :show-select="true"
       :show-header="false"
+      :multi-select="true"
+      :selecteds="selecteds"
     />
   </div>
 </div>

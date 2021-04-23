@@ -6,37 +6,33 @@ using System.Collections.Generic;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
-    public class CategoryApi : IApi
+    public class CategoryApi : CommerceApi
     {
-        public string ModelName => "Category";
-
-        public bool RequireSite => true;
-
-        public bool RequireUser => true;
+        public override string ModelName => "Category";
 
         public CategoryListModel[] List(ApiCall apiCall)
         {
-            return new CategoryService(apiCall.Context).List();
+            return GetService<CategoryService>(apiCall).List();
         }
 
         public EditCategoryModel Get(ApiCall apiCall, Guid id)
         {
-            return new CategoryService(apiCall.Context).Get(id);
+            return GetService<CategoryService>(apiCall).Get(id);
         }
 
         public void Post(EditCategoryModel viewModel, ApiCall apiCall)
         {
-            new CategoryService(apiCall.Context).Save(viewModel);
+            GetService<CategoryService>(apiCall).Save(viewModel);
         }
 
         public void Delete(Guid[] ids, ApiCall apiCall)
         {
-            new CategoryService(apiCall.Context).Delete(ids);
+            GetService<CategoryService>(apiCall).Delete(ids);
         }
 
         public KeyValuePair<Guid, string>[] KeyValue(ApiCall apiCall)
         {
-            return new CategoryService(apiCall.Context).KeyValue();
+            return GetService<CategoryService>(apiCall).KeyValue();
         }
     }
 }

@@ -97,17 +97,16 @@
     </div>
   </div>
 
-  <kb-product-modal
+  <kb-product-sku-modal
     v-model="showProductModal"
     @ok="skuSelected"
-  ></kb-product-modal>
+  ></kb-product-sku-modal>
 </div>
 
 <script>
   Kooboo.loadJS([
     "/_Admin/Scripts/Kooboo/Guid.js",
-    "/_Admin/Scripts/components/ECommerce/kb-selector-modal.js",
-    "/_Admin/Scripts/components/ECommerce/kb-product-modal.js",
+    "/_Admin/Scripts/components/ECommerce/kb-product-sku-modal.js",
   ]);
 </script>
 <script src="/_Admin/View/ECommerce/Cart.js"></script>

@@ -11,28 +11,29 @@ namespace Kooboo.Sites.Commerce.Services
 {
     public class ConsigneeService : ServiceBase
     {
-        public ConsigneeService(RenderContext context) : base(context)
+        public ConsigneeService(SiteCommerce commerce) : base(commerce)
         {
         }
 
         public Consignee[] List(Guid customerId)
         {
-            using (var con = DbConnection)
+            return Commerce.CreateDbConnection().ExecuteTask(con =>
             {
                 return con.Query<Consignee>("Select * from Consignee where CustomerId=@CustomerId", new { CustomerId = customerId }).ToArray();
-            }
+            });
         }
 
         public Consignee Get(Guid id, IDbConnection connection = null)
         {
-            var con = connection ?? DbConnection;
-            return con.Get<Consignee>(id);
-            if (connection == null) con.Dispose();
+            return (connection ?? Commerce.CreateDbConnection()).ExecuteTask(con =>
+              {
+                  return con.Get<Consignee>(id);
+              }, connection == null, connection == null);
         }
 
         public void Save(Consignee consignee)
         {
-            using (var con = DbConnection)
+            Commerce.CreateDbConnection().ExecuteTask(con =>
             {
                 if (con.Exist<Consignee>(consignee.Id))
                 {
@@ -42,15 +43,15 @@ namespace Kooboo.Sites.Commerce.Services
                 {
                     con.Insert(consignee);
                 }
-            }
+            });
         }
 
         public void Delete(Guid id)
         {
-            using (var con = DbConnection)
+            Commerce.CreateDbConnection().ExecuteTask(con =>
             {
                 con.Delete<Consignee>(id);
-            }
+            });
         }
     }
 }

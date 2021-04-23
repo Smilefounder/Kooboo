@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Kooboo.Data.Context;
+using Kooboo.Data.Models;
 using Kooboo.Sites.Commerce.Cache;
 using System;
 using System.Collections.Concurrent;
@@ -13,35 +14,7 @@ namespace Kooboo.Sites.Commerce.Migration
 {
     public static class Migrator
     {
-        readonly static object _locker = new object();
-        readonly static List<string> _migratedSites = new List<string>();
         readonly static List<IMigration> _migrationRecords = Lib.IOC.Service.GetInstances<IMigration>();
-
-        public static bool IsMigrated(string id)
-        {
-            lock (_locker)
-            {
-                return _migratedSites.Contains(id);
-            }
-        }
-
-
-        public static void TryMigrate(RenderContext context)
-        {
-            var cache = CommerceCache.GetCache(context);
-
-            lock (cache)
-            {
-                if (!cache.IsMigrated)
-                {
-                    context.CreateCommerceDbConnection().ExecuteTask((c) =>
-                    {
-                        //DeleteTables(c); //rebuild
-                        cache.LastMigrateVersion = Migrate(c);
-                    }, true);
-                }
-            }
-        }
 
         private static void DeleteTables(IDbConnection connection)
         {
@@ -66,6 +39,8 @@ drop table if exists '_migration';
 
         public static int Migrate(IDbConnection connection)
         {
+            //DeleteTables(connection);
+
             connection.Execute("create table if not exists _migration( ver integer not null);");
             var lastVersion = connection.QueryFirstOrDefault<int?>("select max(ver) from _migration") ?? 0;
             var appends = _migrationRecords.Where(w => w.Version > lastVersion).OrderBy(o => o.Version);

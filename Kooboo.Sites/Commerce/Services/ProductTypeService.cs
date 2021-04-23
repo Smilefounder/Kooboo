@@ -1,7 +1,7 @@
 ﻿using Dapper;
 using FluentValidation;
-using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
+using Kooboo.Sites.Commerce.Cache;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Type;
@@ -10,13 +10,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text;
 
 namespace Kooboo.Sites.Commerce.Services
 {
     public class ProductTypeService : ServiceBase
     {
-        public ProductTypeService(RenderContext context) : base(context)
+        public ProductTypeService(SiteCommerce commerce) : base(commerce)
         {
         }
 
@@ -24,7 +23,7 @@ namespace Kooboo.Sites.Commerce.Services
         {
             new ProductTypeModelValidator().ValidateAndThrow(viewModel);
 
-            DbConnection.ExecuteTask((con) =>
+            Commerce.CreateDbConnection().ExecuteTask((con) =>
             {
                 var exist = con.Exist<ProductType>(viewModel.Id);
 
@@ -37,6 +36,8 @@ namespace Kooboo.Sites.Commerce.Services
                 {
                     con.Insert(viewModel.ToEntity());
                 }
+
+                Changed(viewModel.Id);
             });
         }
 
@@ -63,7 +64,7 @@ namespace Kooboo.Sites.Commerce.Services
 
         public ProductTypeDetailModel GetDetail(Guid id, IDbConnection connection = null)
         {
-            return (connection ?? DbConnection).ExecuteTask((con) =>
+            return (connection ?? Commerce.CreateDbConnection()).ExecuteTask((con) =>
             {
                 var entity = con.QueryFirstOrDefault(@"
 SELECT PT.Id,
@@ -91,27 +92,17 @@ LIMIT 1
             }, connection == null, connection == null);
         }
 
-        public ProductTypeModel Get(Guid id, IDbConnection connection = null)
+        public ProductTypeModel Get(Guid id)
         {
-            return (connection ?? DbConnection).ExecuteTask((con) =>
-            {
-                var entity = con.Get<ProductType>(id);
-
-                if (entity == null) throw new Exception("Not found product type");
-
-                return new ProductTypeDetailModel
-                {
-                    Attributes = JsonHelper.Deserialize<ItemDefineModel[]>(entity.Attributes),
-                    Id = entity.Id,
-                    Name = entity.Name,
-                    Specifications = JsonHelper.Deserialize<ItemDefineModel[]>(entity.Specifications),
-                };
-            }, connection == null, connection == null);
+            var cache = Commerce.Cache<TypeCache>().Data;
+            var model = cache.FirstOrDefault(f => f.Id == id);
+            if (model == null) throw new Exception("Not found product type");
+            return model;
         }
 
         public ProductTypeDetailModel[] List()
         {
-            return DbConnection.ExecuteTask(con =>
+            return Commerce.CreateDbConnection().ExecuteTask(con =>
             {
                 var result = new List<ProductTypeDetailModel>();
 
@@ -143,12 +134,14 @@ GROUP BY PT.ID
 
         public KeyValuePair<Guid, string>[] KeyValue()
         {
-            return DbConnection.ExecuteTask(con => con.Query<KeyValuePair<Guid, string>>("select Id as Key,Name as value from ProductType").ToArray());
+            var cache = Commerce.Cache<TypeCache>().Data;
+            return cache.Select(s => new KeyValuePair<Guid, string>(s.Id, s.Name)).ToArray();
         }
 
         public void Delete(Guid[] ids)
         {
-            DbConnection.ExecuteTask(con => con.DeleteList<ProductType>(ids));
+            Commerce.CreateDbConnection().ExecuteTask(con => con.DeleteList<ProductType>(ids));
+            Deleted(ids);
         }
     }
 }

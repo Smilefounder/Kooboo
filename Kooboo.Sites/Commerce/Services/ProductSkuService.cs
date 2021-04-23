@@ -10,13 +10,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text;
 
 namespace Kooboo.Sites.Commerce.Services
 {
     public class ProductSkuService : ServiceBase
     {
-        public ProductSkuService(RenderContext context) : base(context)
+        public ProductSkuService(SiteCommerce commerce) : base(commerce)
         {
         }
 
@@ -24,7 +23,7 @@ namespace Kooboo.Sites.Commerce.Services
         {
             new SkuModelsValidator().ValidateAndThrow(skus);
 
-            (connection ?? DbConnection).ExecuteTask(con =>
+            (connection ?? Commerce.CreateDbConnection()).ExecuteTask(con =>
             {
                 var existSkus = con.Query<ProductSku>("select * from ProductSku where ProductId=@Id", new { Id = id }).Select(s => new SkuModel(s));
                 var existEqualList = existSkus.Select(s => new KeyValuePair<Guid, string>(s.Id, s.ToEqualString()));
@@ -68,7 +67,7 @@ namespace Kooboo.Sites.Commerce.Services
 
         public SkuDetailModel[] List(Guid productId, IDbConnection connection = null)
         {
-            return (connection ?? DbConnection).ExecuteTask(con =>
+            return (connection ?? Commerce.CreateDbConnection()).ExecuteTask(con =>
             {
                 var list = con.Query(@"
 SELECT PS.Id,

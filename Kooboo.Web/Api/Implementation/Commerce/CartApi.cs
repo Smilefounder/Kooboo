@@ -7,33 +7,29 @@ using Kooboo.Sites.Commerce.Models;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
-    public class CartApi : IApi
+    public class CartApi : CommerceApi
     {
-        public string ModelName => "Cart";
-
-        public bool RequireSite => true;
-
-        public bool RequireUser => false;
+        public override string ModelName => "Cart";
 
         public void Post(Guid customerId, Guid skuId, int quantity, bool selected, ApiCall apiCall)
         {
-            new CartService(apiCall.Context).Post(customerId, skuId, quantity, selected);
+            GetService<CartService>(apiCall).Post(customerId, skuId, quantity, selected);
         }
 
         public CartModel Get(Guid id, ApiCall apiCall)
         {
             var filterNotSelected = apiCall.GetBoolValue("filterNotSelected");
-            return new CartService(apiCall.Context).GetCart(id, filterNotSelected: filterNotSelected);
+            return GetService<CartService>(apiCall).GetCart(id, filterNotSelected: filterNotSelected);
         }
 
         public void Deletes(Guid[] ids, ApiCall apiCall)
         {
-            new CartService(apiCall.Context).DeleteItems(ids);
+            GetService<CartService>(apiCall).DeleteItems(ids);
         }
 
         public PagedListModel<CartListModel> List(PagingQueryModel model, ApiCall apiCall)
         {
-            return new CartService(apiCall.Context).Query(model);
+            return GetService<CartService>(apiCall).Query(model);
         }
     }
 }

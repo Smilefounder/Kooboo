@@ -9,13 +9,9 @@ using System.Text;
 
 namespace Kooboo.Web.Api.Implementation.Commerce
 {
-    public class MatchRuleApi : IApi
+    public class MatchRuleApi : CommerceApi
     {
-        public string ModelName => "MatchRule";
-
-        public bool RequireSite => true;
-
-        public bool RequireUser => false;
+        public override string ModelName => "MatchRule";
 
         public object CategoryDefines()
         {

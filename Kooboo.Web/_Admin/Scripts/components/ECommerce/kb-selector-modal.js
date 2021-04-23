@@ -10,7 +10,7 @@
         default: false,
       },
       list: {
-        default: [],
+        default: () => [],
       },
       multiSelect: {
         default: false,
@@ -23,6 +23,9 @@
       },
       showSelect: {
         default: true,
+      },
+      selecteds: {
+        default: () => [],
       },
     },
     data() {
@@ -60,6 +63,12 @@
         this.$emit("ok", this.selectedRows);
         this.selectedRows = [];
         this.show = false;
+      },
+    },
+    watch: {
+      show(value) {
+        if (!value) return;
+        this.selectedRows = this.selecteds;
       },
     },
   });

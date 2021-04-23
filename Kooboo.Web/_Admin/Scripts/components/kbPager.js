@@ -1,12 +1,13 @@
-(function() {
+(function () {
   Vue.component("kb-pager", {
     template: Kooboo.getTemplate("/_Admin/Scripts/components/kbPager.html"),
     props: {
       pageNr: Number,
-      totalPages: Number
+      totalPages: Number,
+      noMargin: Boolean,
     },
     computed: {
-      pages: function() {
+      pages: function () {
         var _pages = [];
         if (this.pageNr && this.totalPages) {
           if (this.totalPages > 5) {
@@ -14,21 +15,21 @@
               _pages.push({
                 count: "«",
                 target: this.pageNr - 3,
-                active: false
+                active: false,
               });
 
               for (var i = 0; i < 5; i++) {
                 _pages.push({
                   count: this.pageNr - 2 + i,
                   target: this.pageNr - 2 + i,
-                  active: i == 2
+                  active: i == 2,
                 });
               }
 
               _pages.push({
                 count: "»",
                 target: this.pageNr + 3,
-                active: false
+                active: false,
               });
             } else {
               if (this.pageNr <= 3) {
@@ -36,14 +37,14 @@
                   _pages.push({
                     count: i,
                     target: i,
-                    active: i == this.pageNr
+                    active: i == this.pageNr,
                   });
                 }
 
                 _pages.push({
                   count: "»",
                   target: 6,
-                  active: false
+                  active: false,
                 });
               }
 
@@ -52,14 +53,14 @@
                   _pages.push({
                     count: i,
                     target: i,
-                    active: i == this.pageNr
+                    active: i == this.pageNr,
                   });
                 }
 
                 _pages.push({
                   count: "«",
                   target: this.totalPages - 5,
-                  active: false
+                  active: false,
                 });
 
                 _pages.reverse();
@@ -70,19 +71,19 @@
               _pages.push({
                 count: i,
                 target: i,
-                active: i == this.pageNr
+                active: i == this.pageNr,
               });
             }
           }
         }
         return _pages;
-      }
+      },
     },
     methods: {
-      changePage: function(page) {
-        this.$emit('change', page.target);
+      changePage: function (page) {
+        this.$emit("change", page.target);
         Kooboo.EventBus.publish("kb/pager/change", page.target);
-      }
-    }
+      },
+    },
   });
 })();

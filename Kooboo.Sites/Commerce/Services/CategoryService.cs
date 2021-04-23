@@ -1,7 +1,4 @@
-﻿using Dapper;
-using FluentValidation;
-using Kooboo.Data.Context;
-using Kooboo.Lib.Helper;
+﻿using FluentValidation;
 using Kooboo.Sites.Commerce.Cache;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Models.Category;
@@ -9,28 +6,24 @@ using Kooboo.Sites.Commerce.Validators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Kooboo.Sites.Commerce.Services
 {
     public class CategoryService : ServiceBase
     {
-        readonly SiteCache _cache;
-
-        public CategoryService(RenderContext context) : base(context)
+        public CategoryService(SiteCommerce commerce) : base(commerce)
         {
-            _cache = CommerceCache.GetCache(context);
         }
 
         public EditCategoryModel Get(Guid id)
         {
-            var category = _cache.GetCategories(Context).FirstOrDefault(f => f.Id == id);
+            var category = Commerce.GetCategories().FirstOrDefault(f => f.Id == id);
             if (category == null) throw new Exception("Not found Category");
             var products = new Guid[0];
 
             if (category.Type == Category.AddingType.Manual)
             {
-                products = new ProductCategoryService(Context).GetByCategoryId(id);
+                products = new ProductCategoryService(Commerce).GetByCategoryId(id);
             }
 
             return new EditCategoryModel(category, products);
@@ -40,10 +33,10 @@ namespace Kooboo.Sites.Commerce.Services
         {
             var result = new List<CategoryListModel>();
 
-            foreach (var item in _cache.GetCategories(Context))
+            foreach (var item in Commerce.GetCategories())
             {
                 int count = 0;
-                var _productCategoryService = new ProductCategoryService(Context);
+                var _productCategoryService = new ProductCategoryService(Commerce);
 
                 switch (item.Type)
                 {
@@ -51,7 +44,7 @@ namespace Kooboo.Sites.Commerce.Services
                         count = _productCategoryService.GetByCategoryId(item.Id).Count();
                         break;
                     case Category.AddingType.Auto:
-                        count = _cache.GetMatchProducts(Context).Where(c => c.Match(item.Rule)).Select(s => s.Id).Distinct().Count();
+                        count = Commerce.GetMatchProducts().Where(c => c.Match(item.Rule)).Select(s => s.Id).Distinct().Count();
                         break;
                     default:
                         break;
@@ -67,26 +60,27 @@ namespace Kooboo.Sites.Commerce.Services
         {
             new EditCategoryModelValidator().ValidateAndThrow(viewModel);
 
-            DbConnection.ExecuteTask(con =>
+            Commerce.CreateDbConnection().ExecuteTask(con =>
             {
                 var exist = con.Exist<Category>(viewModel.Id);
                 if (exist) con.Update(viewModel.ToCategory());
                 else con.Insert(viewModel.ToCategory());
-                var _productCategoryService = new ProductCategoryService(Context);
+                var _productCategoryService = new ProductCategoryService(Commerce);
                 _productCategoryService.SaveByCategoryId(viewModel.Products, viewModel.Id, con);
-                _cache.ClearCategories();
+                Changed(viewModel.Id);
             }, true);
         }
 
         public void Delete(Guid[] ids)
         {
-            DbConnection.ExecuteTask(con => con.DeleteList<Category>(ids));
-            _cache.ClearCategories();
+            Commerce.CreateDbConnection().ExecuteTask(con => con.DeleteList<Category>(ids));
+            Deleted(ids);
         }
 
         public KeyValuePair<Guid, string>[] KeyValue()
         {
-            return _cache.GetCategories(Context).Select(s => new KeyValuePair<Guid, string>(s.Id, s.Name)).ToArray();
+            var cache = Commerce.Cache<CategoryCache>().Data;
+            return cache.Select(s => new KeyValuePair<Guid, string>(s.Id, s.Name)).ToArray();
         }
     }
 }
