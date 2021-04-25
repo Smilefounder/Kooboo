@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using static Kooboo.Sites.Commerce.Entities.Promotion;
 using static Kooboo.Sites.Commerce.Models.Promotion.PromotionModel;
 

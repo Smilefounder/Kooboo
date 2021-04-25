@@ -18,13 +18,13 @@ namespace Kooboo.Sites.Commerce.Services
 
         public Guid[] GetByProductId(Guid id)
         {
-            var list = Commerce.GetProductCategories();
+            var list = Commerce.Cache<ProductCategoryCache>().Data;
             return list.Where(w => w.ProductId == id).Select(s => s.CategoryId).ToArray();
         }
 
         public Guid[] GetByCategoryId(Guid id)
         {
-            var list = Commerce.GetProductCategories();
+            var list = Commerce.Cache<ProductCategoryCache>().Data;
             return list.Where(w => w.CategoryId == id).Select(s => s.ProductId).ToArray();
         }
 
@@ -40,8 +40,7 @@ namespace Kooboo.Sites.Commerce.Services
                     ProductId = id
                 }));
 
-                Commerce.ClearProductCategories();
-
+                Changed(id);
             }, connection == null, connection == null);
         }
 
@@ -57,8 +56,7 @@ namespace Kooboo.Sites.Commerce.Services
                     ProductId = s
                 }));
 
-                Commerce.ClearProductCategories();
-
+                Changed(id);
             }, connection == null, connection == null);
         }
     }

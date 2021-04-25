@@ -11,6 +11,5 @@ namespace Kooboo.Sites.Commerce.MatchRule.TargetModels
         public decimal Price { get; set; }
         public decimal Tax { get; set; }
         public Guid TypeId { get; set; }
-        public bool Enable { get; set; }
     }
 }

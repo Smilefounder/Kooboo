@@ -1,5 +1,4 @@
-﻿using Kooboo.Data.Context;
-using Kooboo.Lib.Helper;
+﻿using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Cache;
 using Kooboo.Sites.Commerce.Models.Promotion;
 using Kooboo.Sites.Commerce.Services;
@@ -46,8 +45,9 @@ namespace Kooboo.Sites.Commerce.Models.Cart
 
         public void Discount(SiteCommerce commerce)
         {
-            var promotions = commerce.GetPromotions();
+            var promotions = commerce.Cache<PromotionCache>().Data;
             var productCategoryService = new ProductCategoryService(commerce);
+            var categoryCache = commerce.Cache<CategoryCache>().Data;
 
             foreach (var promotion in promotions)
             {
@@ -57,22 +57,20 @@ namespace Kooboo.Sites.Commerce.Models.Cart
                     Quantity = Items.Where(w => w.Selected).Sum(s => s.Quantity)
                 };
 
-                var matchOrder = order.Match(promotion.Rules.Order);
-                if (!matchOrder) continue;
+                if (!order.Match(promotion.Rules.Order)) continue;
 
                 foreach (var item in Items)
                 {
                     var product = new MatchRule.TargetModels.Product
                     {
                         Id = item.Id,
-                        Enable = true,
                         Price = item.Price,
                         TypeId = item.TypeId,
                         Tax = item.Tax,
                         Title = item.Title
                     };
 
-                    var categories = commerce.GetCategories()
+                    var categories = categoryCache
                                         .Where(w => product.Match(w.Rule))
                                         .Select(s => s.Id)
                                         .Union(productCategoryService.GetByProductId(item.Id));

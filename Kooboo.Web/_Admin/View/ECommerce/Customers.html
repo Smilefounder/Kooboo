@@ -30,12 +30,6 @@
       </template>
     </kb-table-column>
 
-    <kb-table-column :label="Kooboo.text.commerce.cart">
-      <template v-slot="row">
-        <span class="label label-sm label-success">{{row.cart}}</span>
-      </template>
-    </kb-table-column>
-
     <kb-table-column :label="Kooboo.text.commerce.createTime">
       <template v-slot="row">
         {{new Date(row.createTime).toDefaultLangString()}}
@@ -44,7 +38,10 @@
 
     <kb-table-column align="right" width="100px">
       <template v-slot="row">
-        <a class="btn blue" :href="cartPage(row.id)" target="_blank">Cart</a>
+        <a class="btn blue" :href="cartPage(row.id)" target="_blank">
+          <span>Cart</span>
+          <span>({{row.cart}})</span>
+         </a>
       </template>
     </kb-table-column>
   </kb-table>

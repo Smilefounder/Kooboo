@@ -17,7 +17,7 @@
           totalPages: 1,
         },
         list: [],
-        pageSize: 3,
+        pageSize: 10,
         selected: null,
       };
     },

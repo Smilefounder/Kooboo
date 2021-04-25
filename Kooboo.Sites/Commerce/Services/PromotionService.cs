@@ -74,14 +74,14 @@ LIMIT @Limit OFFSET @Offset
                     con.Insert(entity);
                 }
 
-                Commerce.ClearPromotions();
+                Changed(entity.Id);
             });
         }
 
         public void Deletes(Guid[] ids)
         {
             Commerce.CreateDbConnection().ExecuteTask(c => c.DeleteList<Promotion>(ids));
-            Commerce.ClearPromotions();
+            Deleted(ids);
         }
     }
 }

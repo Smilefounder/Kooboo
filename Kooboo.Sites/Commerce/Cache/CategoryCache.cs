@@ -11,7 +11,7 @@ namespace Kooboo.Sites.Commerce.Cache
         {
             var categoryService = commerce.Service<CategoryService>();
             categoryService.OnChanged += _ => Clear();
-            categoryService.OnDeleted += id => Clear();
+            categoryService.OnDeleted += _ => Clear();
         }
 
         protected override CategoryModel[] OnGet()

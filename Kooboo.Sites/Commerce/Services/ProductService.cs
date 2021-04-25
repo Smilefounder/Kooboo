@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using FluentValidation;
 using Kooboo.Lib.Helper;
+using Kooboo.Sites.Commerce.Cache;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Product;
@@ -137,7 +138,7 @@ SELECT PS.Id,
        PS.Name,
        Ps.Specifications,
        SUM(CASE WHEN P.Quantity IS NULL THEN 0 ELSE P.Quantity END)       AS Stock,
-       SUM(CASE WHEN P.Type = 1 OR p.Type = 2 THEN p.Quantity ELSE 0 END) AS Sale,
+       -SUM(CASE WHEN P.Type = 1 OR p.Type = 2 THEN p.Quantity ELSE 0 END) AS Sale,
        PS.Enable,
        PS.Image,
        PS.ProductId,
@@ -192,7 +193,8 @@ GROUP BY PS.Id
 
         public KeyValuePair<Guid, string>[] KeyValue()
         {
-            return Commerce.GetMatchProducts().Select(s => new KeyValuePair<Guid, string>(s.Id, s.Title)).Distinct().ToArray();
+            var cache = Commerce.Cache<MatchProductCache>().Data;
+            return cache.Select(s => new KeyValuePair<Guid, string>(s.Id, s.Title)).Distinct().ToArray();
         }
 
         public KeyValuePair<Guid, string>[] GetByTypeId(Guid id)
@@ -205,20 +207,23 @@ GROUP BY PS.Id
 
         public KeyValuePair<Guid, string>[] GetByCatrgoryId(Guid id)
         {
-            var category = Commerce.GetCategories().FirstOrDefault(w => w.Id == id);
+            var category = Commerce.Cache<CategoryCache>().Data.FirstOrDefault(w => w.Id == id);
             if (category == null) throw new Exception("Category not found");
+
+            var matchProductCache = Commerce.Cache<MatchProductCache>().Data;
+
             switch (category.Type)
             {
                 case Category.AddingType.Manual:
                     var products = new ProductCategoryService(Commerce).GetByCategoryId(id);
 
-                    return Commerce.GetMatchProducts()
+                    return matchProductCache
                                  .Where(w => products.Contains(w.Id))
                                  .Select(s => new KeyValuePair<Guid, string>(s.Id, s.Title))
                                  .Distinct()
                                  .ToArray();
                 case Category.AddingType.Auto:
-                    return Commerce.GetMatchProducts()
+                    return matchProductCache
                                  .Where(c => c.Match(category.Rule))
                                  .Select(s => new KeyValuePair<Guid, string>(s.Id, s.Title))
                                  .Distinct()

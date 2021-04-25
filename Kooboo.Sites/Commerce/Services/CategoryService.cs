@@ -17,7 +17,7 @@ namespace Kooboo.Sites.Commerce.Services
 
         public EditCategoryModel Get(Guid id)
         {
-            var category = Commerce.GetCategories().FirstOrDefault(f => f.Id == id);
+            var category = Commerce.Cache<CategoryCache>().Data.FirstOrDefault(f => f.Id == id);
             if (category == null) throw new Exception("Not found Category");
             var products = new Guid[0];
 
@@ -32,19 +32,21 @@ namespace Kooboo.Sites.Commerce.Services
         public CategoryListModel[] List()
         {
             var result = new List<CategoryListModel>();
+            var cache = Commerce.Cache<CategoryCache>().Data;
 
-            foreach (var item in Commerce.GetCategories())
+            foreach (var item in cache)
             {
                 int count = 0;
-                var _productCategoryService = new ProductCategoryService(Commerce);
+                var productCategoryService = new ProductCategoryService(Commerce);
+                var matchProductCache = Commerce.Cache<MatchProductCache>().Data;
 
                 switch (item.Type)
                 {
                     case Category.AddingType.Manual:
-                        count = _productCategoryService.GetByCategoryId(item.Id).Count();
+                        count = productCategoryService.GetByCategoryId(item.Id).Count();
                         break;
                     case Category.AddingType.Auto:
-                        count = Commerce.GetMatchProducts().Where(c => c.Match(item.Rule)).Select(s => s.Id).Distinct().Count();
+                        count = matchProductCache.Where(c => c.Match(item.Rule)).Select(s => s.Id).Distinct().Count();
                         break;
                     default:
                         break;

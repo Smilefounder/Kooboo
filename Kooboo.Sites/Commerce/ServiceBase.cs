@@ -7,7 +7,7 @@ namespace Kooboo.Sites.Commerce
     {
         public SiteCommerce Commerce { get; }
 
-        public event Action<Guid> OnChanged;
+        public event Action<Guid[]> OnChanged;
         public event Action<Guid[]> OnDeleted;
 
         public ServiceBase(SiteCommerce commerce)
@@ -15,7 +15,7 @@ namespace Kooboo.Sites.Commerce
             Commerce = commerce;
         }
 
-        protected void Changed(Guid id) => OnChanged?.Invoke(id);
-        protected void Deleted(Guid[] ids) => OnDeleted?.Invoke(ids);
+        protected void Changed(params Guid[] ids) => OnChanged?.Invoke(ids);
+        protected void Deleted(params Guid[] ids) => OnDeleted?.Invoke(ids);
     }
 }

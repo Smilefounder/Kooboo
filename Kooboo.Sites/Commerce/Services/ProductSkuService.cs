@@ -58,10 +58,12 @@ namespace Kooboo.Sites.Commerce.Services
                     }
                 }
 
-
                 con.DeleteList<ProductSku>(deleteList);
                 con.InsertList(addList.Select(s => s.ToSku()));
                 con.UpdateList(updateList.Select(s => s.ToSku()));
+                if (deleteList.Count > 0) Deleted(deleteList.ToArray());
+                var changeIds = addList.Union(updateList).Select(s => s.Id).ToArray();
+                if (changeIds.Length > 0) Changed(changeIds);
             }, connection == null, connection == null);
         }
 
