@@ -1,5 +1,8 @@
 (function () {
-  Kooboo.loadJS(["/_Admin/Scripts/kooboo/Guid.js"]);
+  Kooboo.loadJS([
+    "/_Admin/Scripts/kooboo/Guid.js",
+    "/_Admin/Scripts/components/ECommerce/kb-consignee-modal.js",
+  ]);
 
   Vue.component("kb-consignee-selector", {
     template: Kooboo.getTemplate(

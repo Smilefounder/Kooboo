@@ -1,12 +1,9 @@
-﻿using Dapper;
-using Kooboo.Data;
+﻿using Kooboo.Data;
 using Kooboo.Data.Context;
 using Kooboo.Data.Events;
 using Kooboo.Data.Models;
 using Kooboo.Events;
-using Kooboo.Sites.Commerce.Cache;
 using Kooboo.Sites.Commerce.Migration;
-using Kooboo.Sites.Commerce.Models.ProductCategory;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -20,10 +17,9 @@ namespace Kooboo.Sites.Commerce
     public class SiteCommerce
     {
         static readonly ConcurrentDictionary<Guid, SiteCommerce> _siteCache = new ConcurrentDictionary<Guid, SiteCommerce>();
-        readonly ConcurrentDictionary<string, CacheItem<dynamic>> _caches = new ConcurrentDictionary<string, CacheItem<dynamic>>();
-        readonly string _connectionString;
+        readonly Lazy<string> _connectionString;
         readonly Dictionary<Type, ServiceBase> _serviceMap;
-        readonly Dictionary<Type, dynamic> _cacheMap;
+        readonly Dictionary<Type, ICacheBase> _cacheMap;
 
 
         public static SiteCommerce Get(WebSite webSite)
@@ -50,11 +46,16 @@ namespace Kooboo.Sites.Commerce
 
             _cacheMap = Lib.IOC.Service.GetImplementationTypes(typeof(ICacheBase)).ToDictionary(k => k, v =>
             {
-                return Activator.CreateInstance(v, new[] { this });
+                return Activator.CreateInstance(v, new[] { this }) as ICacheBase;
             });
 
-            var path = Path.Combine(AppSettings.GetFileIORoot(site), "commerce.db");
-            _connectionString = $"Data source = '{path}';Version=3;BinaryGUID=False;foreign keys=true";
+            _connectionString = new Lazy<string>(() =>
+            {
+                var path = Path.Combine(AppSettings.GetFileIORoot(site), "commerce.db");
+                return $"Data source = '{path}';Version=3;BinaryGUID=False;foreign keys=true";
+            }, true);
+
+
             LastMigrateVersion = Migrator.Migrate(CreateDbConnection());
         }
 
@@ -68,7 +69,7 @@ namespace Kooboo.Sites.Commerce
             return _cacheMap[typeof(T)] as T;
         }
 
-        public IDbConnection CreateDbConnection() => new SQLiteConnection(_connectionString);
+        public IDbConnection CreateDbConnection() => new SQLiteConnection(_connectionString.Value);
     }
 
     class CommerceCacheWebSiteChangeHandler : IHandler<WebSiteChange>

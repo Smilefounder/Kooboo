@@ -1,11 +1,8 @@
 ﻿using Dapper;
-using Kooboo.Data.Context;
 using Kooboo.Sites.Commerce.Entities;
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text;
 
 namespace Kooboo.Sites.Commerce.Services
 {
@@ -13,6 +10,7 @@ namespace Kooboo.Sites.Commerce.Services
     {
         public ConsigneeService(SiteCommerce commerce) : base(commerce)
         {
+           
         }
 
         public Consignee[] List(Guid customerId)

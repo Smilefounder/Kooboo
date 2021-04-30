@@ -11,7 +11,7 @@ $(function () {
             name: "DASHBOARD",
           },
           {
-            name: Kooboo.text.common.ProductCategories,
+            name: Kooboo.text.commerce.customers,
           },
         ],
         list: null,

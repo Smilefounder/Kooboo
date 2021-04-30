@@ -1095,6 +1095,7 @@
       promotions: "Promotions",
       cart: "Cart",
       createTime: "Create time",
+      customers:"Customers",
       promotionTarget: {
         order: "Order",
         orderitem: "Order item",
