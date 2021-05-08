@@ -26,7 +26,7 @@ drop table if exists 'Order';
 drop table if exists 'CartItem';
 drop table if exists 'ProductCategory';
 drop table if exists 'ProductStock';
-drop table if exists 'ProductSku';
+drop table if exists 'ProductVariant';
 drop table if exists 'Product';
 drop table if exists 'Category';
 drop table if exists 'ProductType';

@@ -80,7 +80,7 @@ namespace Kooboo.Sites.Commerce.Models.Cart
                         Amount = item.DiscountAmount,
                         ProductId = item.ProductId,
                         Quantity = item.Quantity,
-                        SkuId = item.SkuId,
+                        ProductVariantId = item.ProductVariantId,
                         Price = item.Price,
                         Categories = categories.ToArray()
                     };
@@ -123,7 +123,7 @@ namespace Kooboo.Sites.Commerce.Models.Cart
 
             public Guid Id { get; set; }
             public Guid ProductId { get; set; }
-            public Guid SkuId { get; set; }
+            public Guid ProductVariantId { get; set; }
             public bool Selected { get; set; }
             public decimal Price { get; set; }
             public string ProductName { get; set; }
@@ -173,7 +173,7 @@ namespace Kooboo.Sites.Commerce.Models.Cart
                     ProductId = ProductId,
                     ProductName = ProductName,
                     Promotions = JsonHelper.Serialize(Promotions),
-                    SkuId = SkuId,
+                    ProductVariantId = ProductVariantId,
                     Specifications = JsonHelper.Serialize(Specifications),
                     State = Entities.OrderItem.OrderItemState.WaitingPay,
                     Tax = Tax

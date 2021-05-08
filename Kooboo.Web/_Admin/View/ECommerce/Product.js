@@ -17,7 +17,7 @@ $(function () {
         productsUrl: Kooboo.Route.Product.ListPage,
         categories: [],
         type: null,
-        oldSkus: [],
+        oldProductVariants: [],
         showSelectorModal: false,
         model: {
           id: Kooboo.getQueryString("id"),
@@ -28,7 +28,7 @@ $(function () {
           specifications: [],
           typeId: Kooboo.getQueryString("type"),
           enable: true,
-          skus: [],
+          productVariants: [],
           categories: [],
         },
         validateModel: {
@@ -60,11 +60,11 @@ $(function () {
             this.model = rsp.model;
             this.initAttributes();
 
-            for (const i of this.model.skus) {
+            for (const i of this.model.productVariants) {
               this.initValidateModelItem(i.id);
             }
 
-            this.oldSkus = JSON.parse(JSON.stringify(this.model.skus));
+            this.oldProductVariants = JSON.parse(JSON.stringify(this.model.productVariants));
           });
         } else {
           this.model.id = Kooboo.Guid.NewGuid();
@@ -155,22 +155,22 @@ $(function () {
       save: function (callback) {
         var coped = JSON.parse(JSON.stringify(this.model));
         var stocks = [];
-        this.removeUnuseSkus(coped);
+        this.removeUnuseProductVariants(coped);
         if (!this.valid(coped)) return;
-        var skus = coped.skus;
+        var productVariants = coped.productVariants;
         var categories = coped.categories;
-        delete coped.skus;
+        delete coped.productVariants;
         delete coped.categories;
 
-        for (const i of skus) {
-          var sku = this.oldSkus.find((f) => f.id == i.id);
-          var stock = sku ? i.stock - sku.stock : i.stock;
+        for (const i of productVariants) {
+          var productVariant = this.oldProductVariants.find((f) => f.id == i.id);
+          var stock = productVariant ? i.stock - productVariant.stock : i.stock;
           stocks.push({ key: i.id, value: stock });
         }
 
         Kooboo.Product.post({
           product: coped,
-          skus: skus,
+          productVariants: productVariants,
           stocks: stocks,
           categories,
         }).then(function (res) {
@@ -198,8 +198,8 @@ $(function () {
           this.model.images[0].isPrimary = true;
         }
       },
-      getSpecificationValue(specification, sku) {
-        var kv = sku.find((f) => f.key == specification.id);
+      getSpecificationValue(specification, productVariant) {
+        var kv = productVariant.find((f) => f.key == specification.id);
 
         var typeSpecification = this.type.specifications.find(
           (f) => f.id == specification.id
@@ -215,9 +215,9 @@ $(function () {
       getSpecificationName(id) {
         return this.type.specifications.find((f) => f.id == id).name;
       },
-      getOrNewSpecification(sku) {
-        var s = this.model.skus.find(
-          (f) => this.skuToString(f.specifications) == this.skuToString(sku)
+      getOrNewSpecification(productVariant) {
+        var s = this.model.productVariants.find(
+          (f) => this.productVariantToString(f.specifications) == this.productVariantToString(productVariant)
         );
 
         if (!s) {
@@ -226,7 +226,7 @@ $(function () {
             name: "",
             price: 0,
             productId: this.model.id,
-            specifications: sku,
+            specifications: productVariant,
             stock: 0,
             tax: 0,
             thumbnail: "",
@@ -235,22 +235,22 @@ $(function () {
           };
 
           this.initValidateModelItem(s.id);
-          this.model.skus.push(s);
+          this.model.productVariants.push(s);
         }
 
         return s;
       },
-      skuToString(sku) {
-        return sku
+      productVariantToString(productVariant) {
+        return productVariant
           .map((m) => `${m.key}${m.value}`)
           .sort()
           .join("");
       },
-      removeUnuseSkus(model) {
-        var skus = this.skus.map((m) => this.skuToString(m));
-        model.skus = model.skus.filter((f) => {
-          var skuString = this.skuToString(f.specifications);
-          return skus.find((f) => f == skuString) !== undefined;
+      removeUnuseProductVariants(model) {
+        var productVariants = this.productVariants.map((m) => this.productVariantToString(m));
+        model.productVariants = model.productVariants.filter((f) => {
+          var productVariantString = this.productVariantToString(f.specifications);
+          return productVariants.find((f) => f == productVariantString) !== undefined;
         });
       },
       valid(model) {
@@ -297,7 +297,7 @@ $(function () {
           if (!this.validateModel[i.id].valid) valid = false;
         }
 
-        for (const i of model.skus) {
+        for (const i of model.productVariants) {
           validGroup(i, "price");
           validGroup(i, "tax");
           validGroup(i, "stock");
@@ -310,15 +310,15 @@ $(function () {
         Vue.set(this.validateModel, id + "tax", { valid: true, msg: "" });
         Vue.set(this.validateModel, id + "stock", { valid: true, msg: "" });
       },
-      selectSkuImage(sku) {
-        Kooboo.EventBus.publish("ko/style/list/pickimage/show", sku);
+      selectProductVariantImage(productVariant) {
+        Kooboo.EventBus.publish("ko/style/list/pickimage/show", productVariant);
       },
       categoriesSelected(selected) {
         this.model.categories = selected.map((m) => m.key);
       },
     },
     computed: {
-      skus() {
+      productVariants() {
         var result = [];
 
         var recursion = (i, specifications) => {

@@ -28,12 +28,12 @@ $(function () {
           id: this.customerId,
         });
       },
-      skuSelected(row) {
-        var existItem = this.cart.items.find((f) => f.skuId == row.id);
+      productVariantSelected(row) {
+        var existItem = this.cart.items.find((f) => f.productVariantId == row.id);
         Kooboo.Cart.post({
           customerId: this.customerId,
           selected: existItem ? existItem.selected : true,
-          skuId: row.id,
+          productVariantId: row.id,
           quantity: existItem ? existItem.quantity + 1 : 1,
         }).then((rsp) => {
           this.showProductModal = false;
@@ -50,7 +50,7 @@ $(function () {
         Kooboo.Cart.post({
           customerId: this.customerId,
           selected: item.selected,
-          skuId: item.skuId,
+          productVariantId: item.productVariantId,
           quantity: item.quantity,
         }).then((rsp) => {
           this.getData();

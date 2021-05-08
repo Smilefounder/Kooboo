@@ -5,25 +5,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce.Models.Sku
+namespace Kooboo.Sites.Commerce.Models.ProductVariant
 {
-    public class SkuModel
+    public class ProductVariantModel
     {
-        public SkuModel()
+        public ProductVariantModel()
         {
 
         }
 
-        public SkuModel(Entities.ProductSku sku)
+        public ProductVariantModel(Entities.ProductVariant productVariant)
         {
-            Id = sku.Id;
-            Specifications = JsonHelper.Deserialize<KeyValuePair<Guid, Guid>[]>(sku.Specifications);
-            ProductId = sku.ProductId;
-            Name = sku.Name;
-            Price = sku.Price;
-            Tax = sku.Tax;
-            Image = sku.Image == null ? null : JsonHelper.Deserialize<ProductModel.Image>(sku.Image);
-            Enable = sku.Enable;
+            Id = productVariant.Id;
+            Specifications = JsonHelper.Deserialize<KeyValuePair<Guid, Guid>[]>(productVariant.Specifications);
+            ProductId = productVariant.ProductId;
+            Name = productVariant.Name;
+            Price = productVariant.Price;
+            Tax = productVariant.Tax;
+            Image = productVariant.Image == null ? null : JsonHelper.Deserialize<ProductModel.Image>(productVariant.Image);
+            Enable = productVariant.Enable;
         }
 
         public Guid Id { get; set; }
@@ -35,9 +35,9 @@ namespace Kooboo.Sites.Commerce.Models.Sku
         public ProductModel.Image Image { get; set; }
         public bool Enable { get; set; }
 
-        public Entities.ProductSku ToSku()
+        public Entities.ProductVariant ToProductVariant()
         {
-            return new Entities.ProductSku
+            return new Entities.ProductVariant
             {
                 Id = Id,
                 Enable = Enable,

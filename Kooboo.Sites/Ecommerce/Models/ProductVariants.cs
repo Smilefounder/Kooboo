@@ -39,7 +39,7 @@ namespace Kooboo.Sites.Ecommerce.Models
             }
         }
 
-        public string Sku { get; set; }
+        public string ProductVariant { get; set; }
 
         public Guid ProductId { get; set; }
 
@@ -62,7 +62,7 @@ namespace Kooboo.Sites.Ecommerce.Models
         public override int GetHashCode()
         {
             string unique = this.Images + this.Price.ToString() + this.Thumbnail + this.Stock.ToString(); 
-            unique += this.Sku + this.Order.ToString();
+            unique += this.ProductVariant + this.Order.ToString();
 
             return Lib.Security.Hash.ComputeIntCaseSensitive(unique);
         }

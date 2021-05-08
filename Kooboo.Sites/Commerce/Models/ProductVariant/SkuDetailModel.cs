@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Sites.Commerce.Models.Sku
+namespace Kooboo.Sites.Commerce.Models.ProductVariant
 {
-    public class SkuDetailModel : SkuModel
+    public class ProductVariantDetailModel : ProductVariantModel
     {
         public int Stock { get; set; }
     }

@@ -91,7 +91,7 @@ namespace Kooboo.Sites.Commerce.Services
 
                 return new ProductEditModel(entity)
                 {
-                    Skus = new ProductSkuService(Commerce).List(id, con),
+                    ProductVariants = new ProductVariantService(Commerce).List(id, con),
                     Categories = new ProductCategoryService(Commerce).GetByProductId(id)
                 };
             });
@@ -133,7 +133,7 @@ LIMIT @Size OFFSET @Offset
                     Offset = result.GetOffset()
                 });
 
-                var skus = con.Query(@"
+                var productVariants = con.Query(@"
 SELECT PS.Id,
        PS.Name,
        Ps.Specifications,
@@ -143,8 +143,8 @@ SELECT PS.Id,
        PS.Image,
        PS.ProductId,
        PS.Price
-FROM ProductSku PS
-         LEFT JOIN ProductStock P ON PS.Id = P.SkuId
+FROM ProductVariant PS
+         LEFT JOIN ProductStock P ON PS.Id = P.ProductVariantId
 WHERE PS.ProductId IN @Ids
 GROUP BY PS.Id
                 ", new
@@ -167,7 +167,7 @@ GROUP BY PS.Id
                     var productSpecifications = JsonHelper.Deserialize<ProductModel.Specification[]>(item.ProductSpecifications);
                     var productTypeSpecifications = JsonHelper.Deserialize<ItemDefineModel[]>(item.ProductTypeSpecifications);
 
-                    product.Items = skus.Where(w => w.ProductId == item.Id).Select(s =>
+                    product.Items = productVariants.Where(w => w.ProductId == item.Id).Select(s =>
                     {
                         var specifications = JsonHelper.Deserialize<KeyValuePair<Guid, Guid>[]>(s.Specifications);
 

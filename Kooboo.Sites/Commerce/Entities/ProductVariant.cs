@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Kooboo.Sites.Commerce.Entities
 {
-    public class ProductSku : EntityBase
+    public class ProductVariant : EntityBase
     {
         [NotUpdate]
         public Guid ProductId { get; set; }

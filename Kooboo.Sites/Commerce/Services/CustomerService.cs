@@ -53,7 +53,7 @@ SELECT EXISTS(
                 var count = con.Count<Customer>();
                 result.SetPageInfo(model, count);
                 result.List = con.Query<CustomerListModel>(@"
-SELECT T.*, SUM(CASE WHEN CI.SkuId IS NULL THEN 0 ELSE 1 END) AS Cart
+SELECT T.*, SUM(CASE WHEN CI.ProductVariantId IS NULL THEN 0 ELSE 1 END) AS Cart
 FROM (SELECT C.Id, C.Email, C.Phone, C.UserName, C.CreateTime
       FROM Customer C
       LIMIT @Size OFFSET @Offset) T

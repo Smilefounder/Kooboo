@@ -1715,8 +1715,8 @@
 
   function Product() {
     this.name = "Product";
-    this.skuList = function (para) {
-      return this.executeGet("SkuList", para);
+    this.productVariantList = function (para) {
+      return this.executeGet("ProductVariantList", para);
     };
   }
 

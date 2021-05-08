@@ -3,7 +3,7 @@ using Kooboo.Api;
 using Kooboo.Sites.Commerce;
 using Kooboo.Sites.Commerce.Models;
 using Kooboo.Sites.Commerce.Models.Product;
-using Kooboo.Sites.Commerce.Models.Sku;
+using Kooboo.Sites.Commerce.Models.ProductVariant;
 using Kooboo.Sites.Commerce.Services;
 using Kooboo.Sites.Commerce.Validators;
 using System;
@@ -23,7 +23,7 @@ namespace Kooboo.Web.Api.Implementation.Commerce
             commerce.CreateDbConnection().ExecuteTask(con =>
             {
                 new ProductService(commerce).Save(viewModel.Product, con);
-                new ProductSkuService(commerce).Save(viewModel.Product.Id, viewModel.Skus, con);
+                new ProductVariantService(commerce).Save(viewModel.Product.Id, viewModel.ProductVariants, con);
                 new ProductStockService(commerce).Adjust(viewModel.Product.Id, viewModel.Stocks, con);
 
                 if (viewModel.Categories != null)
@@ -70,9 +70,9 @@ namespace Kooboo.Web.Api.Implementation.Commerce
             GetService<ProductService>(apiCall).Deletes(ids);
         }
 
-        public SkuDetailModel[] SkuList(ApiCall apiCall, Guid id)
+        public ProductVariantDetailModel[] SkuList(ApiCall apiCall, Guid id)
         {
-            return GetService<ProductSkuService>(apiCall).List(id);
+            return GetService<ProductVariantService>(apiCall).List(id);
         }
     }
 }

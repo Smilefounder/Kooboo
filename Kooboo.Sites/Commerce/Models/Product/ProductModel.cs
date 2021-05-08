@@ -72,9 +72,9 @@ namespace Kooboo.Sites.Commerce.Models.Product
             };
         }
 
-        public Sku.SkuModel[] ToSkus()
+        public ProductVariant.ProductVariantModel[] ToProductVariants()
         {
-            var result = new List<Sku.SkuModel>();
+            var result = new List<ProductVariant.ProductVariantModel>();
 
             void recursion(int i, List<KeyValuePair<Guid, Guid>> specifications)
             {
@@ -90,7 +90,7 @@ namespace Kooboo.Sites.Commerce.Models.Product
 
                     if (i == Specifications.Length - 1)
                     {
-                        result.Add(new Sku.SkuModel
+                        result.Add(new ProductVariant.ProductVariantModel
                         {
                             Enable = false,
                             Id = Guid.NewGuid(),
@@ -116,7 +116,7 @@ namespace Kooboo.Sites.Commerce.Models.Product
 
             if (Specifications.Length == 0)
             {
-                result.Add(new Sku.SkuModel
+                result.Add(new ProductVariant.ProductVariantModel
                 {
                     Enable = true,
                     Id = Id,

@@ -33,11 +33,11 @@ namespace Kooboo.Sites.Commerce
             }) as List<ConditionDefineBase<T>>;
         }
 
-        public static KeyValuePair<string, string>[] GetSpecifications(ItemDefineModel[] productTypes, ProductModel.Specification[] products, KeyValuePair<Guid, Guid>[] productSkus)
+        public static KeyValuePair<string, string>[] GetSpecifications(ItemDefineModel[] productTypes, ProductModel.Specification[] products, KeyValuePair<Guid, Guid>[] productVariants)
         {
             var specifications = new List<KeyValuePair<string, string>>();
 
-            foreach (var item in productSkus)
+            foreach (var item in productVariants)
             {
                 var productType = productTypes.FirstOrDefault(f => f.Id == item.Key);
                 var product = products.FirstOrDefault(f => f.Id == item.Key);

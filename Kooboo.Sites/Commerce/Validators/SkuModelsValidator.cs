@@ -1,14 +1,14 @@
 ﻿using FluentValidation;
-using Kooboo.Sites.Commerce.Models.Sku;
+using Kooboo.Sites.Commerce.Models.ProductVariant;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Kooboo.Sites.Commerce.Validators
 {
-    public class SkuModelsValidator : AbstractValidator<SkuModel[]>
+    public class ProductVariantModelsValidator : AbstractValidator<ProductVariantModel[]>
     {
-        public SkuModelsValidator()
+        public ProductVariantModelsValidator()
         {
             RuleForEach(r => r).ChildRules(item =>
             {

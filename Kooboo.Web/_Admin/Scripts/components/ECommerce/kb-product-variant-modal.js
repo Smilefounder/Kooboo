@@ -5,9 +5,9 @@
     "/_Admin/Scripts/components/kbPager.js",
   ]);
 
-  Vue.component("kb-product-sku-modal", {
+  Vue.component("kb-product-variant-modal", {
     template: Kooboo.getTemplate(
-      "/_Admin/Scripts/components/ECommerce/kb-product-sku-modal.html"
+      "/_Admin/Scripts/components/ECommerce/kb-product-variant-modal.html"
     ),
     props: ["value"],
     data() {

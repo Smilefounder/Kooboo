@@ -45,14 +45,14 @@ create table 'Product'
 	'Enable' bool not null
 );
 
-create table 'ProductSku'
+create table 'ProductVariant'
 (
 	'Id' uniqueidentifier not null
-		constraint ProductSku_pk
+		constraint ProductVariant_pk
 			primary key,
 
 	'ProductId' uniqueidentifier not null
-		constraint ProductSku_ProductId_Product_Id_fk
+		constraint ProductVariant_ProductId_Product_Id_fk
 			references 'Product'
 				on delete cascade,
 
@@ -66,9 +66,9 @@ create table 'ProductSku'
 
 create table 'ProductStock'
 (
-	'SkuId' uniqueidentifier not null
-		constraint Stock_SkuId_Sku_Id_fk
-			references 'ProductSku'
+	'ProductVariantId' uniqueidentifier not null
+		constraint Stock_ProductVariantId_ProductVariant_Id_fk
+			references 'ProductVariant'
 				on delete cascade,
 
 	'ProductId' uniqueidentifier not null
@@ -158,9 +158,9 @@ create table 'CartItem'
 			references 'Product'
 				on delete cascade,
 
-	'SkuId' uniqueidentifier not null
-		constraint CartItem_SkuId_Sku_Id_fk
-			references 'ProductSku'
+	'ProductVariantId' uniqueidentifier not null
+		constraint CartItem_ProductVariantId_ProductVariant_Id_fk
+			references 'ProductVariant'
 				on delete cascade,
 
 	'Quantity' int not null,
@@ -218,7 +218,7 @@ create table 'OrderItem'
 				on delete cascade,
 
 	'ProductId' uniqueidentifier not null,
-	'SkuId' uniqueidentifier not null,
+	'ProductVariantId' uniqueidentifier not null,
 	'ProductName' text not null,
 	'Specifications' text not null,
 	'Price' real not null,

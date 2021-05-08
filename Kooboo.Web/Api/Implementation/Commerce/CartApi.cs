@@ -11,9 +11,9 @@ namespace Kooboo.Web.Api.Implementation.Commerce
     {
         public override string ModelName => "Cart";
 
-        public void Post(Guid customerId, Guid skuId, int quantity, bool selected, ApiCall apiCall)
+        public void Post(Guid customerId, Guid productVariantId, int quantity, bool selected, ApiCall apiCall)
         {
-            GetService<CartService>(apiCall).Post(customerId, skuId, quantity, selected);
+            GetService<CartService>(apiCall).Post(customerId, productVariantId, quantity, selected);
         }
 
         public CartModel Get(Guid id, ApiCall apiCall)

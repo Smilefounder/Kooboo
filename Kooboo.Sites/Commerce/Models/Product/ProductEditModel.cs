@@ -1,4 +1,4 @@
-﻿using Kooboo.Sites.Commerce.Models.Sku;
+﻿using Kooboo.Sites.Commerce.Models.ProductVariant;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,7 +11,7 @@ namespace Kooboo.Sites.Commerce.Models.Product
         {
         }
 
-        public SkuDetailModel[] Skus { get; set; }
+        public ProductVariantDetailModel[] ProductVariants { get; set; }
         public Guid[] Categories { get; set; }
     }
 }

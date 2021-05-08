@@ -4,7 +4,7 @@ using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Commerce.Entities;
 using Kooboo.Sites.Commerce.Models.Product;
-using Kooboo.Sites.Commerce.Models.Sku;
+using Kooboo.Sites.Commerce.Models.ProductVariant;
 using Kooboo.Sites.Commerce.Validators;
 using System;
 using System.Collections.Generic;
@@ -13,25 +13,25 @@ using System.Linq;
 
 namespace Kooboo.Sites.Commerce.Services
 {
-    public class ProductSkuService : ServiceBase
+    public class ProductVariantService : ServiceBase
     {
-        public ProductSkuService(SiteCommerce commerce) : base(commerce)
+        public ProductVariantService(SiteCommerce commerce) : base(commerce)
         {
         }
 
-        public void Save(Guid id, SkuModel[] skus, IDbConnection connection = null)
+        public void Save(Guid id, ProductVariantModel[] productVariants, IDbConnection connection = null)
         {
-            new SkuModelsValidator().ValidateAndThrow(skus);
+            new ProductVariantModelsValidator().ValidateAndThrow(productVariants);
 
             (connection ?? Commerce.CreateDbConnection()).ExecuteTask(con =>
             {
-                var existSkus = con.Query<ProductSku>("select * from ProductSku where ProductId=@Id", new { Id = id }).Select(s => new SkuModel(s));
-                var existEqualList = existSkus.Select(s => new KeyValuePair<Guid, string>(s.Id, s.ToEqualString()));
-                var equalList = skus.Select(s => new KeyValuePair<Guid, string>(s.Id, s.ToEqualString()));
+                var existProductVariants = con.Query<ProductVariant>("select * from ProductVariant where ProductId=@Id", new { Id = id }).Select(s => new ProductVariantModel(s));
+                var existEqualList = existProductVariants.Select(s => new KeyValuePair<Guid, string>(s.Id, s.ToEqualString()));
+                var equalList = productVariants.Select(s => new KeyValuePair<Guid, string>(s.Id, s.ToEqualString()));
 
                 var deleteList = new List<Guid>();
-                var addList = new List<Models.Sku.SkuModel>();
-                var updateList = new List<Models.Sku.SkuModel>();
+                var addList = new List<Models.ProductVariant.ProductVariantModel>();
+                var updateList = new List<Models.ProductVariant.ProductVariantModel>();
 
                 foreach (var item in existEqualList)
                 {
@@ -41,7 +41,7 @@ namespace Kooboo.Sites.Commerce.Services
                     }
                 }
 
-                foreach (var item in skus)
+                foreach (var item in productVariants)
                 {
                     var equalString = item.ToEqualString();
 
@@ -58,16 +58,16 @@ namespace Kooboo.Sites.Commerce.Services
                     }
                 }
 
-                con.DeleteList<ProductSku>(deleteList);
-                con.InsertList(addList.Select(s => s.ToSku()));
-                con.UpdateList(updateList.Select(s => s.ToSku()));
+                con.DeleteList<ProductVariant>(deleteList);
+                con.InsertList(addList.Select(s => s.ToProductVariant()));
+                con.UpdateList(updateList.Select(s => s.ToProductVariant()));
                 if (deleteList.Count > 0) Deleted(deleteList.ToArray());
                 var changeIds = addList.Union(updateList).Select(s => s.Id).ToArray();
                 if (changeIds.Length > 0) Changed(changeIds);
             }, connection == null, connection == null);
         }
 
-        public SkuDetailModel[] List(Guid productId, IDbConnection connection = null)
+        public ProductVariantDetailModel[] List(Guid productId, IDbConnection connection = null)
         {
             return (connection ?? Commerce.CreateDbConnection()).ExecuteTask(con =>
             {
@@ -81,13 +81,13 @@ SELECT PS.Id,
        PS.Image,
        PS.Enable,
        SUM(CASE WHEN S.Quantity IS NULL THEN 0 ELSE S.Quantity END) AS Stock
-FROM ProductSku PS
-         LEFT JOIN ProductStock S ON PS.Id = S.SkuId
+FROM ProductVariant PS
+         LEFT JOIN ProductStock S ON PS.Id = S.ProductVariantId
 WHERE PS.ProductId=@Id
 GROUP BY PS.Id
 ", new { Id = productId });
 
-                return list.Select(s => new SkuDetailModel
+                return list.Select(s => new ProductVariantDetailModel
                 {
                     Id = s.Id,
                     Enable = s.Enable,

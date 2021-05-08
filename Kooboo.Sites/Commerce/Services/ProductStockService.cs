@@ -24,8 +24,8 @@ namespace Kooboo.Sites.Commerce.Services
 SELECT PS.Id                                                   AS Key,
        CASE WHEN s.Quantity IS NULL THEN 0 ELSE s.Quantity END AS Value
 FROM Product P
-         LEFT JOIN ProductSku PS ON P.Id = PS.ProductId
-         LEFT JOIN ProductStock S ON PS.Id = S.SkuId
+         LEFT JOIN ProductVariant PS ON P.Id = PS.ProductId
+         LEFT JOIN ProductStock S ON PS.Id = S.ProductVariantId
 WHERE P.Id = @Id
 GROUP BY PS.Id
 ", new { Id = productId });
@@ -40,7 +40,7 @@ GROUP BY PS.Id
                         DateTime = DateTime.UtcNow,
                         ProductId = productId,
                         Quantity = item.Value,
-                        SkuId = item.Key,
+                        ProductVariantId = item.Key,
                         Type = StockType.Adjust
                     });
                 }

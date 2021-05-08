@@ -11,7 +11,7 @@ namespace Kooboo.Sites.Commerce.Validators
         public ProductAggregateModelValidator()
         {
             RuleFor(r => r.Product).NotNull();
-            RuleFor(r => r.Skus).NotEmpty();
+            RuleFor(r => r.ProductVariants).NotEmpty();
             RuleFor(r => r.Stocks).NotEmpty();
         }
     }

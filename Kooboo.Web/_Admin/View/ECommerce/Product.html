@@ -229,7 +229,7 @@
       <table
         class="table table-bordered"
         style="margin-top: 15px; text-align: center"
-        v-if="skus.length"
+        v-if="productVariants.length"
       >
         <thead>
           <tr>
@@ -247,38 +247,38 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="sku in skus">
+          <tr v-for="productVariant in productVariants">
             <td v-for="item in model.specifications"
-              >{{getSpecificationValue(item,sku)}}</td
+              >{{getSpecificationValue(item,productVariant)}}</td
             >
             <td
               ><input
                 type="number"
-                v-model.number="getOrNewSpecification(sku).price"
+                v-model.number="getOrNewSpecification(productVariant).price"
                 class="table-input"
-                v-kb-hint="validateModel[getOrNewSpecification(sku).id+'price'].msg"
+                v-kb-hint="validateModel[getOrNewSpecification(productVariant).id+'price'].msg"
             /></td>
             <!-- <td
               ><input
                 type="number"
-                v-model.number="getOrNewSpecification(sku).tax"
+                v-model.number="getOrNewSpecification(productVariant).tax"
                 class="table-input"
-                v-kb-hint="validateModel[getOrNewSpecification(sku).id+'tax'].msg"
+                v-kb-hint="validateModel[getOrNewSpecification(productVariant).id+'tax'].msg"
             /></td> -->
             <td
               ><input
                 type="number"
-                v-model.number="getOrNewSpecification(sku).stock"
+                v-model.number="getOrNewSpecification(productVariant).stock"
                 class="table-input"
-                v-kb-hint="validateModel[getOrNewSpecification(sku).id+'stock'].msg"
+                v-kb-hint="validateModel[getOrNewSpecification(productVariant).id+'stock'].msg"
             /></td>
             <td
               ><input
-                v-model="getOrNewSpecification(sku).name"
+                v-model="getOrNewSpecification(productVariant).name"
                 class="table-input"
             /></td>
             <td>
-              <template v-if="getOrNewSpecification(sku).image">
+              <template v-if="getOrNewSpecification(productVariant).image">
                 <div
                   class="images"
                   style="
@@ -287,7 +287,7 @@
                     height: 50px;
                     margin: 0;
                   "
-                  :style="{backgroundImage: imgUrlWrap(getOrNewSpecification(sku).image.thumbnail)}"
+                  :style="{backgroundImage: imgUrlWrap(getOrNewSpecification(productVariant).image.thumbnail)}"
                 >
                   <i
                     class="fa fa-close"
@@ -297,30 +297,30 @@
                       right: 3px;
                       color: rgb(136, 135, 135);
                     "
-                    @click.stop="getOrNewSpecification(sku).image=null"
+                    @click.stop="getOrNewSpecification(productVariant).image=null"
                   ></i>
                 </div>
               </template>
               <template v-else>
                 <button
                   class="btn"
-                  @click="selectSkuImage(getOrNewSpecification(sku))"
+                  @click="selectProductVariantImage(getOrNewSpecification(productVariant))"
                   >Select</button
                 >
               </template>
             </td>
             <td>
               <span
-                v-if="getOrNewSpecification(sku).enable"
+                v-if="getOrNewSpecification(productVariant).enable"
                 class="label green"
                 style="cursor: pointer"
-                @click="getOrNewSpecification(sku).enable=false"
+                @click="getOrNewSpecification(productVariant).enable=false"
                 >In stock</span
               >
               <span
                 v-else
                 class="label gray"
-                @click="getOrNewSpecification(sku).enable=true"
+                @click="getOrNewSpecification(productVariant).enable=true"
                 style="cursor: pointer"
                 >Drop off</span
               >
@@ -343,7 +343,7 @@
           <div class="col-md-4">
             <input
               class="form-control"
-              v-model.number="getOrNewSpecification(skus[0]).price"
+              v-model.number="getOrNewSpecification(productVariants[0]).price"
             />
           </div>
 
@@ -351,7 +351,7 @@
           <div class="col-md-4">
             <input
               class="form-control"
-              v-model.number="getOrNewSpecification(skus[0]).tax"
+              v-model.number="getOrNewSpecification(productVariants[0]).tax"
             />
           </div>
         </div>
@@ -361,14 +361,14 @@
           <div class="col-md-4">
             <input
               class="form-control"
-              v-model.number="getOrNewSpecification(skus[0]).stock"
+              v-model.number="getOrNewSpecification(productVariants[0]).stock"
             />
           </div>
           <label class="control-label col-md-2">SKU</label>
           <div class="col-md-4">
             <input
               class="form-control"
-              v-model="getOrNewSpecification(skus[0]).name"
+              v-model="getOrNewSpecification(productVariants[0]).name"
             />
           </div>
         </div>

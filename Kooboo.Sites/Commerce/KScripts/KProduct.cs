@@ -12,14 +12,14 @@ namespace Kooboo.Sites.Commerce.KScripts
     public class KProduct
     {
         readonly Lazy<ProductService> _productService;
-        readonly Lazy<ProductSkuService> _productSkuService;
+        readonly Lazy<ProductVariantService> _productVariantService;
         readonly RenderContext _context;
 
         public KProduct(RenderContext context)
         {
             var commerce = SiteCommerce.Get(context.WebSite);
             _productService = new Lazy<ProductService>(() => new ProductService(commerce), true);
-            _productSkuService = new Lazy<ProductSkuService>(() => new ProductSkuService(commerce), true);
+            _productVariantService = new Lazy<ProductVariantService>(() => new ProductVariantService(commerce), true);
         }
 
 
@@ -57,7 +57,7 @@ k.commerce.product.post({
             SiteCommerce.Get(_context.WebSite).CreateDbConnection().ExecuteTask(con =>
             {
                 _productService.Value.Save(model, con);
-                _productSkuService.Value.Save(model.Id, model.ToSkus(), con);
+                _productVariantService.Value.Save(model.Id, model.ToProductVariants(), con);
             }, true);
         }
 

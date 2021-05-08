@@ -14,12 +14,12 @@ namespace Kooboo.Sites.Commerce.Cache
         {
             var productTypeService = commerce.Service<ProductTypeService>();
             var productService = commerce.Service<ProductService>();
-            var productSkuService = commerce.Service<ProductSkuService>();
+            var productVariantService = commerce.Service<ProductVariantService>();
             productTypeService.OnDeleted += _ => Clear();
             productService.OnChanged += _ => Clear();
             productService.OnDeleted += _ => Clear();
-            productSkuService.OnChanged += _ => Clear();
-            productSkuService.OnDeleted += _ => Clear();
+            productVariantService.OnChanged += _ => Clear();
+            productVariantService.OnDeleted += _ => Clear();
         }
 
         protected override Product[] OnGet()
@@ -32,7 +32,7 @@ SELECT P.Id,
        P.TypeId,
        PS.Price,
        PS.Tax
-FROM ProductSku PS
+FROM ProductVariant PS
          LEFT JOIN Product P ON P.Id = PS.ProductId
 ").ToArray();
                 });
