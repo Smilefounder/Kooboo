@@ -44,6 +44,11 @@
             ListPage: GetRoute("Development/Views"),
             Versions: GetRoute("System/Versions")
         },
+        OpenApi: {
+            Create: GetRoute("Development/OpenApi"),
+            DetailPage: GetRoute("Development/OpenApi"),
+            ListPage: GetRoute("Development/OpenApis"),
+        },
         Layout: {
             Create: GetRoute("Development/Layout"),
             DetailPage: GetRoute("Development/Layout"),

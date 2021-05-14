@@ -993,6 +993,19 @@ namespace Kooboo.Sites.Repository
             }
         }
 
+        private OpenApiRepository _openApi;
+        public OpenApiRepository OpenApi
+        {
+            get
+            {
+                if (_openApi == null)
+                {
+                    _openApi = GetSiteRepository<OpenApiRepository, Models.OpenApi>();
+                }
+                return _openApi;
+            }
+        }
+
         // rebuild the index... 
         public void ClearLog(string[] storenames)
         {

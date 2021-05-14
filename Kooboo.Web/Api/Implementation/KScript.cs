@@ -1,7 +1,7 @@
 //Copyright (c) 2018 Yardi Technology Limited. Http://www.kooboo.com 
 //All rights reserved.
 using Kooboo.Api;
-using Kooboo.Web.Frontend.KScriptDefine;
+using Kooboo.Sites.Scripting.KDefine;
 using KScript;
 using System;
 using System.Collections.Generic;
@@ -12,44 +12,13 @@ namespace Kooboo.Web.Api.Implementation
 {
     public class KScriptApi : IApi
     {
+        public string ModelName => "KScript";
+        public bool RequireSite => true;
+        public bool RequireUser => false;
 
-        private readonly Lazy<string> _defineContent;
-
-        public KScriptApi()
+        public string GetDefine(ApiCall apiCall)
         {
-            _defineContent = new Lazy<string>(() =>
-            {
-                var sb = new StringBuilder();
-                var defines = new KScriptToTsDefineConventer().Convent(typeof(KScript.k));
-                sb.Append(defines);
-                sb.Append(Extends());
-                return sb.ToString();
-            }, true);
-        }
-
-        public string ModelName
-        {
-            get { return "KScript"; }
-        }
-
-        public bool RequireSite
-        {
-            get { return false; }
-        }
-
-        public bool RequireUser
-        {
-            get { return false; }
-        }
-
-        public string GetDefine()
-        {
-            return _defineContent.Value;
-        }
-
-        public string Extends()
-        {
-            return @"";
+            return DefineManager.GetDefine(apiCall.WebSite);
         }
 
         public IEnumerable<string> GetTables(ApiCall apiCall, string database)

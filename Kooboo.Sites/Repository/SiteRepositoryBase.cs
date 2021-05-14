@@ -161,7 +161,7 @@ namespace Kooboo.Sites.Repository
                 return _store;
             }
         }
-          
+
         public virtual bool AddOrUpdate(TValue value, Guid UserId)
         {
             lock (_locker)
@@ -261,9 +261,9 @@ namespace Kooboo.Sites.Repository
                 }
             }
 
-      
+
             result = await Store.getAsync(id);
-           
+
 
             if (result != null)
             {
@@ -614,7 +614,7 @@ namespace Kooboo.Sites.Repository
                 ChangeType = changetype,
                 SiteDb = SiteDb,
                 Store = this.Store
-            }; 
+            };
 
 
             if (changetype == ChangeType.Update)
@@ -664,7 +664,7 @@ namespace Kooboo.Sites.Repository
                 {
                     if (objectvalue != null && objectvalue is Kooboo.Sites.Models.Code)
                     {
-                        var code = objectvalue as Code; 
+                        var code = objectvalue as Code;
                         if (code.CodeType == CodeType.Api)
                         {
                             Sites.Helper.ChangeHelper.DeleteRoutableObject(SiteDb, this, objectvalue);
@@ -672,7 +672,7 @@ namespace Kooboo.Sites.Repository
                     }
                 }
 
-                Sites.Helper.ChangeHelper.DeleteComponentFromSource(SiteDb, objectvalue); 
+                Sites.Helper.ChangeHelper.DeleteComponentFromSource(SiteDb, objectvalue);
             }
 
             Relation.RelationManager.Compute(siteevent);
@@ -705,7 +705,7 @@ namespace Kooboo.Sites.Repository
                         this.SiteDb.ImagePool.ClearAll();
                     }
                 }
-                 
+
 
             }
             else
@@ -720,7 +720,7 @@ namespace Kooboo.Sites.Repository
                 //        }
                 //    }
                 //}
-            } 
+            }
         }
 
 
@@ -940,10 +940,10 @@ namespace Kooboo.Sites.Repository
 
                 var exclitem = new ExclLogItem();
                 exclitem.Id = key;
-                exclitem.Log = item; 
+                exclitem.Log = item;
 
-                if (result.Find(o=>o.Id == key)==null)
-                { 
+                if (result.Find(o => o.Id == key) == null)
+                {
                     result.Add(exclitem);
                 }
             }
@@ -954,7 +954,7 @@ namespace Kooboo.Sites.Repository
 
         public void Reuild()
         {
-            this.Store.OwnerDatabase.RebuildObjectStore<Guid, TValue>(this.Store, this.StoreParameters); 
+            this.Store.OwnerDatabase.RebuildObjectStore<Guid, TValue>(this.Store, this.StoreParameters);
         }
 
         public class ExclLogItem : IEquatable<ExclLogItem>
@@ -983,6 +983,6 @@ namespace Kooboo.Sites.Repository
         SiteDb SiteDb { get; set; }
         void init();
 
-        void Reuild(); 
+        void Reuild();
     }
 }

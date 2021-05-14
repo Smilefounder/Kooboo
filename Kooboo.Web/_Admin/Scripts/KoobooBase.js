@@ -213,6 +213,12 @@
   }
   extend(Authentication, BaseModel);
 
+   //OpenApi
+   function OpenApi() {
+    this.name = "OpenApi";
+  }
+  extend(OpenApi, BaseModel);
+
   //CssOptimization
   function CssOptimization() {
     this.name = "CssOptimization";
@@ -1858,6 +1864,7 @@
     View: new View(),
     SqlLog: new SqlLog(),
     Authentication: new Authentication(),
+    OpenApi: new OpenApi(),
     CssOptimization: new CssOptimization(),
   };
   wind.Kooboo.TextContent = new TextContent();

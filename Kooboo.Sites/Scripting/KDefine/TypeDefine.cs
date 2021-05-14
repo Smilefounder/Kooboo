@@ -6,50 +6,15 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using ExtensionAttribute = System.Runtime.CompilerServices.ExtensionAttribute;
 
-[assembly: InternalsVisibleTo("Kooboo.Web.Test")]
-namespace Kooboo.Web.Frontend.KScriptDefine
+namespace Kooboo.Sites.Scripting.KDefine
 {
-    public class KScriptToTsDefineConventer
+    public class TypeDefine
     {
-        internal class Define
-        {
-            public string Namespace { get; set; }
-            public string Name { get; set; }
-            public string Discription { get; set; }
-            public List<string> Extends { get; set; }
-            public List<Property> Properties { get; set; }
-            public List<Method> Methods { get; set; }
-            public Dictionary<string, string> Enums { get; set; }
-            public string ValueType { get; set; }
-        }
-
-        internal class Property
-        {
-            public string Type { get; set; }
-            public string Name { get; set; }
-            public string Discription { get; set; }
-        }
-
-        internal class Method
-        {
-            public string Name { get; set; }
-            public string ReturnType { get; set; }
-            public List<Param> Params { get; set; }
-            public string Discription { get; set; }
-        }
-
-        internal class Param
-        {
-            public string Type { get; set; }
-            public string Name { get; set; }
-        }
-
-        readonly string _indentation = "  ";
-
+        readonly Dictionary<string, Define> _defines = new Dictionary<string, Define>();
         static readonly string[] _skipMthods = new string[] { "GetType", "ToString", "Equals", "GetHashCode", "GetEnumerator" };
         static readonly string[] _skipNamespaces = new string[] { "System", "Jint", "Newtonsoft" };
+        readonly Queue<Type> _queue = new Queue<Type>();
 
         static readonly IDictionary<Type, string> _convertedTypes = new Dictionary<Type, string>()
         {
@@ -72,17 +37,18 @@ namespace Kooboo.Web.Frontend.KScriptDefine
             [typeof(DateTime)] = "Date",
         };
 
-        readonly Dictionary<string, Define> _defines = new Dictionary<string, Define>();
-        readonly Queue<Type> _queue = new Queue<Type>();
-
-        readonly IEnumerable<MethodInfo> _extensionMethodInfos = Lib.Reflection.AssemblyLoader.AllAssemblies
+        static readonly IEnumerable<MethodInfo> _extensionMethodInfos = Lib.Reflection.AssemblyLoader.AllAssemblies
                 .SelectMany(s => s.GetTypes())
                 .SelectMany(s => s.GetMethods())
                 .Where(w => IsExtension(w))
                 .ToArray();
 
-        public string Convent(Type type)
+        public Define[] Defines => _defines.Values.ToArray();
+        public string TypeName { get; }
+        public TypeDefine(Type type)
         {
+            TypeName = $"{GetNamespace(type)}{type.Name};";
+
             void Recursion(Type t)
             {
                 if (IsSystemType(t)) return;
@@ -103,14 +69,11 @@ namespace Kooboo.Web.Frontend.KScriptDefine
             }
 
             Recursion(type);
-
-            return DefinesToString(type);
         }
-
-        internal IEnumerable<Property> GetExtensionProperties(Type type)
+        internal IEnumerable<Define.Property> GetExtensionProperties(Type type)
         {
             var fields = type.GetRuntimeFields().Where(w => IsKExtension(w) && w.IsStatic);
-            var properties = new List<Property>();
+            var properties = new List<Define.Property>();
             var extensions = new List<KeyValuePair<string, Type>>();
 
             foreach (var prop in fields)
@@ -118,7 +81,7 @@ namespace Kooboo.Web.Frontend.KScriptDefine
                 var value = prop.GetValue(null);
                 if (value is KeyValuePair<string, Type>[] items)
                 {
-                    properties.AddRange(items.Select(s => new Property
+                    properties.AddRange(items.Select(s => new Define.Property
                     {
                         Name = CamelCaseName(s.Key),
                         Type = TypeString(type, s.Value),
@@ -129,7 +92,7 @@ namespace Kooboo.Web.Frontend.KScriptDefine
                 {
                     foreach (var item in dynamicItems)
                     {
-                        properties.Add(new Property
+                        properties.Add(new Define.Property
                         {
                             Name = item.Key,
                             Discription = null,
@@ -139,7 +102,7 @@ namespace Kooboo.Web.Frontend.KScriptDefine
                         _defines.Add(item.Key, new Define
                         {
                             Name = item.Key,
-                            Properties = item.Value.Select(s => new Property
+                            Properties = item.Value.Select(s => new Define.Property
                             {
                                 Name = CamelCaseName(s.Name),
                                 Type = TypeString(type, s)
@@ -153,81 +116,6 @@ namespace Kooboo.Web.Frontend.KScriptDefine
 
             return properties.GroupBy(g => g.Name).Select(s => s.Last()).ToList();
         }
-
-        internal string DefinesToString(Type type)
-        {
-            var builder = new StringBuilder();
-
-            builder.AppendLine($"declare const k: {GetNamespace(type)}{type.Name};");
-            foreach (var defines in _defines.GroupBy(global => global.Value.Namespace))
-            {
-                if (!string.IsNullOrWhiteSpace(defines.Key))
-                {
-                    builder.AppendLine($"declare namespace {defines.Key} {{");
-                }
-
-                foreach (var group in defines)
-                {
-                    var define = group.Value;
-                    var declare = string.IsNullOrWhiteSpace(define.Namespace) ? "declare " : string.Empty;
-
-                    if (define.Enums == null)
-                    {
-                        var extends = define.Extends.Any() ? $"extends {string.Join(",", define.Extends)} " : string.Empty;
-                        builder.AppendLine($"{_indentation}{declare}interface {define.Name} {extends}{{");
-
-                        if (define.ValueType != null)
-                        {
-                            builder.AppendLine($"{_indentation}{_indentation}[key:string]:{define.ValueType};");
-                        }
-
-                        if (define.Properties != null)
-                        {
-                            foreach (var item in define.Properties)
-                            {
-                                if (item.Discription != null)
-                                {
-                                    builder.AppendLine($"{_indentation}{_indentation}/** {item.Discription} */");
-                                }
-
-                                builder.AppendLine($"{_indentation}{_indentation}{item.Name}:{item.Type};");
-                            }
-                        }
-
-                        if (define.Methods != null)
-                        {
-                            foreach (var item in define.Methods)
-                            {
-
-                                if (item.Discription != null)
-                                {
-                                    builder.AppendLine($"{_indentation}{_indentation}/** {item.Discription} */");
-                                }
-                                var @params = item.Params.Select(s => $"{s.Name}:{s.Type}");
-                                builder.AppendLine($"{_indentation}{_indentation}{item.Name}({string.Join(",", @params)}):{item.ReturnType};");
-                            }
-                        }
-
-                    }
-                    else
-                    {
-                        var enums = define.Enums.Keys.Select(s => $"'{s}'");
-                        builder.AppendLine($"{_indentation}{declare}type {define.Name} = {string.Join(" | ", enums)};");
-                    }
-
-                    builder.AppendLine($"{_indentation}}}");
-                    builder.AppendLine();
-                }
-
-                if (!string.IsNullOrWhiteSpace(defines.Key))
-                {
-                    builder.AppendLine($"}}");
-                }
-            }
-
-            return builder.ToString();
-        }
-
         internal Define TypeToDefine(Type type)
         {
             Define define;
@@ -249,72 +137,6 @@ namespace Kooboo.Web.Frontend.KScriptDefine
             define.Namespace = GetNamespace(type, false);
             return define;
         }
-
-        internal string GetTypeName(Type type)
-        {
-            var name = type.Name;
-
-            if (type.IsAnsiClass && name.EndsWith("&"))
-            {
-                name = name.Substring(0, name.Length - 1);
-            }
-
-            return name;
-        }
-
-        internal List<Property> GetProperties(Type type)
-        {
-            return type.GetProperties()
-                       .Where(p => p.GetMethod.IsPublic && p.GetCustomAttribute(typeof(KIgnoreAttribute)) == null)
-                       .Select(s => new Property
-                       {
-                           Name = CamelCaseName(s.Name),
-                           Type = TypeString(type, s.PropertyType),
-                           Discription = GetDiscription(s)
-                       }).GroupBy(g => g.Name).Select(s => s.First()).ToList();
-
-        }
-
-        internal List<Method> GetMethods(Type type)
-        {
-            return type.GetMethods()
-                       .Where(p => p.IsPublic && !p.IsSpecialName && !_skipMthods.Contains(p.Name) && p.GetCustomAttribute(typeof(KIgnoreAttribute)) == null)
-                       .Union(_extensionMethodInfos.Where(w => w.GetParameters().FirstOrDefault()?.ParameterType == type))
-                       .Select(s =>
-                       {
-                           var defineType = s.GetCustomAttribute(typeof(KDefineTypeAttribute)) as KDefineTypeAttribute;
-                           var returnType = defineType?.Return ?? s.ReturnType;
-                           var @params = new List<Param>();
-                           var defineParams = defineType?.Params?.GetEnumerator();
-                           var isExtension = s.GetCustomAttributes(false).Any(a => a.GetType() == typeof(ExtensionAttribute));
-                           var rawParams = isExtension ? s.GetParameters().Skip(1) : s.GetParameters();
-
-                           foreach (var item in rawParams)
-                           {
-                               if (!defineParams?.MoveNext() ?? false) defineParams = null;
-                               var itemType = (Type)defineParams?.Current ?? item.ParameterType;
-                               var param = new Param { Name = item.Name, Type = TypeString(type, itemType) };
-                               @params.Add(param);
-                           }
-
-                           return new Method
-                           {
-                               Name = CamelCaseName(s.Name),
-                               Params = @params,
-                               ReturnType = TypeString(type, returnType),
-                               Discription = GetDiscription(s)
-                           };
-                       }).ToList();
-        }
-
-        internal List<string> GetExtends(Type type)
-        {
-            var extends = new List<Type>();
-            extends.AddRange(type.GetInterfaces());
-            if (type.BaseType != null) extends.Add(type.BaseType);
-            return extends.Select(s => TypeString(type, s)).ToList();
-        }
-
         internal Define ConvertClassOrInterface(Type type)
         {
             var valueType = type.GetCustomAttributesData().FirstOrDefault(f => f.AttributeType == typeof(KValueTypeAttribute))?.ConstructorArguments?[0].Value as Type;
@@ -328,30 +150,60 @@ namespace Kooboo.Web.Frontend.KScriptDefine
                 ValueType = valueType == null ? null : TypeString(type, valueType)
             };
         }
-
-        internal Define ConvertEnum(Type type)
+        internal List<Define.Property> GetProperties(Type type)
         {
-            var enumValues = type.GetEnumValues().Cast<int>().ToArray();
-            var enumNames = type.GetEnumNames();
-            var enums = new Dictionary<string, string>();
+            return type.GetProperties()
+                       .Where(p => p.GetMethod.IsPublic && p.GetCustomAttribute(typeof(KIgnoreAttribute)) == null)
+                       .Select(s => new Define.Property
+                       {
+                           Name = CamelCaseName(s.Name),
+                           Type = TypeString(type, s.PropertyType),
+                           Discription = GetDiscription(s)
+                       }).GroupBy(g => g.Name).Select(s => s.First()).ToList();
 
-            for (var i = 0; i < enumValues.Length; i++)
-            {
-                enums.Add(enumNames[i], enumValues[i].ToString());
-            }
-
-            return new Define
-            {
-                Name = type.Name,
-                Enums = enums
-            };
         }
+        internal List<Define.Method> GetMethods(Type type)
+        {
+            return type.GetMethods()
+                       .Where(p => p.IsPublic && !p.IsSpecialName && !_skipMthods.Contains(p.Name) && p.GetCustomAttribute(typeof(KIgnoreAttribute)) == null)
+                       .Union(_extensionMethodInfos.Where(w => w.GetParameters().FirstOrDefault()?.ParameterType == type))
+                       .Select(s =>
+                       {
+                           var defineType = s.GetCustomAttribute(typeof(KDefineTypeAttribute)) as KDefineTypeAttribute;
+                           var returnType = defineType?.Return ?? s.ReturnType;
+                           var @params = new List<Define.Method.Param>();
+                           var defineParams = defineType?.Params?.GetEnumerator();
+                           var isExtension = s.GetCustomAttributes(false).Any(a => a.GetType() == typeof(ExtensionAttribute));
+                           var rawParams = isExtension ? s.GetParameters().Skip(1) : s.GetParameters();
 
+                           foreach (var item in rawParams)
+                           {
+                               if (!defineParams?.MoveNext() ?? false) defineParams = null;
+                               var itemType = (Type)defineParams?.Current ?? item.ParameterType;
+                               var param = new Define.Method.Param { Name = item.Name, Type = TypeString(type, itemType) };
+                               @params.Add(param);
+                           }
+
+                           return new Define.Method
+                           {
+                               Name = CamelCaseName(s.Name),
+                               Params = @params,
+                               ReturnType = TypeString(type, returnType),
+                               Discription = GetDiscription(s)
+                           };
+                       }).ToList();
+        }
+        internal List<string> GetExtends(Type type)
+        {
+            var extends = new List<Type>();
+            extends.AddRange(type.GetInterfaces());
+            if (type.BaseType != null) extends.Add(type.BaseType);
+            return extends.Select(s => TypeString(type, s)).ToList();
+        }
         internal static string CamelCaseName(string pascalCaseName)
         {
             return pascalCaseName[0].ToString().ToLower() + pascalCaseName.Substring(1);
         }
-
         internal string TypeString(Type parentType, Type type)
         {
             var arrayType = GetArrayOrEnumerableType(type);
@@ -365,21 +217,6 @@ namespace Kooboo.Web.Frontend.KScriptDefine
             suffix = nullableType != null ? "|null" : suffix;
             return $"{@namespace}{ConvertType(typeToUse)}{suffix}";
         }
-
-        internal static string GetNamespace(Type type, bool suffix = true)
-        {
-            if (type.FullName == null || type.IsGenericType || IsSystemType(type)) return string.Empty;
-            var arr = type.FullName.Split('.');
-            var @namespace = string.Join(".", arr.Take(arr.Length - 1));
-
-            if (suffix)
-            {
-                @namespace = string.IsNullOrWhiteSpace(@namespace) ? string.Empty : $"{@namespace}.";
-            }
-
-            return @namespace;
-        }
-
         internal static Type GetArrayOrEnumerableType(Type type)
         {
             if (type.IsArray)
@@ -399,7 +236,6 @@ namespace Kooboo.Web.Frontend.KScriptDefine
 
             return null;
         }
-
         internal static Type GetNullableType(Type type)
         {
             if (type.IsConstructedGenericType)
@@ -414,7 +250,6 @@ namespace Kooboo.Web.Frontend.KScriptDefine
 
             return null;
         }
-
         internal string ConvertType(Type typeToUse)
         {
             if (_convertedTypes.ContainsKey(typeToUse))
@@ -438,23 +273,60 @@ namespace Kooboo.Web.Frontend.KScriptDefine
 
             return GetTypeName(typeToUse);
         }
+        internal Define ConvertEnum(Type type)
+        {
+            var enumValues = type.GetEnumValues().Cast<int>().ToArray();
+            var enumNames = type.GetEnumNames();
+            var enums = new Dictionary<string, string>();
 
+            for (var i = 0; i < enumValues.Length; i++)
+            {
+                enums.Add(enumNames[i], enumValues[i].ToString());
+            }
+
+            return new Define
+            {
+                Name = type.Name,
+                Enums = enums
+            };
+        }
+        internal static string GetNamespace(Type type, bool suffix = true)
+        {
+            if (type.FullName == null || type.IsGenericType || IsSystemType(type)) return string.Empty;
+            var arr = type.FullName.Split('.');
+            var @namespace = string.Join(".", arr.Take(arr.Length - 1));
+
+            if (suffix)
+            {
+                @namespace = string.IsNullOrWhiteSpace(@namespace) ? string.Empty : $"{@namespace}.";
+            }
+
+            return @namespace;
+        }
+        internal string GetTypeName(Type type)
+        {
+            var name = type.Name;
+
+            if (type.IsAnsiClass && name.EndsWith("&"))
+            {
+                name = name.Substring(0, name.Length - 1);
+            }
+
+            return name;
+        }
         internal static bool IsSystemType(Type type)
         {
             if (type.FullName == null) return true;
             return _skipNamespaces.Any(a => type.FullName.StartsWith(a));
         }
-
         internal static bool IsKExtension(MemberInfo type)
         {
             return type.CustomAttributes.Any(a => a.AttributeType == typeof(KExtensionAttribute));
         }
-
         internal static bool IsExtension(MemberInfo type)
         {
             return type.CustomAttributes.Any(a => a.AttributeType == typeof(ExtensionAttribute));
         }
-
         internal static string GetDiscription(MemberInfo memberInfo)
         {
             var atr = memberInfo.GetCustomAttribute(typeof(DescriptionAttribute));
