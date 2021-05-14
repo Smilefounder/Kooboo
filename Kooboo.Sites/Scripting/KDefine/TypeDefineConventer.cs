@@ -9,9 +9,10 @@ using System.Text;
 
 namespace Kooboo.Sites.Scripting.KDefine
 {
-    public class TypeDefine
+    public class TypeDefineConventer : IDefineConventer
     {
-        readonly Dictionary<string, Define> _defines = new Dictionary<string, Define>();
+        readonly Type _type;
+
         static readonly string[] _skipMthods = new string[] { "GetType", "ToString", "Equals", "GetHashCode", "GetEnumerator" };
         static readonly string[] _skipNamespaces = new string[] { "System", "Jint", "Newtonsoft" };
         readonly Queue<Type> _queue = new Queue<Type>();
@@ -43,34 +44,13 @@ namespace Kooboo.Sites.Scripting.KDefine
                 .Where(w => IsExtension(w))
                 .ToArray();
 
-        public Define[] Defines => _defines.Values.ToArray();
         public string TypeName { get; }
-        public TypeDefine(Type type)
+        public TypeDefineConventer(Type type)
         {
+            _type = type;
             TypeName = $"{GetNamespace(type)}{type.Name};";
-
-            void Recursion(Type t)
-            {
-                if (IsSystemType(t)) return;
-
-                var define = TypeToDefine(t);
-
-                var extensionProperties = GetExtensionProperties(t);
-                define.Properties?.AddRange(extensionProperties);
-
-                _defines.Add(t.FullName, define);
-
-                while (_queue.Any())
-                {
-                    var nextType = _queue.Dequeue();
-                    if (_defines.ContainsKey(nextType.FullName)) continue;
-                    Recursion(nextType);
-                }
-            }
-
-            Recursion(type);
         }
-        internal IEnumerable<Define.Property> GetExtensionProperties(Type type)
+        internal IEnumerable<Define.Property> GetExtensionProperties(Type type, Dictionary<string, Define> defines)
         {
             var fields = type.GetRuntimeFields().Where(w => IsKExtension(w) && w.IsStatic);
             var properties = new List<Define.Property>();
@@ -99,7 +79,7 @@ namespace Kooboo.Sites.Scripting.KDefine
                             Type = item.Key
                         });
 
-                        _defines.Add(item.Key, new Define
+                        defines.Add(item.Key, new Define
                         {
                             Name = item.Key,
                             Properties = item.Value.Select(s => new Define.Property
@@ -335,6 +315,29 @@ namespace Kooboo.Sites.Scripting.KDefine
                 return discription.Description;
             }
             return null;
+        }
+        public Define[] Convent()
+        {
+            var defines = new Dictionary<string, Define>();
+
+            void Recursion(Type t)
+            {
+                if (IsSystemType(t)) return;
+                var define = TypeToDefine(t);
+                var extensionProperties = GetExtensionProperties(t, defines);
+                define.Properties?.AddRange(extensionProperties);
+                defines.Add(t.FullName, define);
+
+                while (_queue.Any())
+                {
+                    var nextType = _queue.Dequeue();
+                    if (defines.ContainsKey(nextType.FullName)) continue;
+                    Recursion(nextType);
+                }
+            }
+
+            Recursion(_type);
+            return defines.Values.ToArray();
         }
     }
 }

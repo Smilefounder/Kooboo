@@ -1,6 +1,7 @@
 //Copyright (c) 2018 Yardi Technology Limited. Http://www.kooboo.com 
 //All rights reserved.
 using Kooboo.Api;
+using Kooboo.Sites.OpenApi;
 using Kooboo.Sites.Scripting.KDefine;
 using KScript;
 using System;
@@ -16,9 +17,16 @@ namespace Kooboo.Web.Api.Implementation
         public bool RequireSite => true;
         public bool RequireUser => false;
 
+        static readonly Lazy<TypeDefineConventer> _kDefine = new Lazy<TypeDefineConventer>(() => new TypeDefineConventer(typeof(k)), true);
+        static readonly Lazy<string> _kDefineString = new Lazy<string>(() => new DefineStringify(_kDefine.Value.Convent()).ToString(), true);
+
         public string GetDefine(ApiCall apiCall)
         {
-            return DefineManager.GetDefine(apiCall.WebSite);
+            var sb = new StringBuilder();
+            sb.AppendLine(_kDefineString.Value);
+            sb.AppendLine(OpenApiDefineConventer.GetDefinesByWebSite(apiCall.WebSite));
+            sb.AppendLine($"declare const k: {_kDefine.Value.TypeName};");
+            return sb.ToString();
         }
 
         public IEnumerable<string> GetTables(ApiCall apiCall, string database)
