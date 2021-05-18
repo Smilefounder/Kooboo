@@ -1,26 +1,34 @@
-﻿using Kooboo.Data.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Kooboo.Data.Context;
 
 namespace Kooboo.Sites.OpenApi
 {
-    [KValueType(typeof(object))]
     public class KOpenApi
     {
+        readonly RenderContext _context;
 
-        [KIgnore]
-        public object this[string key]
+        public KOpenApi(RenderContext context)
         {
-            get
-            {
-                return Get(key);
-            }
+            _context = context;
         }
 
-        public object Get(string name)
+        public object this[string key] => Get(key);
+
+        public object Get(string name) => new _(name, _context);
+
+        class _
         {
-            return null;
+            readonly string _openApiName;
+            readonly RenderContext _context;
+
+            public _(string openApiName, RenderContext context)
+            {
+                _openApiName = openApiName;
+                _context = context;
+            }
+
+            public object this[string key] => Get(key);
+
+            public object Get(string name) => new Executer(_openApiName, name, _context);
         }
     }
 }

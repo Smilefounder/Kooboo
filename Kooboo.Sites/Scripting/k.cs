@@ -8,6 +8,7 @@ using Kooboo.Data.Context;
 using Kooboo.Data.Interface;
 using Kooboo.Data.Models;
 using Kooboo.Sites.Extensions;
+using Kooboo.Sites.OpenApi;
 using Kooboo.Sites.ScriptDebugger;
 using Kooboo.Sites.Scripting;
 using Kooboo.Sites.Scripting.Global;
@@ -666,6 +667,28 @@ var value = k.session.key; ")]
                     }
                 }
                 return _api;
+            }
+        }
+
+        private KOpenApi _openApi;
+        static object __openApiLocker = new object();
+
+        [KIgnore]
+        public KOpenApi OpenApi
+        {
+            get
+            {
+                if (_openApi == null)
+                {
+                    lock (__openApiLocker)
+                    {
+                        if (_openApi == null)
+                        {
+                            _openApi = new KOpenApi(RenderContext);
+                        }
+                    }
+                }
+                return _openApi;
             }
         }
 

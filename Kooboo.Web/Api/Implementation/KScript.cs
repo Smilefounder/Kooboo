@@ -24,7 +24,7 @@ namespace Kooboo.Web.Api.Implementation
         {
             var sb = new StringBuilder();
             sb.AppendLine(_kDefineString.Value);
-            sb.AppendLine(OpenApiDefineCache.GetDefinesByWebSite(apiCall.WebSite));
+            sb.AppendLine(Sites.OpenApi.Cache.Get(apiCall.WebSite).DefineString);
             sb.AppendLine($"declare const k: {_kDefine.Value.TypeName};");
             return sb.ToString();
         }

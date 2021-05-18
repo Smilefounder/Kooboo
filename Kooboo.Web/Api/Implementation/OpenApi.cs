@@ -15,7 +15,15 @@ namespace Kooboo.Web.Api.Implementation
             var model = JsonHelper.Deserialize<Sites.Models.OpenApi>(call.Context.Request.Body);
             model = Helpers.GetOrValidOpenApiDoc(model);
             call.Context.WebSite.SiteDb().OpenApi.AddOrUpdate(model);
+            Sites.OpenApi.Cache.Remove(call.WebSite);
             return model.Id;
+        }
+
+        public override bool Deletes(ApiCall call)
+        {
+            var result = base.Deletes(call);
+            Sites.OpenApi.Cache.Remove(call.WebSite);
+            return result;
         }
     }
 }

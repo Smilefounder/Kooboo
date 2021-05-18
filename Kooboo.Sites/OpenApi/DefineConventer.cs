@@ -5,32 +5,33 @@ using System.Linq;
 
 namespace Kooboo.Sites.OpenApi
 {
-    public class OpenApiDefineConventer : IDefineConventer
+    public class DefineConventer : IDefineConventer
     {
-        readonly OpenApiDocument _doc;
+        readonly Document _doc;
         readonly string _name;
         readonly string _namespace;
 
-        public OpenApiDefineConventer(OpenApiDocument doc, string name, string @namespace)
+        public DefineConventer(Document doc, string name, string @namespace)
         {
             _doc = doc;
             _name = name;
             _namespace = @namespace;
         }
+
         public Define[] Convent()
         {
             var defines = new List<Define>();
 
-            var result = new Define
+            var define = new Define
             {
                 Namespace = _namespace,
                 Name = _name,
                 Methods = new List<Define.Method>()
             };
 
-            if (_doc.Components?.Schemas != null) AddModels(defines, _doc.Components.Schemas);
-            if (_doc.Paths != null) AddMethod(_doc.Paths, result.Methods);
-            defines.Add(result);
+            if (_doc.Schemas != null) AddModels(defines, _doc.Schemas);
+            if (_doc.Operations != null) AddMethods(defines, define.Methods, _doc.Operations);
+            defines.Add(define);
             return defines.ToArray();
         }
         void AddModels(List<Define> defines, IDictionary<string, OpenApiSchema> schemas)
@@ -67,6 +68,10 @@ namespace Kooboo.Sites.OpenApi
         {
             return name + (schema.Nullable ? "?" : string.Empty);
         }
+        static string NullableWrap(string name, bool nullable)
+        {
+            return name + (nullable ? "?" : string.Empty);
+        }
         static string TypeMapping(OpenApiSchema schema)
         {
             if (schema == null) return "any";
@@ -96,45 +101,60 @@ namespace Kooboo.Sites.OpenApi
                 return "any";
             }
         }
-        static void AddMethod(OpenApiPaths paths, List<Define.Method> methods)
+        void AddMethods(List<Define> defines, List<Define.Method> methods, Dictionary<string, Operation> operations)
         {
-            foreach (var path in paths)
+            foreach (var operation in operations)
             {
-                foreach (var operation in path.Value.Operations)
+                methods.Add(new Define.Method
                 {
-                    methods.Add(new Define.Method
-                    {
-                        Name = Helpers.StandardPath(path.Key, operation.Key),
-                        ReturnType = GetResponse(operation.Value.Responses),
-                        Discription = operation.Value.Description,
-                        Params = GetParams(operation.Value)
-                    });
-                }
+                    Name = operation.Key,
+                    ReturnType = GetResponse(operation.Value.Responses),
+                    Discription = operation.Value.Description,
+                    Params = GetParams(defines, operation.Key, operation.Value)
+                });
             }
         }
-        static List<Define.Method.Param> GetParams(OpenApiOperation operation)
+        List<Define.Method.Param> GetParams(List<Define> defines, string name, Operation operation)
         {
             var @params = new List<Define.Method.Param>();
 
-            foreach (var item in operation.Parameters)
-            {
-                @params.Add(new Define.Method.Param
-                {
-                    Name = NullableWrap(item.Name, item.Schema),
-                    Type = TypeMapping(item.Schema)
-                });
-            }
-
-            if (operation.RequestBody != null)
+            if (operation.Body != null)
             {
                 @params.Add(new Define.Method.Param
                 {
                     Name = "body",
-                    Type = GetBody(operation.RequestBody.Content)
+                    Type = GetBody(operation.Body.Content)
                 });
             }
 
+            if (operation.Querys.Any()) AddParam("query", defines, name, operation.Querys, @params);
+            if (operation.Paths.Any()) AddParam("path", defines, name, operation.Paths, @params);
+            if (operation.Headers.Any()) AddParam("header", defines, name, operation.Headers, @params);
+            if (operation.Cookies.Any()) AddParam("cookie", defines, name, operation.Cookies, @params);
+
             return @params;
+        }
+
+        private void AddParam(string type, List<Define> defines, string operationName, IEnumerable<OpenApiParameter> parameters, List<Define.Method.Param> @params)
+        {
+            var paramName = $"{operationName}_{type}";
+
+            defines.Add(new Define
+            {
+                Namespace = _namespace,
+                Name = paramName,
+                Properties = parameters.Select(s => new Define.Property
+                {
+                    Name = NullableWrap(s.Name, s.Required),
+                    Type = TypeMapping(s.Schema)
+                }).ToList()
+            });
+
+            @params.Add(new Define.Method.Param
+            {
+                Name = type,
+                Type = paramName
+            });
         }
         static string GetBody(IDictionary<string, OpenApiMediaType> content)
         {
