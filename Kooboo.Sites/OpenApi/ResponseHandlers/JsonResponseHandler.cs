@@ -3,15 +3,15 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kooboo.Sites.OpenApi.Senders
+namespace Kooboo.Sites.OpenApi.ResponseHandlers
 {
-    public class JsonSender : HttpSender
+    public class JsonResponseHandler : ResponseHandler
     {
         protected override string ContentType => Executer.DefaultContentType;
 
-        protected override string SerializeBody(object body)
+        public override object Handler(string data)
         {
-            return JsonHelper.Serialize(body);
+            return JsonHelper.Deserialize(data);
         }
     }
 }

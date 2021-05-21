@@ -10,11 +10,9 @@ namespace Kooboo.Sites.OpenApi
 {
     public abstract class HttpSender
     {
+        static readonly List<HttpSender> _senders = Lib.IOC.Service.GetInstances<HttpSender>();
         protected abstract string ContentType { get; }
         protected abstract string SerializeBody(object body);
-        protected abstract object DeserializeResponse(string response);
-
-        static readonly List<HttpSender> _senders = Lib.IOC.Service.GetInstances<HttpSender>();
 
         public static HttpSender GetSender(string contentType)
         {
@@ -23,7 +21,7 @@ namespace Kooboo.Sites.OpenApi
             return sender;
         }
 
-        public object Send(string url, string method, object body, IDictionary<string, string> headers, IDictionary<string, string> cookies)
+        public string Send(string url, string method, object body, IDictionary<string, string> headers, IDictionary<string, string> cookies)
         {
             var request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = method;
@@ -62,9 +60,7 @@ namespace Kooboo.Sites.OpenApi
                 using (var stream = response.GetResponseStream())
                 {
                     var reader = new StreamReader(stream);
-                    var data = reader.ReadToEnd();
-                    if (string.IsNullOrWhiteSpace(data)) return data;
-                    return DeserializeResponse(data);
+                    return reader.ReadToEnd();
                 }
             }
         }

@@ -14,7 +14,7 @@ namespace Kooboo.Sites.OpenApi
 
         public abstract AuthorizeResult Authorize(OpenApiSecurityScheme scheme, Models.OpenApi.AuthorizeData data);
 
-        public static Security GetSecurity(SecuritySchemeType type)
+        public static Security Get(SecuritySchemeType type)
         {
             var security = _securities.First(f => f.Type == type);
             if (security == null) throw new Exception($"Not support security type {type}");

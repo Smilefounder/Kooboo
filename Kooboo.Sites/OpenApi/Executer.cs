@@ -3,6 +3,7 @@ using Jint.Native.Function;
 using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Scripting;
+using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,7 +57,7 @@ namespace Kooboo.Sites.OpenApi
                 var name = operation.Security.Reference?.Id;
                 doc.Securities.TryGetValue(name, out var data);
                 if (data == null) throw new Exception($"Not security {name} settings");
-                var security = Security.GetSecurity(operation.Security.Type);
+                var security = Security.Get(operation.Security.Type);
                 var securityResult = security.Authorize(operation.Security, data);
                 querys = MergeSecurity(querys, securityResult.Querys);
                 headers = MergeSecurity(headers, securityResult.Headers);
@@ -65,9 +66,31 @@ namespace Kooboo.Sites.OpenApi
 
             if (paths != null) url = FillUrl(url, paths);
             if (querys != null) url = UrlHelper.AppendQueryString(url, querys);
-            var contentType = GetContentType(operation);
-            var result = HttpSender.GetSender(contentType).Send(url, operation.Method, body, headers, cookies);
+            var requestContentType = GetRequestContentType(operation);
+            var str = HttpSender.GetSender(requestContentType).Send(url, operation.Method, body, headers, cookies);
+            var responseContentType = GetResponseContentType(operation);
+            var result = ResponseHandler.Get(responseContentType).Handler(str);
             return JsValue.FromObject(Engine, result);
+        }
+
+        private string GetRequestContentType(Operation operation)
+        {
+            if ((operation.Body?.Content?.Count ?? 0) == 0) return DefaultContentType;
+            if (operation.Body.Content.Any(f => f.Key == DefaultContentType)) return DefaultContentType;
+            return operation.Body.Content.FirstOrDefault().Key;
+        }
+
+        private string GetResponseContentType(Operation operation)
+        {
+            if ((operation.Responses?.Count ?? 0) == 0) return DefaultContentType;
+
+            if (!operation.Responses.TryGetValue("200", out OpenApiResponse response))
+            {
+                response = operation.Responses.First().Value;
+            }
+
+            if (response.Content.Any(f => f.Key == DefaultContentType)) return DefaultContentType;
+            return response.Content.FirstOrDefault().Key;
         }
 
         private static Dictionary<string, string> MergeSecurity(Dictionary<string, string> request, Dictionary<string, string> security)
@@ -85,13 +108,6 @@ namespace Kooboo.Sites.OpenApi
             return request;
         }
 
-        private string GetContentType(Operation operation)
-        {
-            if ((operation.Body?.Content?.Count ?? 0) == 0) return DefaultContentType;
-            var isJson = operation.Body.Content.Any(f => f.Key == DefaultContentType);
-            if (isJson) return DefaultContentType;
-            return operation.Body.Content.FirstOrDefault().Key;
-        }
 
         Dictionary<string, string> ToDictionary(JsValue value)
         {
