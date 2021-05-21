@@ -31,10 +31,10 @@ namespace Kooboo.Sites.OpenApi
             if (doc == null) throw new Exception($"Can not found openApi {_openApiName}");
             doc.Operations.TryGetValue(_pathName, out var operation);
             if (operation == null) throw new Exception($"Can not found openApi operation {_pathName}");
-            return Send(operation, arguments);
+            return Send(doc, operation, arguments);
         }
 
-        JsValue Send(Operation operation, JsValue[] arguments)
+        JsValue Send(Document doc, Operation operation, JsValue[] arguments)
         {
             var url = operation.Url.ToLower();
             var queue = new Queue<JsValue>(arguments);
@@ -51,17 +51,38 @@ namespace Kooboo.Sites.OpenApi
             if (operation.Headers.Any()) headers = ToDictionary(queue.Dequeue());
             if (operation.Cookies.Any()) cookies = ToDictionary(queue.Dequeue());
 
-            if (paths != null) url = FillUrl(url, paths);
-            if (querys != null) url = UrlHelper.AppendQueryString(url, querys);
-
-            var contentType = GetContentType(operation);
-
-            if (operation.Security != null) {
-                
+            if (operation.Security != null)
+            {
+                var name = operation.Security.Reference?.Id;
+                doc.Securities.TryGetValue(name, out var data);
+                if (data == null) throw new Exception($"Not security {name} settings");
+                var security = Security.GetSecurity(operation.Security.Type);
+                var securityResult = security.Authorize(operation.Security, data);
+                querys = MergeSecurity(querys, securityResult.Querys);
+                headers = MergeSecurity(headers, securityResult.Headers);
+                cookies = MergeSecurity(cookies, securityResult.Cookies);
             }
 
+            if (paths != null) url = FillUrl(url, paths);
+            if (querys != null) url = UrlHelper.AppendQueryString(url, querys);
+            var contentType = GetContentType(operation);
             var result = HttpSender.GetSender(contentType).Send(url, operation.Method, body, headers, cookies);
             return JsValue.FromObject(Engine, result);
+        }
+
+        private static Dictionary<string, string> MergeSecurity(Dictionary<string, string> request, Dictionary<string, string> security)
+        {
+            if (security != null)
+            {
+                if (request == null) request = new Dictionary<string, string>();
+
+                foreach (var item in security)
+                {
+                    if (!request.ContainsKey(item.Key)) request.Add(item.Key, item.Value);
+                }
+            }
+
+            return request;
         }
 
         private string GetContentType(Operation operation)

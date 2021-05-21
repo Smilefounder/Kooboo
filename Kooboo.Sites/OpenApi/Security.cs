@@ -1,64 +1,49 @@
 ﻿using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Kooboo.Sites.OpenApi
 {
-    public class Security
+    public abstract class Security
     {
-        public Security(OpenApiSecurityScheme scheme)
-        {
+        static readonly List<Security> _securities = Lib.IOC.Service.GetInstances<Security>();
 
-            Type = scheme.Type;
-            Description = scheme.Description;
-            Name = scheme.Name;
-            In = scheme.In;
-            Scheme = scheme.Scheme;
-            BearerFormat = scheme.BearerFormat;
-            OpenIdConnectUrl = scheme.OpenIdConnectUrl?.ToString();
-            if (scheme.Flows != null) Flows = new OAuthFlows(scheme.Flows);
+        public abstract SecuritySchemeType Type { get; }
+
+        public abstract AuthorizeResult Authorize(OpenApiSecurityScheme scheme, Models.OpenApi.AuthorizeData data);
+
+        public static Security GetSecurity(SecuritySchemeType type)
+        {
+            var security = _securities.First(f => f.Type == type);
+            if (security == null) throw new Exception($"Not support security type {type}");
+            return security;
         }
 
-        public SecuritySchemeType Type { get; set; }
-        public string Description { get; set; }
-        public string Name { get; set; }
-        public ParameterLocation In { get; set; }
-        public string Scheme { get; set; }
-        public string BearerFormat { get; set; }
-        public string OpenIdConnectUrl { get; set; }
-        public OAuthFlows Flows { get; set; }
-
-        public class OAuthFlows
+        public class AuthorizeResult
         {
-            public OAuthFlows(OpenApiOAuthFlows flows)
+            public Dictionary<string, string> Querys { get; private set; }
+            public Dictionary<string, string> Headers { get; private set; }
+            public Dictionary<string, string> Cookies { get; private set; }
+
+            public void AddQuery(string name, string value)
             {
-                if (flows.Implicit != null) Implicit = new OAuthFlow(flows.Implicit);
-                if (flows.Password != null) Password = new OAuthFlow(flows.Password);
-                if (flows.ClientCredentials != null) ClientCredentials = new OAuthFlow(flows.ClientCredentials);
-                if (flows.AuthorizationCode != null) AuthorizationCode = new OAuthFlow(flows.AuthorizationCode);
+                if (Querys == null) Querys = new Dictionary<string, string>();
+                Querys.Add(name, value);
             }
 
-            public OAuthFlow Implicit { get; set; }
-            public OAuthFlow Password { get; set; }
-            public OAuthFlow ClientCredentials { get; set; }
-            public OAuthFlow AuthorizationCode { get; set; }
-        }
-
-        public class OAuthFlow
-        {
-            public OAuthFlow(OpenApiOAuthFlow flow)
+            public void AddHeader(string name, string value)
             {
-                AuthorizationUrl = flow.AuthorizationUrl.ToString();
-                TokenUrl = flow.TokenUrl.ToString();
-                RefreshUrl = flow.RefreshUrl.ToString();
-                Scopes = flow.Scopes;
+                if (Headers == null) Headers = new Dictionary<string, string>();
+                Headers.Add(name, value);
             }
 
-            public string AuthorizationUrl { get; set; }
-            public string TokenUrl { get; set; }
-            public string RefreshUrl { get; set; }
-            public IDictionary<string, string> Scopes { get; set; }
+            public void AddCookie(string name, string value)
+            {
+                if (Cookies == null) Cookies = new Dictionary<string, string>();
+                Cookies.Add(name, value);
+            }
         }
     }
 }

@@ -15,21 +15,19 @@ namespace Kooboo.Sites.OpenApi
         readonly Lazy<string> _server;
         readonly Lazy<string> _description;
         readonly Lazy<IDictionary<string, OpenApiSchema>> _schemas;
-        readonly Lazy<Dictionary<string, Security>> _securities;
         readonly Lazy<Dictionary<string, Operation>> _operations;
 
         public string Server => _server.Value;
         public string Description => _description.Value;
         public IDictionary<string, OpenApiSchema> Schemas => _schemas.Value;
         public Dictionary<string, Operation> Operations => _operations.Value;
-        public Dictionary<string, Security> Securities => _securities.Value;
+        public Dictionary<string, Models.OpenApi.AuthorizeData> Securities => _openApi.Securities;
 
         public Document(Models.OpenApi openApi)
         {
             _openApi = openApi;
             _doc = new Lazy<OpenApiDocument>(() => new OpenApiStringReader().Read(openApi.JsonData, out _), true);
             _schemas = new Lazy<IDictionary<string, OpenApiSchema>>(() => _doc.Value.Components?.Schemas, true);
-            _securities = new Lazy<Dictionary<string, Security>>(GetSecurities, true);
             _server = new Lazy<string>(GetServer, true);
             _description = new Lazy<string>(GetDescription, true);
             _operations = new Lazy<Dictionary<string, Operation>>(GetOperations, true);
@@ -79,13 +77,6 @@ namespace Kooboo.Sites.OpenApi
             //TODO add auth server ...
 
             return sb.ToString();
-        }
-
-        Dictionary<string, Security> GetSecurities()
-        {
-            var schemes = _doc.Value.Components?.SecuritySchemes;
-            if (schemes == null) return null;
-            return schemes.ToDictionary(s => s.Key, s => new Security(s.Value));
         }
     }
 }
