@@ -1,17 +1,11 @@
 ﻿using Jint.Native;
 using Jint.Native.Function;
-using Jint.Native.Json;
 using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Scripting;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Web;
 
 namespace Kooboo.Sites.OpenApi
 {
@@ -20,6 +14,7 @@ namespace Kooboo.Sites.OpenApi
         readonly string _openApiName;
         readonly string _pathName;
         readonly RenderContext _renderContext;
+        public static string DefaultContentType => "application/json";
 
         public Executer(string openApiName, string pathName, RenderContext renderContext)
             : base(Manager.GetJsEngine(renderContext), null, null, false)
@@ -43,61 +38,53 @@ namespace Kooboo.Sites.OpenApi
         {
             var url = operation.Url.ToLower();
             var queue = new Queue<JsValue>(arguments);
-            StringContent content;
+            object body = null;
 
-            if (operation.Body == null)
-            {
-                content = new StringContent("");
+            Dictionary<string, string> querys = null;
+            Dictionary<string, string> paths = null;
+            Dictionary<string, string> headers = null;
+            Dictionary<string, string> cookies = null;
+
+            if (operation.Body != null) body = queue.Dequeue().ToObject();
+            if (operation.Querys.Any()) querys = ToDictionary(queue.Dequeue());
+            if (operation.Paths.Any()) paths = ToDictionary(queue.Dequeue());
+            if (operation.Headers.Any()) headers = ToDictionary(queue.Dequeue());
+            if (operation.Cookies.Any()) cookies = ToDictionary(queue.Dequeue());
+
+            if (paths != null) url = FillUrl(url, paths);
+            if (querys != null) url = UrlHelper.AppendQueryString(url, querys);
+
+            var contentType = GetContentType(operation);
+
+            if (operation.Security != null) {
+                
             }
-            else
-            {
-                var json = JsonHelper.Serialize(queue.Dequeue().ToObject());
-                content = new StringContent(json, Encoding.UTF8);
-                content.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
-            }
 
-            if (operation.Querys.Any()) url = AppendQueryString(url, queue.Dequeue());
-            if (operation.Paths.Any()) url = FillUrl(url, queue.Dequeue());
-            if (operation.Headers.Any()) FillHeader(content.Headers, queue.Dequeue());
-            // if (operation.Cookies.Any()) url = FillUrl(url, queue.Dequeue());
-
-
-            var response = HttpClientHelper.Client.SendAsync(new HttpRequestMessage
-            {
-                Method = operation.Method,
-                RequestUri = new Uri(url),
-                Content = content
-            }).Result;
-
-            var byteArray = response.Content.ReadAsByteArrayAsync().Result;
-            var result = Encoding.UTF8.GetString(byteArray, 0, byteArray.Length);
-            if (JsonHelper.IsJson(result)) return new JsonParser(Engine).Parse(result);
+            var result = HttpSender.GetSender(contentType).Send(url, operation.Method, body, headers, cookies);
             return JsValue.FromObject(Engine, result);
         }
 
-        private void FillHeader(HttpContentHeaders headers, JsValue jsValue)
+        private string GetContentType(Operation operation)
         {
-            var dic = jsValue.ToObject() as IDictionary<string, object>;
-
-            foreach (var item in dic)
-            {
-                headers.TryAddWithoutValidation(item.Key, item.Value.ToString());
-            }
+            if ((operation.Body?.Content?.Count ?? 0) == 0) return DefaultContentType;
+            var isJson = operation.Body.Content.Any(f => f.Key == DefaultContentType);
+            if (isJson) return DefaultContentType;
+            return operation.Body.Content.FirstOrDefault().Key;
         }
 
-        private string AppendQueryString(string url, JsValue jsValue)
+        Dictionary<string, string> ToDictionary(JsValue value)
         {
-            var dic = jsValue.ToObject() as IDictionary<string, object>;
-            return UrlHelper.AppendQueryString(url, dic.ToDictionary(k => k.Key, v => v.Value.ToString()));
+            if (value == null) return null;
+            var obj = value.ToObject() as IDictionary<string, object>;
+            if (obj == null) return null;
+            return obj.ToDictionary(o => o.Key, o => o.Value.ToString());
         }
 
-        private string FillUrl(string url, JsValue jsValue)
+        private string FillUrl(string url, IDictionary<string, string> dic)
         {
-            var dic = jsValue.ToObject() as IDictionary<string, object>;
-
             foreach (var item in dic)
             {
-                url = url.Replace($"{{{item.Key.ToLower()}}}", item.Value.ToString());
+                url = url.Replace($"{{{item.Key.ToLower()}}}", item.Value);
             }
 
             return url;

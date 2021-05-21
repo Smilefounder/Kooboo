@@ -1,11 +1,13 @@
 ﻿using Kooboo.Lib.Helper;
 using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Readers;
+using Microsoft.OpenApi.Validations;
 using Microsoft.OpenApi.Writers;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -14,6 +16,8 @@ namespace Kooboo.Sites.OpenApi
 {
     public static class Helpers
     {
+        static readonly Lazy<HttpClient> _client = new Lazy<HttpClient>(() => new HttpClient(), true);
+
         public static Models.OpenApi GetOrValidOpenApiDoc(Models.OpenApi openApi)
         {
             if (openApi.IsRemote)
@@ -30,7 +34,11 @@ namespace Kooboo.Sites.OpenApi
             else
             {
                 doc = new OpenApiStringReader().Read(openApi.JsonData, out var diagnostic);
-                if (diagnostic.Errors.Any()) throw new Exception($"Add OpenApi Error {string.Join(" ", diagnostic.Errors.Select(s => s.Message))}");
+
+                if (diagnostic.Errors.Where(w => !(w is OpenApiValidatorError)).Any())
+                {
+                    throw new Exception($"Add OpenApi Error {string.Join(" ", diagnostic.Errors.Select(s => s.Message))}");
+                }
             }
 
             using (var textWriter = new StringWriter())
@@ -39,6 +47,7 @@ namespace Kooboo.Sites.OpenApi
                 doc.SerializeAsV3(jsonWriter);
                 textWriter.Flush();
                 openApi.JsonData = textWriter.ToString();
+                if (openApi.Securities == null) openApi.Securities = new Dictionary<string, Models.OpenApi.AuthorizeData>();
                 return openApi;
             }
         }

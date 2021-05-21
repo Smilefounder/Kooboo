@@ -17,7 +17,9 @@
   </div>
   <kb-table :data="model" show-select :selected.sync="selectedRows">
     <kb-table-column :label="Kooboo.text.common.name">
-      <template v-slot="row"> {{row.name}} </template>
+      <template v-slot="row">
+        <a :href="getDetailUrl(row.id)">{{row.name}}</a>
+      </template>
     </kb-table-column>
 
     <kb-table-column label="Is remote">
@@ -39,62 +41,70 @@
 
     <kb-table-column align="right" width="200px">
       <template v-slot="row">
+        <a class="btn blue" @click.stop="showAuthorize(row)">Authorize</a>
         <a class="btn blue" @click.stop="edit(row)">Edit</a>
       </template>
     </kb-table-column>
   </kb-table>
-  <div
-    class="modal fade"
-    data-backdrop="static"
-    data-keyboard="false"
-    v-kb-modal="showModal"
-  >
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button class="close" @click="showModal=false"
-            ><i class="fa fa-close"></i
-          ></button>
-          <h4 class="modal-title">Create</h4>
-        </div>
-        <div class="modal-body" v-if="showModal&&!!modalData">
-          <kb-form :model="modalData" :rules="modalDataRules" ref="form">
-            <kb-form-item prop="name">
-              <label class="control-label col-md-3">Name</label>
-              <div class="col-md-9">
-                <input
-                  type="text"
-                  class="form-control"
-                  v-model="modalData.name"
-                  :disabled="isEdit"
-                />
-              </div>
-            </kb-form-item>
-            <kb-form-item prop="isRemote">
-              <label class="control-label col-md-3">Is remote</label>
-              <div class="col-md-9">
-                <kb-switch v-model="modalData.isRemote"></kb-switch>
-              </div>
-            </kb-form-item>
-            <kb-form-item prop="url" v-if="modalData.isRemote">
-              <label class="control-label col-md-3">Url</label>
-              <div class="col-md-9">
-                <input
-                  type="text"
-                  class="form-control"
-                  v-model="modalData.url"
-                  placeholder="https://generator3.swagger.io/openapi.json"
-                />
-              </div>
-            </kb-form-item>
-          </kb-form>
-        </div>
-        <div class="modal-footer">
-          <button @click="save" class="btn green">Start</button>
-          <button @click="showModal=false" class="btn gray">Cancel</button>
+  <div>
+    <div
+      class="modal fade"
+      data-backdrop="static"
+      data-keyboard="false"
+      v-kb-modal="showModal"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button class="close" @click="showModal=false"
+              ><i class="fa fa-close"></i
+            ></button>
+            <h4 class="modal-title" v-if="isEdit">Edit</h4>
+            <h4 class="modal-title" v-else>Create</h4>
+          </div>
+          <div class="modal-body" v-if="showModal&&!!modalData">
+            <kb-form :model="modalData" :rules="modalDataRules" ref="form">
+              <kb-form-item prop="name">
+                <label class="control-label col-md-3">Name</label>
+                <div class="col-md-9">
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="modalData.name"
+                    :disabled="isEdit"
+                  />
+                </div>
+              </kb-form-item>
+              <kb-form-item prop="isRemote">
+                <label class="control-label col-md-3">Is remote</label>
+                <div class="col-md-9">
+                  <kb-switch v-model="modalData.isRemote"></kb-switch>
+                </div>
+              </kb-form-item>
+              <kb-form-item prop="url" v-if="modalData.isRemote">
+                <label class="control-label col-md-3">Url</label>
+                <div class="col-md-9">
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="modalData.url"
+                    placeholder="https://generator3.swagger.io/openapi.json"
+                  />
+                </div>
+              </kb-form-item>
+            </kb-form>
+          </div>
+          <div class="modal-footer">
+            <button @click="save" class="btn green">Start</button>
+            <button @click="showModal=false" class="btn gray">Cancel</button>
+          </div>
         </div>
       </div>
     </div>
+  </div>
+
+  <div>
+    <kb-authorize-modal v-model="showAuthorizeModal" :id="selectedId" @ok="getList" />
   </div>
 </div>
 
@@ -105,6 +115,7 @@
     "/_Admin/Scripts/components/kbForm.js",
     "/_Admin/Scripts/lib/bootstrap-switch/bootstrap-switch.min.js",
     "/_Admin/Scripts/components/kbSwitch.js",
+    "/_Admin/Scripts/components/openApi/kb-authorize-modal.js",
   ]);
 
   Kooboo.loadCSS([
@@ -132,6 +143,8 @@
         showModal: false,
         modalData: null,
         isEdit: false,
+        showAuthorizeModal: false,
+        selectedId: null,
       };
     },
     mounted() {
@@ -237,6 +250,10 @@
           isRemote: row.isRemote,
         };
         this.showModal = true;
+      },
+      showAuthorize(row) {
+        this.selectedId = row.id;
+        this.showAuthorizeModal = true;
       },
     },
     watch: {
