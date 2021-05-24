@@ -34,6 +34,10 @@ namespace Kooboo.Sites.Models
             public string Token { get; set; }
             public string ClientId { get; set; }
             public string ClientSecret { get; set; }
+            public string Scope { get; set; }
+            public string AccessToken { get; set; }
+            public string TokenType { get; set; }
+            public DateTime ExpiresIn { get; set; }
         }
 
         //TODO Cache

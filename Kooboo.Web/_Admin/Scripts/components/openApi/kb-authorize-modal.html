@@ -18,40 +18,51 @@
         </template>
         <template v-for="security in securities">
           <div class="panel panel-default">
-            <div class="panel-heading">{{security.name}}</div>
+            <div class="panel-heading">
+              {{security.name}} ( {{getTypeDisplay(security)}} )
+            </div>
             <div class="panel-body">
               <div class="form-horizontal">
+                <template v-if="security.type=='http'">
+                  <template v-if="getScheme(security.value)=='basic'">
+                    <div class="form-group">
+                      <label class="control-label col-md-3">Username</label>
+                      <div class="col-md-9">
+                        <input
+                          class="form-control"
+                          v-model="getData(security.name).username"
+                        />
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label col-md-3">Password</label>
+                      <div class="col-md-9">
+                        <input
+                          class="form-control"
+                          type="password"
+                          v-model="getData(security.name).password"
+                        />
+                      </div>
+                    </div>
+                  </template>
+                  <template v-if="getScheme(security.value)=='bearer'">
+                    <div class="form-group">
+                      <label class="control-label col-md-3">Bearer</label>
+                      <div class="col-md-9">
+                        <input
+                          class="form-control"
+                          v-model="getData(security.name).token"
+                        />
+                      </div>
+                    </div>
+                  </template>
+                </template>
+
                 <template v-if="security.type=='apiKey'">
-                  <div class="alert alert-success" role="alert">
-                    In: {{security.value.in}} ; Name: {{security.value.name}}
-                  </div>
-                </template>
-                <template v-if="getScheme(security.value)=='basic'">
                   <div class="form-group">
-                    <label class="control-label col-md-3">Username</label>
-                    <div class="col-md-9">
-                      <input
-                        class="form-control"
-                        v-model="getData(security.name).username"
-                      />
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="control-label col-md-3">Password</label>
-                    <div class="col-md-9">
-                      <input
-                        class="form-control"
-                        type="password"
-                        v-model="getData(security.name).password"
-                      />
-                    </div>
-                  </div>
-                </template>
-                <template
-                  v-if="getScheme(security.value)=='bearer'||security.type=='apiKey'"
-                >
-                  <div class="form-group">
-                    <label class="control-label col-md-3">Token</label>
+                    <label class="control-label col-md-3"
+                      >{{security.value.name}}</label
+                    >
                     <div class="col-md-9">
                       <input
                         class="form-control"
@@ -60,43 +71,42 @@
                     </div>
                   </div>
                 </template>
+
+                <template v-if="security.type=='oauth2'">
+                  <div class="form-group">
+                    <label class="control-label col-md-3">Client id</label>
+                    <div class="col-md-9">
+                      <input
+                        class="form-control"
+                        v-model="getData(security.name).clientId"
+                      />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="control-label col-md-3">Client secret</label>
+                    <div class="col-md-9">
+                      <input
+                        class="form-control"
+                        type="password"
+                        v-model="getData(security.name).clientSecret"
+                      />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="control-label col-md-3">Scope</label>
+                    <div class="col-md-9">
+                      <input
+                        class="form-control"
+                        type="password"
+                        v-model="getData(security.name).scope"
+                      />
+                    </div>
+                  </div>
+                </template>
               </div>
             </div>
           </div>
         </template>
-        <!-- <kb-form :model="editData">
-          <kb-form-item v-if="schemeValue=='basic'">
-            <label class="control-label col-md-3">Username</label>
-            <div class="col-md-9">
-              <input
-                type="text"
-                class="form-control"
-                v-model="editData.username"
-              />
-            </div>
-          </kb-form-item>
-
-          <kb-form-item v-if="schemeValue=='basic'">
-            <label class="control-label col-md-3">Password</label>
-            <div class="col-md-9">
-              <input
-                type="password"
-                class="form-control"
-                v-model="editData.password"
-              />
-            </div>
-          </kb-form-item>
-          <kb-form-item v-if="(schemeValue=='bearer')||scheme.type=='apiKey'">
-            <label class="control-label col-md-3">Token</label>
-            <div class="col-md-9">
-              <input
-                type="text"
-                class="form-control"
-                v-model="editData.token"
-              />
-            </div>
-          </kb-form-item>
-        </kb-form> -->
       </div>
       <div class="modal-footer">
         <button class="btn green" @click="save" v-if="securities.length"

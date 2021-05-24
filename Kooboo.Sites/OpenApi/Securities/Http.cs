@@ -35,8 +35,7 @@ namespace Kooboo.Sites.OpenApi.Securities
 
         private void Basic(AuthorizeResult result, Models.OpenApi.AuthorizeData data)
         {
-            var plainTextBytes = Encoding.UTF8.GetBytes($"{data.Username}:{data.Password}");
-            var token = Convert.ToBase64String(plainTextBytes);
+            var token = Helpers.BasicAuthEncode(data.Username, data.Password);
             result.AddHeader("Authorization", $"Basic {token}");
         }
     }

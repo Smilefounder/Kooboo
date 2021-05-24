@@ -16,8 +16,6 @@ namespace Kooboo.Sites.OpenApi
 {
     public static class Helpers
     {
-        static readonly Lazy<HttpClient> _client = new Lazy<HttpClient>(() => new HttpClient(), true);
-
         public static Models.OpenApi GetOrValidOpenApiDoc(Models.OpenApi openApi)
         {
             if (openApi.IsRemote)
@@ -62,6 +60,14 @@ namespace Kooboo.Sites.OpenApi
         public static string StandardPath(string name, OperationType type)
         {
             return $"{StandardName(name)}_{type}";
+        }
+
+        public static string BasicAuthEncode(string username, string password)
+        {
+            if (string.IsNullOrWhiteSpace(username)) throw new Exception($"Http basic auth username can not empty");
+            if (string.IsNullOrWhiteSpace(password)) throw new Exception($"Http basic auth password can not empty");
+            var plainTextBytes = Encoding.UTF8.GetBytes($"{username}:{password}");
+            return Convert.ToBase64String(plainTextBytes);
         }
     }
 }

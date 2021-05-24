@@ -59,6 +59,19 @@
         if (!item.scheme) return null;
         return item.scheme.toLowerCase();
       },
+      getFlow(item) {
+        var result = null;
+        if (!item.flows) return result;
+
+        for (const key in item.flows) {
+          result = {
+            name: key,
+            flow: item.flows[key],
+          };
+        }
+
+        return result;
+      },
       getData(key) {
         if (!this.data[key]) {
           var data;
@@ -74,6 +87,7 @@
               username: "",
               password: "",
               token: "",
+              scope: "",
             };
           }
 
@@ -81,6 +95,16 @@
         }
 
         return this.data[key];
+      },
+      getTypeDisplay(item) {
+        var result = item.type;
+        var scheme = this.getScheme(item.value);
+        var flow = this.getFlow(item.value);
+        if (item.value.in) result += ` [In:${item.value.in}] `;
+        if (item.value.name) result += ` [Name:${item.value.name}] `;
+        if (scheme) result += ` ,${scheme}`;
+        if (flow) result += ` ,${flow.name}`;
+        return result;
       },
     },
     watch: {

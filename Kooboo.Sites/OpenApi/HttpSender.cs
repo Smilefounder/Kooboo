@@ -17,7 +17,7 @@ namespace Kooboo.Sites.OpenApi
         public static HttpSender GetSender(string contentType)
         {
             var sender = _senders.FirstOrDefault(f => contentType.Contains(f.ContentType));
-            if (sender == null) sender = _senders.First(f => f is JsonSender);
+            if (sender == null) sender = _senders.First(f => f is Json);
             return sender;
         }
 
