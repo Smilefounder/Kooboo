@@ -34,10 +34,11 @@ namespace Kooboo.Sites.Models
             public string Token { get; set; }
             public string ClientId { get; set; }
             public string ClientSecret { get; set; }
-            public string Scope { get; set; }
             public string AccessToken { get; set; }
+            public string RefreshToken { get; set; }
             public string TokenType { get; set; }
             public DateTime ExpiresIn { get; set; }
+            public string RedirectUrl { get; set; }
         }
 
         //TODO Cache
@@ -55,11 +56,15 @@ namespace Kooboo.Sites.Models
                 foreach (var item in Securities)
                 {
                     un += item.Key;
-                    un += item.Value.Username;
-                    un += item.Value.Password;
-                    un += item.Value.Token;
-                    un += item.Value.ClientId;
-                    un += item.Value.ClientSecret;
+                    un += item.Value?.Username;
+                    un += item.Value?.Password;
+                    un += item.Value?.Token;
+                    un += item.Value?.ClientId;
+                    un += item.Value?.ClientSecret;
+                    un += item.Value?.AccessToken;
+                    un += item.Value?.RefreshToken;
+                    un += item.Value?.ExpiresIn;
+                    un += item.Value?.RedirectUrl;
                 }
             }
 

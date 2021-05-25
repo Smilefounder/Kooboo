@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Kooboo.Sites.Scripting.KDefine
 {
     public class Define
     {
+        private string name;
+
         public string Namespace { get; set; }
-        public string Name { get; set; }
+        public string Name { get => StandardName(name); set => name = value; }
         public string Discription { get; set; }
         public List<string> Extends { get; set; } = new List<string>();
         public List<Property> Properties { get; set; }
@@ -17,8 +20,10 @@ namespace Kooboo.Sites.Scripting.KDefine
 
         public class Property
         {
+            private string name;
+
             public string Type { get; set; }
-            public string Name { get; set; }
+            public string Name { get => StandardName(name); set => name = value; }
             public string Discription { get; set; }
         }
 
@@ -30,9 +35,17 @@ namespace Kooboo.Sites.Scripting.KDefine
             public string Discription { get; set; }
             public class Param
             {
+                private string name;
+
                 public string Type { get; set; }
-                public string Name { get; set; }
+                public string Name { get => StandardName(name); set => name = value; }
             }
+        }
+
+        static string StandardName(string name)
+        {
+            if (!Regex.IsMatch(name, "^[a-zA-Z_$]([a-zA-Z0-9_$\\?]+)?$")) return "_";
+            return name;
         }
     }
 }

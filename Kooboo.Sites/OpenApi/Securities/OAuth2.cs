@@ -2,6 +2,7 @@
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Kooboo.Sites.OpenApi.Securities
@@ -9,13 +10,13 @@ namespace Kooboo.Sites.OpenApi.Securities
     public class OAuth2 : Security
     {
         public override SecuritySchemeType Type => SecuritySchemeType.OAuth2;
-        static readonly string _clientCredentialsContentType = "application/x-www-form-urlencoded";
+        public static string ContentType => "application/x-www-form-urlencoded";
 
         public override AuthorizeResult Authorize(OpenApiSecurityScheme scheme, Models.OpenApi.AuthorizeData data)
         {
             if (scheme.Flows.ClientCredentials != null) return ClientCredentials(scheme.Flows.ClientCredentials, data);
             if (scheme.Flows.AuthorizationCode != null) return AuthorizationCode(scheme.Flows.AuthorizationCode, data);
-            throw new Exception($"Not support OAuth2 Flow password or Implicit");
+            throw new Exception($"Not support OAuth2 Flow password or implicit");
         }
 
         private AuthorizeResult ClientCredentials(OpenApiOAuthFlow flow, Models.OpenApi.AuthorizeData data)
@@ -33,9 +34,15 @@ namespace Kooboo.Sites.OpenApi.Securities
             var body = new Dictionary<string, object>
             {
                 {"grant_type","client_credentials" },
+                {"client_id",data.ClientId },
+                {"client_secret",data.ClientSecret },
             };
 
-            if (!string.IsNullOrWhiteSpace(data.Scope)) body.Add("scope", data.Scope);
+            if (flow.Scopes != null)
+            {
+                body.Add("scope", string.Join(" ", flow.Scopes.Select(s => s.Key)));
+            }
+
             var token = Helpers.BasicAuthEncode(data.ClientId, data.ClientSecret);
 
             var headers = new Dictionary<string, string>
@@ -43,11 +50,23 @@ namespace Kooboo.Sites.OpenApi.Securities
                 {"Authorization", $"Basic {token}"}
             };
 
-            var json = HttpSender.GetSender(_clientCredentialsContentType).Send(flow.TokenUrl.ToString(), "POST", body, headers, null);
-            var result = JsonHelper.Deserialize<Result>(json);
-            data.AccessToken = result.access_token;
-            data.ExpiresIn = DateTime.UtcNow.AddSeconds(result.expires_in);
-            data.TokenType = result.token_type;
+            var result = HttpSender.GetSender(ContentType).Send(flow.TokenUrl.ToString(), "POST", body, headers, null);
+            var dic = result as IDictionary<string, object>;
+
+            if (dic.TryGetValue("access_token", out var access_token))
+            {
+                data.AccessToken = access_token.ToString();
+            }
+
+            if (dic.TryGetValue("token_type", out var token_type))
+            {
+                data.TokenType = token_type.ToString();
+            }
+
+            if (dic.TryGetValue("expires_in", out var expires_in))
+            {
+                data.ExpiresIn = DateTime.UtcNow.AddSeconds(Convert.ToInt32(expires_in));
+            }
         }
 
         private AuthorizeResult GetAuthorizeResult(Models.OpenApi.AuthorizeData data)

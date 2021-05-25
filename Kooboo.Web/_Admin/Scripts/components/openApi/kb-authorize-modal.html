@@ -73,6 +73,14 @@
                 </template>
 
                 <template v-if="security.type=='oauth2'">
+                  <div
+                    class="alert alert-success"
+                    role="alert"
+                    v-if="getFlow(security.value).name='authorizationCode '"
+                  >
+                    Redirect url : {{getData(security.name).redirectUrl}}
+                  </div>
+
                   <div class="form-group">
                     <label class="control-label col-md-3">Client id</label>
                     <div class="col-md-9">
@@ -92,15 +100,13 @@
                       />
                     </div>
                   </div>
-                  <div class="form-group">
-                    <label class="control-label col-md-3">Scope</label>
-                    <div class="col-md-9">
-                      <input
-                        class="form-control"
-                        type="password"
-                        v-model="getData(security.name).scope"
-                      />
-                    </div>
+                  <div
+                    style="text-align: center"
+                    v-if="getFlow(security.value).name='authorizationCode '"
+                  >
+                    <button class="btn green" @click="challenge(security)"
+                      >Save and challenge</button
+                    >
                   </div>
                 </template>
               </div>

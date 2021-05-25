@@ -13,6 +13,7 @@
       return {
         model: null,
         data: {},
+        siteId: Kooboo.getQueryString("SiteId"),
       };
     },
     computed: {
@@ -33,7 +34,7 @@
           if (doc.components && doc.components.securitySchemes) {
             for (const key in doc.components.securitySchemes) {
               result.push({
-                name: key,
+                name: this.standardName(key),
                 type: doc.components.securitySchemes[key].type,
                 value: doc.components.securitySchemes[key],
               });
@@ -45,13 +46,14 @@
       },
     },
     methods: {
-      save() {
+      save(callback) {
         var copyed = JSON.parse(JSON.stringify(this.model));
         copyed.securities = this.data;
         Kooboo.OpenApi.post(copyed).then((rsp) => {
           if (rsp.success) {
             this.show = false;
             this.$emit("ok");
+            if (callback.call) callback();
           }
         });
       },
@@ -90,7 +92,8 @@
               scope: "",
             };
           }
-
+          
+          data.redirectUrl = this.getRedirectUrl(key);
           Vue.set(this.data, key, data);
         }
 
@@ -105,6 +108,32 @@
         if (scheme) result += ` ,${scheme}`;
         if (flow) result += ` ,${flow.name}`;
         return result;
+      },
+      getRedirectUrl(name) {
+        return `${location.origin}/_api/openapioauth2callback/${this.siteId}/${this.id}/${name}`;
+      },
+      challenge(item) {
+        this.save(() => {
+          var flow = this.getFlow(item.value).flow;
+          var data = this.getData(item.name);
+          var redirectUrl = this.getRedirectUrl(item.name, true);
+          var url = `${
+            flow.authorizationUrl
+          }?response_type=code&state=${new Date().getTime()}&client_id=${
+            data.clientId
+          }&redirect_uri=${redirectUrl}`;
+
+          if (flow.scopes) {
+            var scopes = [];
+            for (const key in flow.scopes) scopes.push(key);
+            url += `&scope=${encodeURI(scopes.join(" "))}`;
+          }
+
+          var win = window.open(url, "win");
+        });
+      },
+      standardName(s) {
+        return s.replace(/[^\w]/g, "_").toLowerCase();
       },
     },
     watch: {

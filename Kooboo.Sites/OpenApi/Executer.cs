@@ -67,9 +67,7 @@ namespace Kooboo.Sites.OpenApi
             if (paths != null) url = FillUrl(url, paths);
             if (querys != null) url = UrlHelper.AppendQueryString(url, querys);
             var requestContentType = GetRequestContentType(operation);
-            var str = HttpSender.GetSender(requestContentType).Send(url, operation.Method, body, headers, cookies);
-            var responseContentType = GetResponseContentType(operation);
-            var result = ResponseHandler.Get(responseContentType).Handler(str);
+            var result = HttpSender.GetSender(requestContentType).Send(url, operation.Method, body, headers, cookies);
             return JsValue.FromObject(Engine, result);
         }
 
@@ -78,19 +76,6 @@ namespace Kooboo.Sites.OpenApi
             if ((operation.Body?.Content?.Count ?? 0) == 0) return DefaultContentType;
             if (operation.Body.Content.Any(f => f.Key == DefaultContentType)) return DefaultContentType;
             return operation.Body.Content.FirstOrDefault().Key;
-        }
-
-        private string GetResponseContentType(Operation operation)
-        {
-            if ((operation.Responses?.Count ?? 0) == 0) return DefaultContentType;
-
-            if (!operation.Responses.TryGetValue("200", out OpenApiResponse response))
-            {
-                response = operation.Responses.First().Value;
-            }
-
-            if (response.Content.Any(f => f.Key == DefaultContentType)) return DefaultContentType;
-            return response.Content.FirstOrDefault().Key;
         }
 
         private static Dictionary<string, string> MergeSecurity(Dictionary<string, string> request, Dictionary<string, string> security)

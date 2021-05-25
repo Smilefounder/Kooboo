@@ -36,7 +36,6 @@ namespace Kooboo.Sites.OpenApi
             });
 
             _defineString = new Lazy<string>(GetDefinesString, true);
-
         }
 
         public static Cache Get(WebSite webSite)
@@ -89,7 +88,8 @@ namespace Kooboo.Sites.OpenApi
                 }
             });
 
-            return new DefineStringify(defines.ToArray()).ToString();
+            var result= new DefineStringify(defines.ToArray()).ToString();
+            return result;
         }
     }
 

@@ -11,6 +11,7 @@ namespace Kooboo.Sites.OpenApi
     public abstract class HttpSender
     {
         static readonly List<HttpSender> _senders = Lib.IOC.Service.GetInstances<HttpSender>();
+
         protected abstract string ContentType { get; }
         protected abstract string SerializeBody(object body);
 
@@ -21,7 +22,7 @@ namespace Kooboo.Sites.OpenApi
             return sender;
         }
 
-        public string Send(string url, string method, object body, IDictionary<string, string> headers, IDictionary<string, string> cookies)
+        public object Send(string url, string method, object body, IDictionary<string, string> headers, IDictionary<string, string> cookies)
         {
             var request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = method;
@@ -55,13 +56,37 @@ namespace Kooboo.Sites.OpenApi
                 }
             }
 
-            using (var response = request.GetResponse())
+            try
             {
-                using (var stream = response.GetResponseStream())
+                using (var response = request.GetResponse() as HttpWebResponse)
+                {
+                    var handler = ResponseHandler.Get(response.ContentType);
+                    using (var stream = response.GetResponseStream())
+                    {
+                        var reader = new StreamReader(stream);
+                        return handler.Handler(reader.ReadToEnd());
+                    }
+                }
+            }
+            catch (WebException e)
+            {
+                var response = e.Response as HttpWebResponse;
+                var handler = ResponseHandler.Get(response.ContentType);
+
+                using (var stream = e.Response.GetResponseStream())
                 {
                     var reader = new StreamReader(stream);
-                    return reader.ReadToEnd();
+
+                    return new Dictionary<string, object>
+                    {
+                        {"code", (int)response.StatusCode},
+                        {"body", handler.Handler(reader.ReadToEnd())}
+                    };
                 }
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
 

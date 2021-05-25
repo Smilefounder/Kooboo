@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Kooboo.Sites.OpenApi.ResponseHandlers
 {
-    public class JsonResponseHandler : ResponseHandler
+    public class JsonResponse : ResponseHandler
     {
         protected override string ContentType => Executer.DefaultContentType;
 

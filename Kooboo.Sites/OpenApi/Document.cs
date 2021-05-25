@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Kooboo.Sites.OpenApi
 {
@@ -33,7 +34,15 @@ namespace Kooboo.Sites.OpenApi
             _operations = new Lazy<Dictionary<string, Operation>>(GetOperations, true);
         }
 
-        private Dictionary<string, Operation> GetOperations()
+        public OpenApiSecurityScheme GetSecurityScheme(string name)
+        {
+            return _doc.Value.Components?.SecuritySchemes?.FirstOrDefault(f =>
+            {
+                return Regex.Replace(f.Key, "[^\\w]", "_").ToLower() == name;
+            }).Value;
+        }
+
+        Dictionary<string, Operation> GetOperations()
         {
             if (_doc.Value.Paths == null) return null;
             var result = new Dictionary<string, Operation>();

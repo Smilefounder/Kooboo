@@ -17,7 +17,7 @@ namespace Kooboo.Sites.OpenApi
         public static ResponseHandler Get(string contentType)
         {
             var handler = _responseHandlers.FirstOrDefault(f => contentType.Contains(f.ContentType));
-            if (handler == null) handler = _responseHandlers.First(f => f is JsonResponseHandler);
+            if (handler == null) handler = _responseHandlers.First(f => f is JsonResponse);
             return handler;
         }
     }
