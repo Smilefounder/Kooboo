@@ -61,13 +61,18 @@ namespace Kooboo.Sites.OpenApi
 
         string GetServer()
         {
-            var uri = new Uri(_openApi.Url);
-            var baseUrl = $"{uri.Scheme}://{uri.Authority}";
             var url = _doc.Value.Servers.FirstOrDefault()?.Url;
-            if (url == null) return baseUrl;
-            Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out uri);
+            if (url == null) return TryGetBaseUrl();
+            Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out var uri);
             if (uri.IsAbsoluteUri) return url;
-            return $"{baseUrl}/{url}";
+            return new Uri(new Uri(TryGetBaseUrl()), uri).ToString();
+        }
+
+        string TryGetBaseUrl()
+        {
+            if (string.IsNullOrWhiteSpace(_openApi.Url)) return null;
+            var uri = new Uri(_openApi.Url);
+            return $"{uri.Scheme}://{uri.Authority}";
         }
 
         string GetDescription()

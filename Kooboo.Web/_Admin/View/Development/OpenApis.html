@@ -6,7 +6,7 @@
   <kb-breadcrumb :breads="breads"></kb-breadcrumb>
   <div class="navbar navbar-default">
     <div class="container-fluid">
-      <a class="btn green navbar-btn" @click="showModal=true">Create</a>
+      <a class="btn green navbar-btn" @click="create">Create</a>
       <a
         class="btn red navbar-btn"
         v-show="selectedRows.length>0"
@@ -18,14 +18,14 @@
   <kb-table :data="model" show-select :selected.sync="selectedRows">
     <kb-table-column :label="Kooboo.text.common.name">
       <template v-slot="row">
-        <a :href="getDetailUrl(row.id)">{{row.name}}</a>
+        <!-- <a :href="getDetailUrl(row.id)">{{row.name}}</a> -->
+        {{row.name}}
       </template>
     </kb-table-column>
 
-    <kb-table-column label="Is remote">
+    <kb-table-column :label="Kooboo.text.common.type">
       <template v-slot="row">
-        <span class="label label-sm green" v-if="row.isRemote">YES</span>
-        <span class="label label-sm red" v-else>NO</span>
+        <span class="label label-sm green">{{row.type}}</span>
       </template>
     </kb-table-column>
 
@@ -47,64 +47,15 @@
     </kb-table-column>
   </kb-table>
   <div>
-    <div
-      class="modal fade"
-      data-backdrop="static"
-      data-keyboard="false"
-      v-kb-modal="showModal"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button class="close" @click="showModal=false"
-              ><i class="fa fa-close"></i
-            ></button>
-            <h4 class="modal-title" v-if="isEdit">Edit</h4>
-            <h4 class="modal-title" v-else>Create</h4>
-          </div>
-          <div class="modal-body" v-if="showModal&&!!modalData">
-            <kb-form :model="modalData" :rules="modalDataRules" ref="form">
-              <kb-form-item prop="name">
-                <label class="control-label col-md-3">Name</label>
-                <div class="col-md-9">
-                  <input
-                    type="text"
-                    class="form-control"
-                    v-model="modalData.name"
-                    :disabled="isEdit"
-                  />
-                </div>
-              </kb-form-item>
-              <kb-form-item prop="isRemote">
-                <label class="control-label col-md-3">Is remote</label>
-                <div class="col-md-9">
-                  <kb-switch v-model="modalData.isRemote"></kb-switch>
-                </div>
-              </kb-form-item>
-              <kb-form-item prop="url" v-if="modalData.isRemote">
-                <label class="control-label col-md-3">Url</label>
-                <div class="col-md-9">
-                  <input
-                    type="text"
-                    class="form-control"
-                    v-model="modalData.url"
-                    placeholder="https://generator3.swagger.io/openapi.json"
-                  />
-                </div>
-              </kb-form-item>
-            </kb-form>
-          </div>
-          <div class="modal-footer">
-            <button @click="save" class="btn green">Start</button>
-            <button @click="showModal=false" class="btn gray">Cancel</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <kb-openapi-modal v-model="showModal" :id="selectedId" @ok="getList" />
   </div>
 
   <div>
-    <kb-authorize-modal v-model="showAuthorizeModal" :id="selectedId" @ok="getList" />
+    <kb-authorize-modal
+      v-model="showAuthorizeModal"
+      :id="selectedId"
+      @ok="getList"
+    />
   </div>
 </div>
 
@@ -116,6 +67,7 @@
     "/_Admin/Scripts/lib/bootstrap-switch/bootstrap-switch.min.js",
     "/_Admin/Scripts/components/kbSwitch.js",
     "/_Admin/Scripts/components/openApi/kb-authorize-modal.js",
+    "/_Admin/Scripts/components/openApi/kb-openapi-modal.js",
   ]);
 
   Kooboo.loadCSS([
@@ -142,61 +94,12 @@
         selectedRows: [],
         showModal: false,
         modalData: null,
-        isEdit: false,
         showAuthorizeModal: false,
         selectedId: null,
       };
     },
     mounted() {
       this.getList();
-    },
-    computed: {
-      modalDataRules() {
-        var me = this;
-        var result = {
-          name: [
-            { required: Kooboo.text.validation.required },
-            {
-              pattern: /^([A-Za-z][\w\-\.]*)*[A-Za-z0-9]$/,
-              message: Kooboo.text.validation.objectNameRegex,
-            },
-            {
-              min: 1,
-              max: 64,
-              message:
-                Kooboo.text.validation.minLength +
-                1 +
-                ", " +
-                Kooboo.text.validation.maxLength +
-                64,
-            },
-          ],
-          url: [
-            { required: Kooboo.text.validation.required },
-            {
-              pattern:
-                /[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/,
-              message: Kooboo.text.validation.urlInvalid,
-            },
-          ],
-        };
-
-        if (!this.isEdit) {
-          result.name.push({
-            remote: {
-              url: Kooboo.OpenApi.isUniqueName(),
-              data() {
-                return {
-                  name: me.modalData.name,
-                };
-              },
-            },
-            message: Kooboo.text.validation.taken,
-          });
-        }
-
-        return result;
-      },
     },
     methods: {
       getDetailUrl: function (id) {
@@ -225,15 +128,6 @@
           }
         });
       },
-      save() {
-        if (!this.$refs.form.validate()) return;
-
-        Kooboo.OpenApi.post(this.modalData).then((rsp) => {
-          if (!rsp.success) return;
-          this.showModal = false;
-          this.getList();
-        });
-      },
       getList() {
         Kooboo.OpenApi.getList().then((res) => {
           this.model = _.sortBy(res.model, [
@@ -243,34 +137,17 @@
           ]).reverse();
         });
       },
-      edit(row) {
-        this.modalData = {
-          name: row.name,
-          url: row.url,
-          isRemote: row.isRemote,
-        };
-        this.showModal = true;
-      },
       showAuthorize(row) {
         this.selectedId = row.id;
         this.showAuthorizeModal = true;
       },
-    },
-    watch: {
-      showModal: function (value) {
-        if (value) {
-          this.isEdit = this.modalData != null;
-
-          if (this.modalData == null) {
-            this.modalData = {
-              name: "",
-              url: "",
-              isRemote: false,
-            };
-          }
-        } else {
-          this.modalData = null;
-        }
+      edit(row) {
+        this.selectedId = row.id;
+        this.showModal = true;
+      },
+      create() {
+        this.selectedId = null;
+        this.showModal = true;
       },
     },
   });

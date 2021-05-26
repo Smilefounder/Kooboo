@@ -81,6 +81,7 @@
           for (const i in this.model.securities) {
             if (key.toLocaleLowerCase() == i.toLocaleLowerCase()) {
               data = this.model.securities[i];
+              data.manual = false;
             }
           }
 
@@ -90,6 +91,7 @@
               password: "",
               accessToken: "",
               name: "",
+              manual: false,
             };
           }
 
@@ -134,6 +136,10 @@
       },
       standardName(s) {
         return s.replace(/[^\w]/g, "_").toLowerCase();
+      },
+      setManual(name) {
+        this.getData(name).manual = true;
+        this.data = JSON.parse(JSON.stringify(this.data));
       },
     },
     watch: {

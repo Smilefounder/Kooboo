@@ -1,0 +1,111 @@
+<div
+  v-kb-modal="show"
+  class="modal fade"
+  data-backdrop="static"
+  data-keyboard="fasle"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button @click="show=false" class="close">
+          <i class="fa fa-close"></i>
+        </button>
+        <h4 class="modal-title" v-if="id">Edit</h4>
+        <h4 class="modal-title" v-else>Create</h4>
+      </div>
+      <div class="modal-body" v-if="show&&model">
+        <kb-form :model="model" :rules="modelRules" ref="form">
+          <kb-form-item prop="name">
+            <label class="control-label col-md-3">Name</label>
+            <div class="col-md-9">
+              <input
+                type="text"
+                class="form-control"
+                v-model="model.name"
+                :readonly="isEdit"
+              />
+            </div>
+          </kb-form-item>
+          <template v-if="!isEdit">
+            <kb-form-item>
+              <label class="control-label col-md-3">Type</label>
+              <div class="col-md-9">
+                <label class="radio-inline">
+                  <input
+                    type="radio"
+                    id="type"
+                    value="url"
+                    v-model="model.type"
+                    @click="$refs.form.clearValid()"
+                  />
+                  <span>URL</span>
+                </label>
+                <label class="radio-inline">
+                  <input
+                    type="radio"
+                    id="type"
+                    value="file"
+                    v-model="model.type"
+                    @click="$refs.form.clearValid()"
+                  />
+                  <span>File</span>
+                </label>
+              </div>
+            </kb-form-item>
+
+            <template v-if="model.type=='url'">
+              <kb-form-item prop="url">
+                <label class="control-label col-md-3">Remote URL</label>
+                <div class="col-md-9">
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="model.url"
+                    placeholder="https://generator3.swagger.io/openapi.json"
+                  />
+                </div>
+              </kb-form-item>
+            </template>
+
+            <template v-if="model.type=='file'">
+              <kb-form-item prop="url">
+                <label class="control-label col-md-3">Base URL</label>
+                <div class="col-md-9">
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="model.url"
+                    placeholder="(optional) http://domain.com/api"
+                  />
+                </div>
+              </kb-form-item>
+              <kb-form-item>
+                <label class="control-label col-md-3"></label>
+                <div class="col-md-9">
+                  <template v-if="model.type=='file'">
+                    <a class="btn btn-default btn-file">
+                      <input
+                        type="file"
+                        :accept="accept"
+                        @input="selectedFile($event.target.files)"
+                      />
+                      <span>Select file</span>
+                    </a>
+                    <span>Support types: Json yaml</span>
+                    <p style="max-height: 100px; overflow-y: auto"
+                      >{{model.jsonData}}</p
+                    >
+                  </template>
+                </div>
+              </kb-form-item>
+            </template>
+          </template>
+        </kb-form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn green" @click="save">Save</button>
+        <button @click="show=false" class="btn gray">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>

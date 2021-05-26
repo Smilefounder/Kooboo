@@ -18,7 +18,7 @@ namespace Kooboo.Sites.OpenApi
     {
         public static Models.OpenApi GetOrValidOpenApiDoc(Models.OpenApi openApi)
         {
-            if (openApi.IsRemote)
+            if (openApi.Type == "url")
             {
                 openApi.JsonData = HttpClientHelper.Client.GetStringAsync(openApi.Url).Result;
             }

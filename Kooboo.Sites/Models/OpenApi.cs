@@ -16,7 +16,7 @@ namespace Kooboo.Sites.Models
 
         public string JsonData { get; set; }
         public string Url { get; set; }
-        public bool IsRemote { get; set; }
+        public string Type { get; set; }
         public Dictionary<string, AuthorizeData> Securities
         {
             get
@@ -49,7 +49,7 @@ namespace Kooboo.Sites.Models
             un += Online.ToString();
             un += JsonData;
             un += Url;
-            un += IsRemote;
+            un += Type;
 
             if (Securities != null)
             {
