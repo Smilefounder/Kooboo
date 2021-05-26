@@ -21,6 +21,7 @@ namespace Kooboo.Sites.OpenApi
             if (sender == null) sender = _senders.First(f => f is Json);
             return sender;
         }
+        public static string ErrorFieldName => "errorMsg";
 
         public object Send(string url, string method, object body, IDictionary<string, string> headers, IDictionary<string, string> cookies)
         {
@@ -80,7 +81,8 @@ namespace Kooboo.Sites.OpenApi
                     return new Dictionary<string, object>
                     {
                         {"code", (int)response.StatusCode},
-                        {"body", handler.Handler(reader.ReadToEnd())}
+                        {"body", handler.Handler(reader.ReadToEnd())},
+                        {ErrorFieldName,e.Message }
                     };
                 }
             }

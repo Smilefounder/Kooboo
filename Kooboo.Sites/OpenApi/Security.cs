@@ -26,6 +26,7 @@ namespace Kooboo.Sites.OpenApi
             public Dictionary<string, string> Querys { get; private set; }
             public Dictionary<string, string> Headers { get; private set; }
             public Dictionary<string, string> Cookies { get; private set; }
+            public bool ShouldSaveData { get; set; }
 
             public void AddQuery(string name, string value)
             {

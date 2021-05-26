@@ -18,11 +18,11 @@ namespace Kooboo.Sites.OpenApi
         readonly Lazy<IDictionary<string, OpenApiSchema>> _schemas;
         readonly Lazy<Dictionary<string, Operation>> _operations;
 
+        public Models.OpenApi OpenApi => _openApi;
         public string Server => _server.Value;
         public string Description => _description.Value;
         public IDictionary<string, OpenApiSchema> Schemas => _schemas.Value;
         public Dictionary<string, Operation> Operations => _operations.Value;
-        public Dictionary<string, Models.OpenApi.AuthorizeData> Securities => _openApi.Securities;
 
         public Document(Models.OpenApi openApi)
         {

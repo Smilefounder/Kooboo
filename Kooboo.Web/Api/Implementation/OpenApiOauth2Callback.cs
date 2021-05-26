@@ -2,11 +2,11 @@
 using Kooboo.Api.ApiResponse;
 using Kooboo.Api.Methods;
 using Kooboo.Data;
-using Kooboo.Lib.Helper;
 using Kooboo.Sites.Extensions;
 using Kooboo.Sites.OpenApi;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Kooboo.Web.Api.Implementation
@@ -32,12 +32,12 @@ namespace Kooboo.Web.Api.Implementation
         {
             var code = call.Context.Request.QueryString.Get("code");
             var siteId = Guid.Parse(call.Command.Method);
-            var docId = Guid.Parse(call.Command.Parameters[0]);
-            var schemeName = call.Command.Parameters[1];
+            var docId = Guid.Parse(call.Command.Parameters.First());
+            var name = call.Command.Parameters.Last();
             var site = GlobalDb.WebSites.Get(siteId);
             var doc = site.SiteDb().OpenApi.Get(docId);
-            var scheme = new Document(doc).GetSecurityScheme(schemeName);
-            doc.Securities.TryGetValue(schemeName, out var data);
+            var scheme = new Document(doc).GetSecurityScheme(name);
+            doc.Securities.TryGetValue(name, out var data);
             var sender = HttpSender.GetSender(Sites.OpenApi.Securities.OAuth2.ContentType);
 
             var body = new Dictionary<string, object> {
@@ -56,6 +56,11 @@ namespace Kooboo.Web.Api.Implementation
             }, null);
 
             var dic = result as IDictionary<string, object>;
+
+            if (dic.ContainsKey(HttpSender.ErrorFieldName))
+            {
+                return new JsonResponse(result);
+            }
 
             if (dic.TryGetValue("access_token", out var access_token))
             {

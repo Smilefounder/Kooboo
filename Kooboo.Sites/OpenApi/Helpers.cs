@@ -69,5 +69,11 @@ namespace Kooboo.Sites.OpenApi
             var plainTextBytes = Encoding.UTF8.GetBytes($"{username}:{password}");
             return Convert.ToBase64String(plainTextBytes);
         }
+
+        public static void AddBearer(Security.AuthorizeResult result, Models.OpenApi.AuthorizeData data)
+        {
+            var bearer = string.IsNullOrWhiteSpace(data.Name) ? "Bearer" : data.Name;
+            result.AddHeader("Authorization", $"{bearer} {data.AccessToken}");
+        }
     }
 }

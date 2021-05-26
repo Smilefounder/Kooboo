@@ -2,8 +2,8 @@
 using Jint.Native.Function;
 using Kooboo.Data.Context;
 using Kooboo.Lib.Helper;
+using Kooboo.Sites.Extensions;
 using Kooboo.Sites.Scripting;
-using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,13 +55,14 @@ namespace Kooboo.Sites.OpenApi
             if (operation.Security != null)
             {
                 var name = operation.Security.Reference?.Id;
-                doc.Securities.TryGetValue(name, out var data);
+                doc.OpenApi.Securities.TryGetValue(name, out var data);
                 if (data == null) throw new Exception($"Not security {name} settings");
                 var security = Security.Get(operation.Security.Type);
                 var securityResult = security.Authorize(operation.Security, data);
                 querys = MergeSecurity(querys, securityResult.Querys);
                 headers = MergeSecurity(headers, securityResult.Headers);
                 cookies = MergeSecurity(cookies, securityResult.Cookies);
+                if (securityResult.ShouldSaveData) _renderContext.WebSite.SiteDb().OpenApi.AddOrUpdate(doc.OpenApi);
             }
 
             if (paths != null) url = FillUrl(url, paths);

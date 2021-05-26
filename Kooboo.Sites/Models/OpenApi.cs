@@ -31,7 +31,6 @@ namespace Kooboo.Sites.Models
         {
             public string Username { get; set; }
             public string Password { get; set; }
-            public string Token { get; set; }
             public string ClientId { get; set; }
             public string ClientSecret { get; set; }
             public string AccessToken { get; set; }
@@ -39,6 +38,7 @@ namespace Kooboo.Sites.Models
             public string TokenType { get; set; }
             public DateTime ExpiresIn { get; set; }
             public string RedirectUrl { get; set; }
+            public string Name { get; set; }
         }
 
         //TODO Cache
@@ -58,7 +58,6 @@ namespace Kooboo.Sites.Models
                     un += item.Key;
                     un += item.Value?.Username;
                     un += item.Value?.Password;
-                    un += item.Value?.Token;
                     un += item.Value?.ClientId;
                     un += item.Value?.ClientSecret;
                     un += item.Value?.AccessToken;

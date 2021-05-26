@@ -21,12 +21,16 @@ namespace Kooboo.Sites.OpenApi.Securities
 
         private AuthorizeResult ClientCredentials(OpenApiOAuthFlow flow, Models.OpenApi.AuthorizeData data)
         {
-            if (string.IsNullOrWhiteSpace(data.AccessToken) || DateTime.UtcNow > data.ExpiresIn)
+            var result = new AuthorizeResult();
+
+            if (string.IsNullOrWhiteSpace(data.AccessToken) || (data.ExpiresIn != default(DateTime) && DateTime.UtcNow > data.ExpiresIn))
             {
                 AuthorizeClientCredentials(flow, data);
+                result.ShouldSaveData = true;
             }
 
-            return GetAuthorizeResult(data);
+            Helpers.AddBearer(result, data);
+            return result;
         }
 
         private void AuthorizeClientCredentials(OpenApiOAuthFlow flow, Models.OpenApi.AuthorizeData data)
@@ -53,6 +57,11 @@ namespace Kooboo.Sites.OpenApi.Securities
             var result = HttpSender.GetSender(ContentType).Send(flow.TokenUrl.ToString(), "POST", body, headers, null);
             var dic = result as IDictionary<string, object>;
 
+            if (dic.ContainsKey(HttpSender.ErrorFieldName))
+            {
+                throw new Exception(JsonHelper.Serialize(dic));
+            }
+
             if (dic.TryGetValue("access_token", out var access_token))
             {
                 data.AccessToken = access_token.ToString();
@@ -69,16 +78,71 @@ namespace Kooboo.Sites.OpenApi.Securities
             }
         }
 
-        private AuthorizeResult GetAuthorizeResult(Models.OpenApi.AuthorizeData data)
+        private AuthorizeResult AuthorizationCode(OpenApiOAuthFlow flow, Models.OpenApi.AuthorizeData data)
         {
             var result = new AuthorizeResult();
-            result.AddHeader("Authorization", $"Bearer {data.AccessToken}");
+
+            if (string.IsNullOrWhiteSpace(data.AccessToken))
+            {
+                throw new Exception("This API need challenge authorize first");
+            }
+
+            if ((data.ExpiresIn != default(DateTime) && DateTime.UtcNow > data.ExpiresIn))
+            {
+                RefreshToken(flow, data);
+                result.ShouldSaveData = true;
+            }
+
+            Helpers.AddBearer(result, data);
             return result;
         }
 
-        private AuthorizeResult AuthorizationCode(OpenApiOAuthFlow authorizationCode, Models.OpenApi.AuthorizeData data)
+        private void RefreshToken(OpenApiOAuthFlow flow, Models.OpenApi.AuthorizeData data)
         {
-            throw new NotImplementedException();
+            var url = flow.RefreshUrl ?? flow.TokenUrl;
+            if (url == null) return;
+
+            var token = Helpers.BasicAuthEncode(data.ClientId, data.ClientSecret);
+
+            var headers = new Dictionary<string, string>
+            {
+                {"Authorization", $"Basic {token}"}
+            };
+
+            var result = HttpSender.GetSender(ContentType).Send(flow.TokenUrl.ToString(), "POST", new Dictionary<string, string>
+            {
+                { "grant_type","refresh_token"},
+                {"refresh_token",data.RefreshToken },
+                {"client_id",data.ClientId },
+                {"client_secret",data.ClientSecret },
+            }, headers, null);
+
+            var dic = result as IDictionary<string, object>;
+
+            if (dic.ContainsKey(HttpSender.ErrorFieldName))
+            {
+                throw new Exception(JsonHelper.Serialize(dic));
+            }
+
+            if (dic.TryGetValue("access_token", out var access_token))
+            {
+                data.AccessToken = access_token.ToString();
+            }
+
+            if (dic.TryGetValue("refresh_token", out var refresh_token))
+            {
+                data.RefreshToken = refresh_token.ToString();
+            }
+
+            if (dic.TryGetValue("token_type", out var token_type))
+            {
+                data.TokenType = token_type.ToString();
+            }
+
+            if (dic.TryGetValue("expires_in", out var expires_in))
+            {
+                data.ExpiresIn = DateTime.UtcNow.AddSeconds(Convert.ToInt32(expires_in));
+            }
         }
 
         public class Result

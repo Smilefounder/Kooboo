@@ -19,7 +19,7 @@ namespace Kooboo.Sites.OpenApi.Securities
                     break;
 
                 case "bearer":
-                    Bearer(result, data);
+                    Helpers.AddBearer(result, data);
                     break;
                 default:
                     throw new Exception($"Not support security Http scheme {scheme.Scheme}");
@@ -28,10 +28,7 @@ namespace Kooboo.Sites.OpenApi.Securities
             return result;
         }
 
-        private void Bearer(AuthorizeResult result, Models.OpenApi.AuthorizeData data)
-        {
-            result.AddHeader("Authorization", $"Bearer {data.Token}");
-        }
+        
 
         private void Basic(AuthorizeResult result, Models.OpenApi.AuthorizeData data)
         {

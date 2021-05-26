@@ -16,15 +16,15 @@ namespace Kooboo.Sites.OpenApi.Securities
             switch (scheme.In)
             {
                 case ParameterLocation.Query:
-                    result.AddQuery(scheme.Name, data.Token);
+                    result.AddQuery(scheme.Name, data.AccessToken);
                     break;
                 case ParameterLocation.Header:
-                    result.AddHeader(scheme.Name, data.Token);
+                    result.AddHeader(scheme.Name, data.AccessToken);
                     break;
                 case ParameterLocation.Path:
                     throw new Exception($"Not support security ApiKey In {scheme.Scheme}");
                 case ParameterLocation.Cookie:
-                    result.AddCookie(scheme.Name, data.Token);
+                    result.AddCookie(scheme.Name, data.AccessToken);
                     break;
                 default:
                     break;

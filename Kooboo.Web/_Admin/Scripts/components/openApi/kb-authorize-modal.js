@@ -88,11 +88,11 @@
             data = {
               username: "",
               password: "",
-              token: "",
-              scope: "",
+              accessToken: "",
+              name: "",
             };
           }
-          
+
           data.redirectUrl = this.getRedirectUrl(key);
           Vue.set(this.data, key, data);
         }
@@ -129,7 +129,7 @@
             url += `&scope=${encodeURI(scopes.join(" "))}`;
           }
 
-          var win = window.open(url, "win");
+          window.open(url, "win");
         });
       },
       standardName(s) {
@@ -144,7 +144,10 @@
               this.model = rsp.model;
             }
           });
-        } else this.model = null;
+        } else {
+          this.model = null;
+          this.data = {};
+        }
       },
     },
   });
