@@ -25,10 +25,5 @@ namespace Kooboo.Web.Api.Implementation
             Sites.OpenApi.Cache.Remove(call.WebSite);
             return result;
         }
-
-        public void Oauth2Callback()
-        {
-
-        }
     }
 }

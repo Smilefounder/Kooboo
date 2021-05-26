@@ -110,6 +110,13 @@
           reader.readAsText(files[0]);
         }
       },
+      addCache() {
+        this.model.caches.push({
+          method: "Get",
+          pattern: "",
+          expiresIn: 0,
+        });
+      },
     },
     watch: {
       value(value) {
@@ -126,12 +133,13 @@
               type: "url",
               url: "",
               jsonData: "",
+              caches: [],
             };
           }
         } else {
           this.model = null;
         }
       },
-    }
+    },
   });
 })();

@@ -85,7 +85,7 @@
                   <div
                     class="alert alert-success"
                     role="alert"
-                    v-if="getFlow(security.value).name='authorizationCode '"
+                    v-if="getFlow(security.value).name=='authorizationCode'"
                   >
                     Redirect url : {{getData(security.name).redirectUrl}}
                   </div>
@@ -148,16 +148,14 @@
                       />
                     </div>
                   </div>
-                  <div
-                    style="text-align: center"
-                    v-if="getFlow(security.value).name='authorizationCode '"
-                  >
-                    <button class="btn green" @click="challenge(security)"
-                      >Save and challenge</button
-                    >
+                  <div style="text-align: center">
                     <button
                       class="btn green"
-                      @click="setManual(security.name)"
+                      @click="challenge(security)"
+                      v-if="getFlow(security.value).name=='authorizationCode'"
+                      >Save and challenge</button
+                    >
+                    <button class="btn green" @click="setManual(security.name)"
                       >Manual input</button
                     >
                   </div>

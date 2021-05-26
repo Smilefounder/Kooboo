@@ -4,7 +4,7 @@
   data-backdrop="static"
   data-keyboard="fasle"
 >
-  <div class="modal-dialog">
+  <div class="modal-dialog" style="min-width: 800px">
     <div class="modal-content">
       <div class="modal-header">
         <button @click="show=false" class="close">
@@ -26,8 +26,8 @@
               />
             </div>
           </kb-form-item>
-          <template v-if="!isEdit">
-            <kb-form-item>
+          <template>
+            <kb-form-item v-if="!isEdit">
               <label class="control-label col-md-3">Type</label>
               <div class="col-md-9">
                 <label class="radio-inline">
@@ -49,6 +49,16 @@
                     @click="$refs.form.clearValid()"
                   />
                   <span>File</span>
+                </label>
+                <label class="radio-inline">
+                  <input
+                    type="radio"
+                    id="type"
+                    value="template"
+                    v-model="model.type"
+                    @click="$refs.form.clearValid()"
+                  />
+                  <span>Template</span>
                 </label>
               </div>
             </kb-form-item>
@@ -99,7 +109,84 @@
                 </div>
               </kb-form-item>
             </template>
+
+            <template v-if="model.type=='template'">
+              <kb-form-item>
+                <label class="control-label col-md-3"></label>
+                <div class="col-md-9">
+                  <div class="radio">
+                    <label>
+                      <input
+                        type="radio"
+                        name="openApiTemplate"
+                        value="amazon"
+                      />
+                      Amazon
+                    </label>
+                  </div>
+                  <div class="radio">
+                    <label>
+                      <input
+                        type="radio"
+                        name="openApiTemplate"
+                        value="amazon"
+                      />
+                      Amazon
+                    </label>
+                  </div>
+                </div>
+              </kb-form-item>
+            </template>
           </template>
+
+          <kb-form-item>
+            <label class="control-label col-md-3">Cache</label>
+            <div class="col-md-9">
+              <div
+                v-for="cache in model.caches"
+                style="display: flex; margin-bottom: 5px"
+              >
+                <select
+                  class="form-control"
+                  v-model="cache.method"
+                  style="width: 80px; margin-right: 5px"
+                >
+                  <option value="Get"> GET </option>
+                  <option value="Put"> PUT </option>
+                  <option value="Post"> POST </option>
+                  <option value="Delete"> DELETE </option>
+                  <option value="Options"> OPTIONS </option>
+                  <option value="Head"> HEAD </option>
+                  <option value="Patch"> PATCH </option>
+                  <option value="Trace"> TRACE </option>
+                </select>
+
+                <input
+                  class="form-control"
+                  style="margin-right: 5px"
+                  placeholder="Example: '/user/list'"
+                  v-model="cache.pattern"
+                />
+                <div class="input-group" style="margin-right: 5px">
+                  <input
+                    type="number"
+                    class="form-control"
+                    v-model="cache.expiresIn"
+                  />
+                  <div class="input-group-addon">Minutes</div></div
+                >
+                <button
+                  type="button"
+                  class="btn red"
+                  @click="model.caches=model.caches.filter(f=>f!=cache)"
+                  ><i class="fa fa-minus"></i
+                ></button>
+              </div>
+              <button type="button" class="btn blue" @click="addCache"
+                ><i class="fa fa-plus"></i
+              ></button>
+            </div>
+          </kb-form-item>
         </kb-form>
       </div>
       <div class="modal-footer">

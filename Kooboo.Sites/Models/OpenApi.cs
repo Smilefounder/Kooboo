@@ -13,6 +13,7 @@ namespace Kooboo.Sites.Models
     public class OpenApi : CoreObject
     {
         private Dictionary<string, AuthorizeData> securities;
+        private List<Cache> caches;
 
         public string JsonData { get; set; }
         public string Url { get; set; }
@@ -25,6 +26,15 @@ namespace Kooboo.Sites.Models
                 return securities;
             }
             set => securities = value;
+        }
+        public List<Cache> Caches
+        {
+            get
+            {
+                if (caches == null) caches = new List<Cache>();
+                return caches;
+            }
+            set => caches = value;
         }
 
         public class AuthorizeData
@@ -41,7 +51,12 @@ namespace Kooboo.Sites.Models
             public string Name { get; set; }
         }
 
-        //TODO Cache
+        public class Cache
+        {
+            public string Method { get; set; }
+            public string Pattern { get; set; }
+            public int ExpiresIn { get; set; }
+        }
 
         public override int GetHashCode()
         {
@@ -64,6 +79,16 @@ namespace Kooboo.Sites.Models
                     un += item.Value?.RefreshToken;
                     un += item.Value?.ExpiresIn;
                     un += item.Value?.RedirectUrl;
+                }
+            }
+
+            if (Caches != null)
+            {
+                foreach (var item in Caches)
+                {
+                    un += item.Method;
+                    un += item.Pattern;
+                    un += item.ExpiresIn;
                 }
             }
 
