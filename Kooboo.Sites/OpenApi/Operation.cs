@@ -20,9 +20,9 @@ namespace Kooboo.Sites.OpenApi
         readonly KeyValuePair<string, OpenApiPathItem> _path;
         readonly KeyValuePair<OperationType, OpenApiOperation> _operation;
         readonly Models.OpenApi.Cache _cache;
-        readonly ConcurrentDictionary<string, Tuple<DateTime, object>> _caches = new ConcurrentDictionary<string, Tuple<DateTime, object>>();
-        public static string DefaultContentType => "application/json";
 
+        public ConcurrentDictionary<string, Tuple<DateTime, object>> Caches { get; } = new ConcurrentDictionary<string, Tuple<DateTime, object>>();
+        public static string DefaultContentType => "application/json";
         public string Description => _description.Value;
         public OpenApiResponses Responses => _operation.Value.Responses;
         public OpenApiSecurityScheme Security { get; private set; }
@@ -80,8 +80,29 @@ namespace Kooboo.Sites.OpenApi
 
             if (paths != null) url = FillUrl(url, paths);
             if (querys != null) url = UrlHelper.AppendQueryString(url, querys);
+
+            if (_cache != null && Caches.TryGetValue(url, out var cache))
+            {
+                if (DateTime.UtcNow > cache.Item1)
+                {
+                    Caches.TryRemove(url, out _);
+                }
+                else
+                {
+                    return cache.Item2;
+                }
+            }
+
             var sender = HttpSender.GetSender(_contentType.Value);
-            return sender.Send(url, _method, body, headers, cookies);
+            var result = sender.Send(url, _method, body, headers, cookies);
+
+            if (_cache != null)
+            {
+                var expiresIn = DateTime.UtcNow.AddMinutes(_cache.ExpiresIn);
+                Caches.TryAdd(url, new Tuple<DateTime, object>(expiresIn, result));
+            }
+
+            return result;
         }
 
         string GetDescription()

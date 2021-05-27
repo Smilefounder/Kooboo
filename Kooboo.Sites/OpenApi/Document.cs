@@ -33,14 +33,6 @@ namespace Kooboo.Sites.OpenApi
             _operations = new Lazy<Dictionary<string, Operation>>(GetOperations, true);
         }
 
-        public OpenApiSecurityScheme GetSecurityScheme(string name)
-        {
-            return _doc.Value.Components?.SecuritySchemes?.FirstOrDefault(f =>
-            {
-                return Regex.Replace(f.Key, "[^\\w]", "_").ToLower() == name;
-            }).Value;
-        }
-
         Dictionary<string, Operation> GetOperations()
         {
             if (_doc.Value.Paths == null) return null;

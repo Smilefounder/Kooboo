@@ -36,7 +36,6 @@ namespace Kooboo.Web.Api.Implementation
             var name = call.Command.Parameters.Last();
             var site = GlobalDb.WebSites.Get(siteId);
             var doc = site.SiteDb().OpenApi.Get(docId);
-            var scheme = new Document(doc).GetSecurityScheme(name);
             doc.Securities.TryGetValue(name, out var data);
             var sender = HttpSender.GetSender(Sites.OpenApi.Securities.OAuth2.ContentType);
 
@@ -50,7 +49,7 @@ namespace Kooboo.Web.Api.Implementation
 
             var token = Helpers.BasicAuthEncode(data.ClientId, data.ClientSecret);
 
-            var result = sender.Send(scheme.Flows.AuthorizationCode.TokenUrl.ToString(), "POST", body, new Dictionary<string, string>
+            var result = sender.Send(data.TokenUrl.ToString(), "POST", body, new Dictionary<string, string>
             {
                 { "Authorization", $"Basic {token}"}
             }, null);

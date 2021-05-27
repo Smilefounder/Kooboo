@@ -30,7 +30,7 @@
                       <div class="col-md-9">
                         <input
                           class="form-control"
-                          v-model="getData(security.name).username"
+                          v-model="getData(security).username"
                         />
                       </div>
                     </div>
@@ -39,7 +39,7 @@
                       <div class="col-md-9">
                         <input
                           class="form-control"
-                          v-model="getData(security.name).password"
+                          v-model="getData(security).password"
                         />
                       </div>
                     </div>
@@ -51,7 +51,7 @@
                         <input
                           class="form-control"
                           placeholder="(optional) default 'Bearer'"
-                          v-model="getData(security.name).name"
+                          v-model="getData(security).name"
                         />
                       </div>
                     </div>
@@ -60,7 +60,7 @@
                       <div class="col-md-9">
                         <input
                           class="form-control"
-                          v-model="getData(security.name).accessToken"
+                          v-model="getData(security).accessToken"
                         />
                       </div>
                     </div>
@@ -75,7 +75,7 @@
                     <div class="col-md-9">
                       <input
                         class="form-control"
-                        v-model="getData(security.name).accessToken"
+                        v-model="getData(security).accessToken"
                       />
                     </div>
                   </div>
@@ -87,7 +87,7 @@
                     role="alert"
                     v-if="getFlow(security.value).name=='authorizationCode'"
                   >
-                    Redirect url : {{getData(security.name).redirectUrl}}
+                    Redirect url : {{getData(security).redirectUrl}}
                   </div>
 
                   <div class="form-group">
@@ -96,7 +96,7 @@
                       <input
                         class="form-control"
                         placeholder="(optional) default 'Bearer'"
-                        v-model="getData(security.name).name"
+                        v-model="getData(security).name"
                       />
                     </div>
                   </div>
@@ -105,7 +105,7 @@
                     <div class="col-md-9">
                       <input
                         class="form-control"
-                        v-model="getData(security.name).clientId"
+                        v-model="getData(security).clientId"
                       />
                     </div>
                   </div>
@@ -114,7 +114,7 @@
                     <div class="col-md-9">
                       <input
                         class="form-control"
-                        v-model="getData(security.name).clientSecret"
+                        v-model="getData(security).clientSecret"
                       />
                     </div>
                   </div>
@@ -123,8 +123,8 @@
                     <div class="col-md-9">
                       <input
                         class="form-control"
-                        v-model="getData(security.name).accessToken"
-                        :readonly="!getData(security.name).manual"
+                        v-model="getData(security).accessToken"
+                        :readonly="!getData(security).manual"
                       />
                     </div>
                   </div>
@@ -133,8 +133,8 @@
                     <div class="col-md-9">
                       <input
                         class="form-control"
-                        v-model="getData(security.name).refreshToken"
-                        :readonly="!getData(security.name).manual"
+                        v-model="getData(security).refreshToken"
+                        :readonly="!getData(security).manual"
                       />
                     </div>
                   </div>
@@ -143,8 +143,8 @@
                     <div class="col-md-9">
                       <input
                         class="form-control"
-                        v-model="getData(security.name).expiresIn"
-                        :readonly="!getData(security.name).manual"
+                        v-model="getData(security).expiresIn"
+                        :readonly="!getData(security).manual"
                       />
                     </div>
                   </div>
@@ -155,7 +155,7 @@
                       v-if="getFlow(security.value).name=='authorizationCode'"
                       >Save and challenge</button
                     >
-                    <button class="btn green" @click="setManual(security.name)"
+                    <button class="btn green" @click="setManual(security)"
                       >Manual input</button
                     >
                   </div>

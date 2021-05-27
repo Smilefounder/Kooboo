@@ -42,6 +42,9 @@ namespace Kooboo.Sites.Models
             public string TokenType { get; set; }
             public DateTime ExpiresIn { get; set; }
             public string RedirectUrl { get; set; }
+            public string AuthorizationUrl { get; set; }
+            public string TokenUrl { get; set; }
+            public string RefreshUrl { get; set; }
             public string Name { get; set; }
         }
 
@@ -73,6 +76,9 @@ namespace Kooboo.Sites.Models
                     un += item.Value?.RefreshToken;
                     un += item.Value?.ExpiresIn;
                     un += item.Value?.RedirectUrl;
+                    un += item.Value?.AuthorizationUrl;
+                    un += item.Value?.TokenUrl;
+                    un += item.Value?.RefreshUrl;
                 }
             }
 

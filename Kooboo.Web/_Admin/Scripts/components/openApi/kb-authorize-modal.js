@@ -74,12 +74,12 @@
 
         return result;
       },
-      getData(key) {
-        if (!this.data[key]) {
+      getData(item) {
+        if (!this.data[item.name]) {
           var data;
 
           for (const i in this.model.securities) {
-            if (key.toLocaleLowerCase() == i.toLocaleLowerCase()) {
+            if (item.name.toLocaleLowerCase() == i.toLocaleLowerCase()) {
               data = this.model.securities[i];
               data.manual = false;
             }
@@ -95,11 +95,16 @@
             };
           }
 
-          data.redirectUrl = this.getRedirectUrl(key);
-          Vue.set(this.data, key, data);
+          data.redirectUrl = this.getRedirectUrl(item.name);
+          data.authorizationUrl = this.getFlow(
+            item.value
+          ).flow.authorizationUrl;
+          data.tokenUrl = this.getFlow(item.value).flow.tokenUrl;
+          data.refreshUrl = this.getFlow(item.value).flow.refreshUrl;
+          Vue.set(this.data, item.name, data);
         }
 
-        return this.data[key];
+        return this.data[item.name];
       },
       getTypeDisplay(item) {
         var result = item.type;
@@ -117,13 +122,12 @@
       challenge(item) {
         this.save(() => {
           var flow = this.getFlow(item.value).flow;
-          var data = this.getData(item.name);
-          var redirectUrl = this.getRedirectUrl(item.name, true);
+          var data = this.getData(item);
           var url = `${
-            flow.authorizationUrl
+            data.authorizationUrl
           }?response_type=code&state=${new Date().getTime()}&client_id=${
             data.clientId
-          }&redirect_uri=${redirectUrl}`;
+          }&redirect_uri=${data.redirectUrl}`;
 
           if (flow.scopes) {
             var scopes = [];
@@ -137,8 +141,8 @@
       standardName(s) {
         return s.replace(/[^\w]/g, "_").toLowerCase();
       },
-      setManual(name) {
-        this.getData(name).manual = true;
+      setManual(item) {
+        this.getData(item).manual = true;
         this.data = JSON.parse(JSON.stringify(this.data));
       },
     },
