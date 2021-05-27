@@ -13,104 +13,27 @@ namespace Kooboo.Sites.OpenApi
     public class Executer : FunctionInstance
     {
         readonly string _openApiName;
-        readonly string _pathName;
         readonly RenderContext _renderContext;
-        public static string DefaultContentType => "application/json";
+
+        public string PathName { get; }
 
         public Executer(string openApiName, string pathName, RenderContext renderContext)
             : base(Manager.GetJsEngine(renderContext), null, null, false)
         {
             _openApiName = openApiName;
-            _pathName = pathName;
+            PathName = pathName;
             _renderContext = renderContext;
         }
 
-        public override JsValue Call(JsValue thisObject, JsValue[] arguments)
+        public override JsValue Call(JsValue _, JsValue[] arguments)
         {
-            var cache = Cache.Get(_renderContext.WebSite);
-            cache.Documents.TryGetValue(_openApiName, out var doc);
+            var webSiteCache = Cache.Get(_renderContext.WebSite);
+            webSiteCache.Documents.TryGetValue(_openApiName, out var doc);
             if (doc == null) throw new Exception($"Can not found openApi {_openApiName}");
-            doc.Operations.TryGetValue(_pathName, out var operation);
-            if (operation == null) throw new Exception($"Can not found openApi operation {_pathName}");
-            return Send(doc, operation, arguments);
-        }
-
-        JsValue Send(Document doc, Operation operation, JsValue[] arguments)
-        {
-            var url = operation.Url.ToLower();
-            var queue = new Queue<JsValue>(arguments);
-            object body = null;
-
-            Dictionary<string, string> querys = null;
-            Dictionary<string, string> paths = null;
-            Dictionary<string, string> headers = null;
-            Dictionary<string, string> cookies = null;
-
-            if (operation.Body != null) body = queue.Dequeue().ToObject();
-            if (operation.Querys.Any()) querys = ToDictionary(queue.Dequeue());
-            if (operation.Paths.Any()) paths = ToDictionary(queue.Dequeue());
-            if (operation.Headers.Any()) headers = ToDictionary(queue.Dequeue());
-            if (operation.Cookies.Any()) cookies = ToDictionary(queue.Dequeue());
-
-            if (operation.Security != null)
-            {
-                var name = operation.Security.Reference?.Id;
-                doc.OpenApi.Securities.TryGetValue(name, out var data);
-                if (data == null) throw new Exception($"Not security {name} settings");
-                var security = Security.Get(operation.Security.Type);
-                var securityResult = security.Authorize(operation.Security, data);
-                querys = MergeSecurity(querys, securityResult.Querys);
-                headers = MergeSecurity(headers, securityResult.Headers);
-                cookies = MergeSecurity(cookies, securityResult.Cookies);
-                if (securityResult.ShouldSaveData) _renderContext.WebSite.SiteDb().OpenApi.AddOrUpdate(doc.OpenApi);
-            }
-
-            if (paths != null) url = FillUrl(url, paths);
-            if (querys != null) url = UrlHelper.AppendQueryString(url, querys);
-            var requestContentType = GetRequestContentType(operation);
-            var result = HttpSender.GetSender(requestContentType).Send(url, operation.Method, body, headers, cookies);
+            doc.Operations.TryGetValue(PathName, out var operation);
+            if (operation == null) throw new Exception($"Can not found openApi operation {PathName}");
+            var result = operation.Send(_renderContext, arguments.Select(s => s.ToObject()));
             return JsValue.FromObject(Engine, result);
-        }
-
-        private string GetRequestContentType(Operation operation)
-        {
-            if ((operation.Body?.Content?.Count ?? 0) == 0) return DefaultContentType;
-            if (operation.Body.Content.Any(f => f.Key == DefaultContentType)) return DefaultContentType;
-            return operation.Body.Content.FirstOrDefault().Key;
-        }
-
-        private static Dictionary<string, string> MergeSecurity(Dictionary<string, string> request, Dictionary<string, string> security)
-        {
-            if (security != null)
-            {
-                if (request == null) request = new Dictionary<string, string>();
-
-                foreach (var item in security)
-                {
-                    if (!request.ContainsKey(item.Key)) request.Add(item.Key, item.Value);
-                }
-            }
-
-            return request;
-        }
-
-
-        Dictionary<string, string> ToDictionary(JsValue value)
-        {
-            if (value == null) return null;
-            var obj = value.ToObject() as IDictionary<string, object>;
-            if (obj == null) return null;
-            return obj.ToDictionary(o => o.Key, o => o.Value.ToString());
-        }
-
-        private string FillUrl(string url, IDictionary<string, string> dic)
-        {
-            foreach (var item in dic)
-            {
-                url = url.Replace($"{{{item.Key.ToLower()}}}", item.Value);
-            }
-
-            return url;
         }
     }
 }

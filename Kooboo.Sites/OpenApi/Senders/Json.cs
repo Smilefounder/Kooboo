@@ -7,7 +7,7 @@ namespace Kooboo.Sites.OpenApi.Senders
 {
     public class Json : HttpSender
     {
-        protected override string ContentType => Executer.DefaultContentType;
+        protected override string ContentType => Operation.DefaultContentType;
 
         protected override string SerializeBody(object body)
         {

@@ -8,7 +8,7 @@ namespace Kooboo.Sites.OpenApi.ResponseHandlers
 {
     public class JsonResponse : ResponseHandler
     {
-        protected override string ContentType => Executer.DefaultContentType;
+        protected override string ContentType => Operation.DefaultContentType;
         static readonly JsonParser _jsonParser = new JsonParser(new Jint.Engine());
 
         public override object Handler(string data)

@@ -3,7 +3,6 @@ using Microsoft.OpenApi.Readers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -52,7 +51,11 @@ namespace Kooboo.Sites.OpenApi
                 foreach (var operation in path.Value.Operations)
                 {
                     var key = Helpers.StandardPath(path.Key, operation.Key);
-                    if (!result.ContainsKey(key)) result.Add(key, new Operation(Server, path, operation));
+                    if (!result.ContainsKey(key))
+                    {
+
+                        result.Add(key, new Operation(this, path, operation));
+                    }
                 }
             }
 
