@@ -26,117 +26,109 @@
               />
             </div>
           </kb-form-item>
-          <template>
-            <kb-form-item v-if="!isEdit">
-              <label class="control-label col-md-3">Type</label>
+          
+          <kb-form-item prop="url">
+            <label class="control-label col-md-3">Base URL</label>
+            <div class="col-md-9">
+              <input
+                type="text"
+                class="form-control"
+                v-model="model.baseUrl"
+                placeholder="(optional) http://domain.com/api"
+              />
+            </div>
+          </kb-form-item>
+
+          <kb-form-item v-if="!isEdit">
+            <label class="control-label col-md-3">Type</label>
+            <div class="col-md-9">
+              <label class="radio-inline">
+                <input
+                  type="radio"
+                  id="type"
+                  value="url"
+                  v-model="model.type"
+                  @click="$refs.form.clearValid()"
+                />
+                <span>URL</span>
+              </label>
+              <label class="radio-inline">
+                <input
+                  type="radio"
+                  id="type"
+                  value="file"
+                  v-model="model.type"
+                  @click="$refs.form.clearValid()"
+                />
+                <span>File</span>
+              </label>
+              <label class="radio-inline">
+                <input
+                  type="radio"
+                  id="type"
+                  value="template"
+                  v-model="model.type"
+                  @click="$refs.form.clearValid()"
+                />
+                <span>Template</span>
+              </label>
+            </div>
+          </kb-form-item>
+
+          <template v-if="model.type=='url'">
+            <kb-form-item prop="url">
+              <label class="control-label col-md-3">Remote URL</label>
               <div class="col-md-9">
-                <label class="radio-inline">
-                  <input
-                    type="radio"
-                    id="type"
-                    value="url"
-                    v-model="model.type"
-                    @click="$refs.form.clearValid()"
-                  />
-                  <span>URL</span>
-                </label>
-                <label class="radio-inline">
-                  <input
-                    type="radio"
-                    id="type"
-                    value="file"
-                    v-model="model.type"
-                    @click="$refs.form.clearValid()"
-                  />
-                  <span>File</span>
-                </label>
-                <label class="radio-inline">
-                  <input
-                    type="radio"
-                    id="type"
-                    value="template"
-                    v-model="model.type"
-                    @click="$refs.form.clearValid()"
-                  />
-                  <span>Template</span>
-                </label>
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="model.url"
+                  placeholder="https://generator3.swagger.io/openapi.json"
+                />
               </div>
             </kb-form-item>
+          </template>
 
-            <template v-if="model.type=='url'">
-              <kb-form-item prop="url">
-                <label class="control-label col-md-3">Remote URL</label>
-                <div class="col-md-9">
-                  <input
-                    type="text"
-                    class="form-control"
-                    v-model="model.url"
-                    placeholder="https://generator3.swagger.io/openapi.json"
-                  />
-                </div>
-              </kb-form-item>
-            </template>
+          <template v-if="model.type=='file'">
+            <kb-form-item>
+              <label class="control-label col-md-3"></label>
+              <div class="col-md-9">
+                <template v-if="model.type=='file'">
+                  <a class="btn btn-default btn-file">
+                    <input
+                      type="file"
+                      :accept="accept"
+                      @input="selectedFile($event.target.files)"
+                    />
+                    <span>Select file</span>
+                  </a>
+                  <span>Support types: Json yaml</span>
+                  <p style="max-height: 100px; overflow-y: auto"
+                    >{{model.jsonData}}</p
+                  >
+                </template>
+              </div>
+            </kb-form-item>
+          </template>
 
-            <template v-if="model.type=='file'">
-              <kb-form-item prop="url">
-                <label class="control-label col-md-3">Base URL</label>
-                <div class="col-md-9">
-                  <input
-                    type="text"
-                    class="form-control"
-                    v-model="model.url"
-                    placeholder="(optional) http://domain.com/api"
-                  />
+          <template v-if="model.type=='template'">
+            <kb-form-item>
+              <label class="control-label col-md-3"></label>
+              <div class="col-md-9">
+                <div class="radio">
+                  <label>
+                    <input type="radio" name="openApiTemplate" value="amazon" />
+                    Amazon
+                  </label>
                 </div>
-              </kb-form-item>
-              <kb-form-item>
-                <label class="control-label col-md-3"></label>
-                <div class="col-md-9">
-                  <template v-if="model.type=='file'">
-                    <a class="btn btn-default btn-file">
-                      <input
-                        type="file"
-                        :accept="accept"
-                        @input="selectedFile($event.target.files)"
-                      />
-                      <span>Select file</span>
-                    </a>
-                    <span>Support types: Json yaml</span>
-                    <p style="max-height: 100px; overflow-y: auto"
-                      >{{model.jsonData}}</p
-                    >
-                  </template>
+                <div class="radio">
+                  <label>
+                    <input type="radio" name="openApiTemplate" value="amazon" />
+                    Amazon
+                  </label>
                 </div>
-              </kb-form-item>
-            </template>
-
-            <template v-if="model.type=='template'">
-              <kb-form-item>
-                <label class="control-label col-md-3"></label>
-                <div class="col-md-9">
-                  <div class="radio">
-                    <label>
-                      <input
-                        type="radio"
-                        name="openApiTemplate"
-                        value="amazon"
-                      />
-                      Amazon
-                    </label>
-                  </div>
-                  <div class="radio">
-                    <label>
-                      <input
-                        type="radio"
-                        name="openApiTemplate"
-                        value="amazon"
-                      />
-                      Amazon
-                    </label>
-                  </div>
-                </div>
-              </kb-form-item>
-            </template>
+              </div>
+            </kb-form-item>
           </template>
 
           <kb-form-item>
@@ -159,15 +151,19 @@
                   <option value="Head"> HEAD </option>
                   <option value="Patch"> PATCH </option>
                   <option value="Trace"> TRACE </option>
+                  <option value="All"> ALL </option>
                 </select>
 
                 <input
                   class="form-control"
                   style="margin-right: 5px"
-                  placeholder="Example: '/user/list'"
+                  placeholder="Contains the matching example: '/user/list'"
                   v-model="cache.pattern"
                 />
-                <div class="input-group" style="margin-right: 5px">
+                <div
+                  class="input-group"
+                  style="width: 150px; margin-right: 5px"
+                >
                   <input
                     type="number"
                     class="form-control"

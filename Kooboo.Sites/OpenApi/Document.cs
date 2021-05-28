@@ -56,8 +56,8 @@ namespace Kooboo.Sites.OpenApi
 
         string GetServer()
         {
-            var url = _doc.Value.Servers.FirstOrDefault()?.Url;
-            if (url == null) return TryGetBaseUrl();
+            if (!string.IsNullOrWhiteSpace(_openApi.BaseUrl)) return _openApi.BaseUrl;
+            var url = _doc.Value.Servers.FirstOrDefault()?.Url ?? "/";
             Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out var uri);
             if (uri.IsAbsoluteUri) return url;
             return new Uri(new Uri(TryGetBaseUrl()), uri).ToString();
@@ -65,7 +65,7 @@ namespace Kooboo.Sites.OpenApi
 
         string TryGetBaseUrl()
         {
-            if (string.IsNullOrWhiteSpace(_openApi.Url)) return null;
+            if (string.IsNullOrWhiteSpace(_openApi.Url)) throw new Exception("OpenApi base url can not empty");
             var uri = new Uri(_openApi.Url);
             return $"{uri.Scheme}://{uri.Authority}";
         }

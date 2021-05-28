@@ -42,7 +42,10 @@ namespace Kooboo.Sites.OpenApi
             _contentType = new Lazy<string>(GetContentType, true);
             _description = new Lazy<string>(GetDescription, true);
 
-            _cache = _doc.OpenApi.Caches.Where(w => w.Method == _method && _path.Key.Contains(w.Pattern) && w.ExpiresIn != 0)
+            _cache = _doc.OpenApi.Caches.Where(w => (w.Method == _method || w.Method == "All") 
+                                                        && _path.Key.Contains(w.Pattern) 
+                                                        && w.ExpiresIn != 0
+                                                    )
                                         .OrderByDescending(o => o.ExpiresIn)
                                         .FirstOrDefault();
 

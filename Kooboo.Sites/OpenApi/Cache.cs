@@ -38,7 +38,7 @@ namespace Kooboo.Sites.OpenApi
         public static void Remove(WebSite webSite)
         {
             _cache.TryRemove(webSite.Id, out var cache);
-            cache.StopCleanTask();
+            cache?.StopCleanTask();
         }
 
         public void StopCleanTask()

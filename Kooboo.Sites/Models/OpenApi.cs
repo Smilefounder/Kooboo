@@ -11,6 +11,7 @@ namespace Kooboo.Sites.Models
 
         public string JsonData { get; set; }
         public string Url { get; set; }
+        public string BaseUrl { get; set; }
         public string Type { get; set; }
         public Dictionary<string, AuthorizeData> Securities
         {
@@ -62,6 +63,7 @@ namespace Kooboo.Sites.Models
             un += JsonData;
             un += Url;
             un += Type;
+            un += BaseUrl;
 
             if (Securities != null)
             {

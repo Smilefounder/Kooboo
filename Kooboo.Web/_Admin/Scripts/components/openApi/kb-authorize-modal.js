@@ -86,21 +86,20 @@
           }
 
           if (!data) {
+            var flow = this.getFlow(item.value).flow;
             data = {
               username: "",
               password: "",
               accessToken: "",
               name: "",
               manual: false,
+              authorizationUrl: flow.authorizationUrl,
+              tokenUrl: flow.tokenUrl,
+              refreshUrl: flow.refreshUrl,
             };
           }
 
           data.redirectUrl = this.getRedirectUrl(item.name);
-          data.authorizationUrl = this.getFlow(
-            item.value
-          ).flow.authorizationUrl;
-          data.tokenUrl = this.getFlow(item.value).flow.tokenUrl;
-          data.refreshUrl = this.getFlow(item.value).flow.refreshUrl;
           Vue.set(this.data, item.name, data);
         }
 
