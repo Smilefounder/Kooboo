@@ -13,7 +13,7 @@ namespace Kooboo.Sites.OpenApi
         static readonly List<HttpSender> _senders = Lib.IOC.Service.GetInstances<HttpSender>();
 
         protected abstract string ContentType { get; }
-        protected abstract string SerializeBody(object body);
+        protected abstract byte[] SerializeBody(object body, HttpWebRequest request);
 
         public static HttpSender GetSender(string contentType)
         {
@@ -47,13 +47,12 @@ namespace Kooboo.Sites.OpenApi
 
             if (body != null)
             {
-                var data = SerializeBody(body);
-                var byteArray = Encoding.UTF8.GetBytes(data);
-                request.ContentLength = byteArray.Length;
+                var data = SerializeBody(body, request);
+                request.ContentLength = data.Length;
 
                 using (var stream = request.GetRequestStream())
                 {
-                    stream.Write(byteArray, 0, byteArray.Length);
+                    stream.Write(data, 0, data.Length);
                 }
             }
 
@@ -72,19 +71,25 @@ namespace Kooboo.Sites.OpenApi
             catch (WebException e)
             {
                 var response = e.Response as HttpWebResponse;
-                var handler = ResponseHandler.Get(response.ContentType);
+                object errorBody = null;
 
-                using (var stream = e.Response.GetResponseStream())
+                if (response != null)
                 {
-                    var reader = new StreamReader(stream);
+                    var handler = ResponseHandler.Get(response.ContentType);
 
-                    return new Dictionary<string, object>
+                    using (var stream = e.Response.GetResponseStream())
                     {
-                        {"code", (int)response.StatusCode},
-                        {"body", handler.Handler(reader.ReadToEnd())},
-                        {ErrorFieldName,e.Message }
-                    };
+                        var reader = new StreamReader(stream);
+                        errorBody = handler.Handler(reader.ReadToEnd());
+                    }
                 }
+
+                return new Dictionary<string, object>
+                {
+                    {"code",response==null?500: (int)response?.StatusCode},
+                    {"body", errorBody },
+                    {ErrorFieldName,e.Message }
+                };
             }
             catch (Exception)
             {

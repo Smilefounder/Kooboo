@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 
 namespace Kooboo.Sites.OpenApi.Senders
@@ -9,10 +10,11 @@ namespace Kooboo.Sites.OpenApi.Senders
     {
         protected override string ContentType => "application/x-www-form-urlencoded";
 
-        protected override string SerializeBody(object body)
+        protected override byte[] SerializeBody(object body, HttpWebRequest request)
         {
             var data = body as IDictionary<string, object>;
-            return string.Join("&", data.Select(s => $"{s.Key}={s.Value}"));
+            var str = string.Join("&", data.Select(s => $"{s.Key}={s.Value}"));
+            return Encoding.UTF8.GetBytes(str);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Kooboo.Lib.Helper;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 
 namespace Kooboo.Sites.OpenApi.Senders
@@ -9,9 +10,10 @@ namespace Kooboo.Sites.OpenApi.Senders
     {
         protected override string ContentType => Operation.DefaultContentType;
 
-        protected override string SerializeBody(object body)
+        protected override byte[] SerializeBody(object body, HttpWebRequest request)
         {
-            return JsonHelper.Serialize(body);
+            var json = JsonHelper.Serialize(body);
+            return Encoding.UTF8.GetBytes(json);
         }
     }
 }
