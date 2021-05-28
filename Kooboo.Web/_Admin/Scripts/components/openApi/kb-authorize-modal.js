@@ -86,17 +86,21 @@
           }
 
           if (!data) {
-            var flow = this.getFlow(item.value).flow;
             data = {
               username: "",
               password: "",
               accessToken: "",
               name: "",
               manual: false,
-              authorizationUrl: flow.authorizationUrl,
-              tokenUrl: flow.tokenUrl,
-              refreshUrl: flow.refreshUrl,
             };
+
+            var flow = this.getFlow(item.value);
+
+            if (flow) {
+              data.authorizationUrl = flow.flow.authorizationUrl;
+              data.tokenUrl = flow.flow.tokenUrl;
+              data.refreshUrl = flow.flow.refreshUrl;
+            }
           }
 
           data.redirectUrl = this.getRedirectUrl(item.name);

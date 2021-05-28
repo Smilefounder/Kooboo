@@ -118,66 +118,68 @@
                       />
                     </div>
                   </div>
-                  <div class="form-group">
-                    <label class="control-label col-md-3">Access token</label>
-                    <div class="col-md-9">
-                      <input
-                        class="form-control"
-                        v-model="getData(security).accessToken"
-                        :readonly="!getData(security).manual"
-                      />
+
+                  <template v-if="getData(security).manual">
+                    <div class="form-group">
+                      <label class="control-label col-md-3">Access token</label>
+                      <div class="col-md-9">
+                        <input
+                          class="form-control"
+                          v-model="getData(security).accessToken"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="control-label col-md-3">Refresh token</label>
-                    <div class="col-md-9">
-                      <input
-                        class="form-control"
-                        v-model="getData(security).refreshToken"
-                        :readonly="!getData(security).manual"
-                      />
+                    <div class="form-group">
+                      <label class="control-label col-md-3"
+                        >Refresh token</label
+                      >
+                      <div class="col-md-9">
+                        <input
+                          class="form-control"
+                          v-model="getData(security).refreshToken"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="control-label col-md-3">Expires in</label>
-                    <div class="col-md-9">
-                      <input
-                        class="form-control"
-                        v-model="getData(security).expiresIn"
-                        :readonly="!getData(security).manual"
-                      />
+                    <div class="form-group">
+                      <label class="control-label col-md-3">Expires in</label>
+                      <div class="col-md-9">
+                        <input
+                          class="form-control"
+                          v-model="getData(security).expiresIn"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="control-label col-md-3">AuthorizationUrl</label>
-                    <div class="col-md-9">
-                      <input
-                        class="form-control"
-                        v-model="getData(security).authorizationUrl"
-                        :readonly="!getData(security).manual"
-                      />
+                    <div class="form-group">
+                      <label class="control-label col-md-3"
+                        >AuthorizationUrl</label
+                      >
+                      <div class="col-md-9">
+                        <input
+                          class="form-control"
+                          v-model="getData(security).authorizationUrl"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="control-label col-md-3">TokenUrl</label>
-                    <div class="col-md-9">
-                      <input
-                        class="form-control"
-                        v-model="getData(security).tokenUrl"
-                        :readonly="!getData(security).manual"
-                      />
+                    <div class="form-group">
+                      <label class="control-label col-md-3">TokenUrl</label>
+                      <div class="col-md-9">
+                        <input
+                          class="form-control"
+                          v-model="getData(security).tokenUrl"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="control-label col-md-3">RefreshUrl</label>
-                    <div class="col-md-9">
-                      <input
-                        class="form-control"
-                        v-model="getData(security).refreshUrl"
-                        :readonly="!getData(security).manual"
-                      />
+                    <div class="form-group">
+                      <label class="control-label col-md-3">RefreshUrl</label>
+                      <div class="col-md-9">
+                        <input
+                          class="form-control"
+                          v-model="getData(security).refreshUrl"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </template>
+
                   <div style="text-align: center">
                     <button
                       class="btn green"
@@ -185,7 +187,10 @@
                       v-if="getFlow(security.value).name=='authorizationCode'"
                       >Save and challenge</button
                     >
-                    <button class="btn green" @click="setManual(security)"
+                    <button
+                      class="btn green"
+                      v-if="!getData(security).manual"
+                      @click="setManual(security)"
                       >Manual input</button
                     >
                   </div>
