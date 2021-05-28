@@ -55,11 +55,7 @@ namespace Kooboo.Web.Api.Implementation
             }, null);
 
             var dic = result as IDictionary<string, object>;
-
-            if (dic.ContainsKey(HttpSender.ErrorFieldName))
-            {
-                return new JsonResponse(result);
-            }
+            if (dic.ContainsKey("hasError")) return new JsonResponse(result);
 
             if (dic.TryGetValue("access_token", out var access_token))
             {
