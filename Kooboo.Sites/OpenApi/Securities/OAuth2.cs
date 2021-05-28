@@ -56,11 +56,7 @@ namespace Kooboo.Sites.OpenApi.Securities
 
             var result = HttpSender.GetSender(ContentType).Send(flow.TokenUrl.ToString(), "POST", body, headers, null);
             var dic = result as IDictionary<string, object>;
-
-            if (dic.ContainsKey(HttpSender.ErrorFieldName))
-            {
-                throw new Exception(JsonHelper.Serialize(dic));
-            }
+            if (dic.ContainsKey("hasError")) throw new Exception(JsonHelper.Serialize(dic));
 
             if (dic.TryGetValue("access_token", out var access_token))
             {
@@ -119,10 +115,7 @@ namespace Kooboo.Sites.OpenApi.Securities
 
             var dic = result as IDictionary<string, object>;
 
-            if (dic.ContainsKey(HttpSender.ErrorFieldName))
-            {
-                throw new Exception(JsonHelper.Serialize(dic));
-            }
+            if (dic.ContainsKey("hasError")) throw new Exception(JsonHelper.Serialize(dic));
 
             if (dic.TryGetValue("access_token", out var access_token))
             {

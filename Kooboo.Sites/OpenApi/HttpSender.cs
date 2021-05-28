@@ -14,14 +14,12 @@ namespace Kooboo.Sites.OpenApi
 
         protected abstract string ContentType { get; }
         protected abstract byte[] SerializeBody(object body, HttpWebRequest request);
-
         public static HttpSender GetSender(string contentType)
         {
             var sender = _senders.FirstOrDefault(f => contentType.Contains(f.ContentType));
             if (sender == null) sender = _senders.First(f => f is Json);
             return sender;
         }
-        public static string ErrorFieldName => "errorMsg";
 
         public object Send(string url, string method, object body, IDictionary<string, string> headers, IDictionary<string, string> cookies)
         {
@@ -68,16 +66,22 @@ namespace Kooboo.Sites.OpenApi
                     }
                 }
             }
-            catch (WebException e)
+            catch (Exception e)
             {
-                var response = e.Response as HttpWebResponse;
+                HttpWebResponse response = null;
+
+                if (e is WebException)
+                {
+                    response = (e as WebException).Response as HttpWebResponse;
+                }
+
                 object errorBody = null;
 
                 if (response != null)
                 {
                     var handler = ResponseHandler.Get(response.ContentType);
 
-                    using (var stream = e.Response.GetResponseStream())
+                    using (var stream = response.GetResponseStream())
                     {
                         var reader = new StreamReader(stream);
                         errorBody = handler.Handler(reader.ReadToEnd());
@@ -86,14 +90,11 @@ namespace Kooboo.Sites.OpenApi
 
                 return new Dictionary<string, object>
                 {
+                    {"hasError",true },
                     {"code",response==null?500: (int)response?.StatusCode},
                     {"body", errorBody },
-                    {ErrorFieldName,e.Message }
+                    {"errorMsg",e.Message }
                 };
-            }
-            catch (Exception)
-            {
-                throw;
             }
         }
 
