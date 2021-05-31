@@ -21,6 +21,7 @@
           "text/yaml",
           "text/x-yaml",
         ],
+        authorizationCodes: [],
       };
     },
     computed: {
@@ -136,6 +137,13 @@
               caches: [],
             };
           }
+          Kooboo.Code.getListByType({
+            codetype: "Authorization",
+          }).then((res) => {
+            if (res.success) {
+              this.authorizationCodes = [{ name: null }].concat(res.model);
+            }
+          });
         } else {
           this.model = null;
         }

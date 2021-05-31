@@ -123,6 +123,7 @@ namespace Kooboo.Sites.Models
         PageScript = 5,
         Diagnosis = 6,
         PaymentCallBack = 7,
-        Authentication = 8
+        Authentication = 8,
+        Authorization = 9,
     }
 }

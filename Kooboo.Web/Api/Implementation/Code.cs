@@ -170,7 +170,18 @@ namespace Kooboo.Web.Api.Implementation
 // if (k.request.url.indexOf('/api') == 0) {
 //     var token = k.request.headers.get('Authorization');
 //     if (token != 'abc123') k.response.unauthorized()
-// }";
+// }
+";
+            }
+            else if (codetype == Sites.Models.CodeType.Authorization)
+            {
+                sample = @"// sample code.. 
+// request.headers.Authorization='bearer xxxx'
+// request.querys.token='xxxx'
+// request.paths.id='xxxx'
+// request.cookies.id='xxxx'
+// request.body.token='xxxx'
+";
             }
 
 

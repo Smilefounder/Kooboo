@@ -13,6 +13,7 @@ namespace Kooboo.Sites.OpenApi.ResponseHandlers
 
         public override object Handler(string data)
         {
+            if (string.IsNullOrWhiteSpace(data)) return null;
             return _jsonParser.Parse(data).ToObject();
         }
     }

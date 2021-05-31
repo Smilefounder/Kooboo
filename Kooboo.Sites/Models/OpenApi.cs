@@ -31,6 +31,7 @@ namespace Kooboo.Sites.Models
             }
             set => caches = value;
         }
+        public string CustomAuthorization { get; set; }
 
         public class AuthorizeData
         {
@@ -64,6 +65,7 @@ namespace Kooboo.Sites.Models
             un += Url;
             un += Type;
             un += BaseUrl;
+            un += CustomAuthorization;
 
             if (Securities != null)
             {
