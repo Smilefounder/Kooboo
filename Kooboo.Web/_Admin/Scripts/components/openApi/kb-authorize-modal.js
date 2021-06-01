@@ -14,6 +14,7 @@
         model: null,
         data: {},
         siteId: Kooboo.getQueryString("SiteId"),
+        authorizationCodes: [],
       };
     },
     computed: {
@@ -155,6 +156,14 @@
           Kooboo.OpenApi.get({ id: this.id }).then((rsp) => {
             if (rsp.success) {
               this.model = rsp.model;
+            }
+          });
+
+          Kooboo.Code.getListByType({
+            codetype: "Authorization",
+          }).then((res) => {
+            if (res.success) {
+              this.authorizationCodes = [{ name: null }].concat(res.model);
             }
           });
         } else {

@@ -130,21 +130,7 @@
               </div>
             </kb-form-item>
           </template>
-
-          <kb-form-item>
-            <label class="control-label col-md-3">Custom Authorization</label>
-            <div class="col-md-9">
-              <select v-model="model.customAuthorization" class="form-control">
-                <option
-                  v-for="item in authorizationCodes"
-                  :key="item.name"
-                  :value="item.name"
-                  >{{ item.name }}</option
-                >
-              </select>
-            </div>
-          </kb-form-item>
-
+          
           <kb-form-item>
             <label class="control-label col-md-3">Cache</label>
             <div class="col-md-9">

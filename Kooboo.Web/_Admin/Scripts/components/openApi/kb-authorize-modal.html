@@ -13,9 +13,6 @@
         <h4 class="modal-title">Authorize</h4>
       </div>
       <div class="modal-body" v-if="show&&model">
-        <template v-if="!securities.length">
-          <span>Empty</span>
-        </template>
         <template v-for="security in securities">
           <div class="panel panel-default">
             <div class="panel-heading">
@@ -199,6 +196,32 @@
             </div>
           </div>
         </template>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <span>Custom Authorization</span>
+            ( <span>Optional</span> )
+          </div>
+          <div class="panel-body">
+            <div class="form-horizontal">
+              <div class="form-group">
+                <label class="control-label col-md-3">Action name</label>
+                <div class="col-md-9">
+                  <select
+                    v-model="model.customAuthorization"
+                    class="form-control"
+                  >
+                    <option
+                      v-for="item in authorizationCodes"
+                      :key="item.name"
+                      :value="item.name"
+                      >{{ item.name }}</option
+                    >
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn green" @click="save" v-if="securities.length"
