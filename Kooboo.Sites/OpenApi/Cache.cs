@@ -78,7 +78,7 @@ namespace Kooboo.Sites.OpenApi
                     Discription = doc.Description
                 });
 
-                defines.AddRange(new DefineConventer(doc, name, @namespace).Convent());
+                defines.AddRange(new DocumentDefineConventer(doc, name, @namespace).Convent());
             }
 
             defines.Add(new Define

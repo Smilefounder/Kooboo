@@ -5,13 +5,13 @@ using System.Linq;
 
 namespace Kooboo.Sites.OpenApi
 {
-    public class DefineConventer : IDefineConventer
+    public class DocumentDefineConventer : IDefineConventer
     {
         readonly Document _doc;
         readonly string _name;
         readonly string _namespace;
 
-        public DefineConventer(Document doc, string name, string @namespace)
+        public DocumentDefineConventer(Document doc, string name, string @namespace)
         {
             _doc = doc;
             _name = name;
@@ -34,6 +34,7 @@ namespace Kooboo.Sites.OpenApi
             defines.Add(define);
             return defines.ToArray();
         }
+        
         void AddModels(List<Define> defines, IDictionary<string, OpenApiSchema> schemas)
         {
             foreach (var schema in schemas)
@@ -50,6 +51,7 @@ namespace Kooboo.Sites.OpenApi
                 defines.Add(define);
             }
         }
+        
         void AddProperties(List<Define.Property> properties, IDictionary<string, OpenApiSchema> schemas)
         {
             foreach (var schema in schemas)
@@ -64,14 +66,11 @@ namespace Kooboo.Sites.OpenApi
                 properties.Add(property);
             }
         }
-        static string NullableWrap(string name, OpenApiSchema schema)
-        {
-            return name + (schema.Nullable ? "?" : string.Empty);
-        }
-        static string NullableWrap(string name, bool nullable)
-        {
-            return name + (nullable ? "?" : string.Empty);
-        }
+        
+        static string NullableWrap(string name, OpenApiSchema schema) => NullableWrap(name, schema.Nullable);
+        
+        static string NullableWrap(string name, bool nullable) => name + (nullable ? "?" : string.Empty);
+        
         static string TypeMapping(OpenApiSchema schema)
         {
             if (schema == null) return "any";
@@ -101,6 +100,7 @@ namespace Kooboo.Sites.OpenApi
                 return "any";
             }
         }
+        
         void AddMethods(List<Define> defines, List<Define.Method> methods, Dictionary<string, Operation> operations)
         {
             foreach (var operation in operations)
@@ -114,6 +114,7 @@ namespace Kooboo.Sites.OpenApi
                 });
             }
         }
+        
         List<Define.Method.Param> GetParams(List<Define> defines, string name, Operation operation)
         {
             var @params = new List<Define.Method.Param>();
@@ -145,8 +146,9 @@ namespace Kooboo.Sites.OpenApi
                 Name = paramName,
                 Properties = parameters.Select(s => new Define.Property
                 {
-                    Name = NullableWrap(s.Name, s.Required),
-                    Type = TypeMapping(s.Schema)
+                    Name = NullableWrap(s.Name, !s.Required),
+                    Type = TypeMapping(s.Schema),
+                    Discription = s.Description
                 }).ToList()
             });
 
@@ -156,12 +158,14 @@ namespace Kooboo.Sites.OpenApi
                 Type = paramName
             });
         }
+        
         static string GetBody(IDictionary<string, OpenApiMediaType> content)
         {
             var schema = content.FirstOrDefault().Value?.Schema;
             if (schema == null) return "any";
             return TypeMapping(schema);
         }
+        
         static string GetResponse(OpenApiResponses responses)
         {
             responses.TryGetValue("200", out var response);
