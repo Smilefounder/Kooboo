@@ -31,12 +31,7 @@ namespace Kooboo.Sites.OpenApi
             }
             else
             {
-                doc = new OpenApiStringReader().Read(openApi.JsonData, out var diagnostic);
-
-                if (diagnostic.Errors.Where(w => !(w is OpenApiValidatorError)).Any())
-                {
-                    throw new Exception($"Add OpenApi Error {string.Join(" ", diagnostic.Errors.Select(s => s.Message))}");
-                }
+                doc = new OpenApiStringReader().Read(openApi.JsonData, out var _);
             }
 
             using (var textWriter = new StringWriter())

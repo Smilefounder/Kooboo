@@ -148,7 +148,30 @@ namespace Kooboo.Sites.OpenApi
         {
             if (!queue.TryDequeue(out var value)) return new Dictionary<string, string>();
             if (!(value is IDictionary<string, object>)) return new Dictionary<string, string>();
-            return (value as IDictionary<string, object>).ToDictionary(o => o.Key, o => o.Value.ToString());
+            return (value as IDictionary<string, object>).ToDictionary(o => o.Key, o => ParamStringify(o.Value));
+        }
+
+        static string ParamStringify(object param)
+        {
+            if (param == null)
+            {
+                return null;
+            }
+            else if (param is Array)
+            {
+                List<string> list = new List<string>();
+
+                foreach (var item in param as Array)
+                {
+                    list.Add(item.ToString());
+                }
+
+                return string.Join(",", list);
+            }
+            else
+            {
+                return param.ToString();
+            }
         }
 
         static string FillUrl(string url, IDictionary<string, string> dic)
