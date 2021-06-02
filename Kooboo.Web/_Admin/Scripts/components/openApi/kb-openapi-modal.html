@@ -115,22 +115,30 @@
             <kb-form-item>
               <label class="control-label col-md-3"></label>
               <div class="col-md-9">
-                <div class="radio">
-                  <label>
-                    <input type="radio" name="openApiTemplate" value="amazon" />
-                    Amazon
-                  </label>
+                <div>
+                  <div
+                    v-for="item in templates"
+                    style="display: inline-block; margin: 0 5px 5px 0"
+                  >
+                    <button
+                      class="btn"
+                      :class="{green:getTemplateUrl(item._id)==model.url}"
+                      @click="selectTemplate(item)"
+                      >{{item.name}}</button
+                    >
+                  </div>
                 </div>
-                <div class="radio">
-                  <label>
-                    <input type="radio" name="openApiTemplate" value="amazon" />
-                    Amazon
-                  </label>
-                </div>
+                <div
+                  class="alert alert-warning"
+                  role="alert"
+                  v-if="selectedTemplate&&selectedTemplate.description"
+                  style="margin-top: 10px; white-space: pre"
+                  >{{selectedTemplate.description.trim()}}</div
+                >
               </div>
             </kb-form-item>
           </template>
-          
+
           <kb-form-item>
             <label class="control-label col-md-3">Cache</label>
             <div class="col-md-9">

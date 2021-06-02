@@ -74,16 +74,31 @@ namespace Kooboo.Sites.OpenApi
         {
             var sb = new StringBuilder();
             var info = _doc.Value.Info;
+            var servers = _doc.Value.Servers;
 
             if (info != null)
             {
+                sb.AppendLine($"[Info]");
                 sb.AppendLine($"Title: {info.Title}");
                 sb.AppendLine($"Contact: {info.Contact}");
                 sb.AppendLine($"Version: {info.Version}");
                 sb.AppendLine($"Description: {info.Description}");
+                sb.AppendLine(" ");
             }
 
-            //TODO add auth server ...
+            if (servers != null)
+            {
+                sb.AppendLine($"[Servers]");
+
+                foreach (var item in servers)
+                {
+                    sb.AppendLine(item.Description);
+                    sb.AppendLine(item.Url);
+                    sb.AppendLine();
+                }
+
+                sb.AppendLine(" ");
+            }
 
             return sb.ToString();
         }

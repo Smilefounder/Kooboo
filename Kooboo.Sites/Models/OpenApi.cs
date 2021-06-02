@@ -13,6 +13,7 @@ namespace Kooboo.Sites.Models
         public string Url { get; set; }
         public string BaseUrl { get; set; }
         public string Type { get; set; }
+        public string CustomAuthorization { get; set; }
         public Dictionary<string, AuthorizeData> Securities
         {
             get
@@ -31,7 +32,6 @@ namespace Kooboo.Sites.Models
             }
             set => caches = value;
         }
-        public string CustomAuthorization { get; set; }
 
         public class AuthorizeData
         {

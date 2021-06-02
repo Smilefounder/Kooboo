@@ -21,6 +21,8 @@
           "text/yaml",
           "text/x-yaml",
         ],
+        templates: [],
+        templateBaseUrl: "http://openapi_template.kooboo.net",
       };
     },
     computed: {
@@ -85,6 +87,12 @@
 
         return result;
       },
+      selectedTemplate() {
+        if (!this.model) return null;
+        return this.templates.find(
+          (f) => this.getTemplateUrl(f._id) == this.model.url
+        );
+      },
     },
     methods: {
       save(callback) {
@@ -117,6 +125,14 @@
           expiresIn: 0,
         });
       },
+      selectTemplate(item) {
+        this.model.url = this.getTemplateUrl(item._id);
+        this.model.baseUrl = item.baseUrl;
+        this.model.name = item.name;
+      },
+      getTemplateUrl(id) {
+        return `${this.templateBaseUrl}/detail?id=${id}`;
+      },
     },
     watch: {
       value(value) {
@@ -134,8 +150,15 @@
               url: "",
               jsonData: "",
               caches: [],
+              templateId: null,
             };
           }
+
+          fetch(`${this.templateBaseUrl}/list`, {
+            method: "get",
+          }).then(async (rsp) => {
+            this.templates = await rsp.json();
+          });
         } else {
           this.model = null;
         }

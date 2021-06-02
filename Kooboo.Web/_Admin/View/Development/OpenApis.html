@@ -18,7 +18,6 @@
   <kb-table :data="model" show-select :selected.sync="selectedRows">
     <kb-table-column :label="Kooboo.text.common.name">
       <template v-slot="row">
-        <!-- <a :href="getDetailUrl(row.id)">{{row.name}}</a> -->
         {{row.name}}
       </template>
     </kb-table-column>
@@ -102,11 +101,6 @@
       this.getList();
     },
     methods: {
-      getDetailUrl: function (id) {
-        return Kooboo.Route.Get(Kooboo.Route.OpenApi.DetailPage, {
-          Id: id,
-        });
-      },
       onDelete: function () {
         var me = this;
         var confirmStr = Kooboo.text.confirm.deleteItems;

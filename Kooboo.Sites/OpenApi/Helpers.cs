@@ -16,35 +16,6 @@ namespace Kooboo.Sites.OpenApi
 {
     public static class Helpers
     {
-        public static Models.OpenApi GetOrValidOpenApiDoc(Models.OpenApi openApi)
-        {
-            if (openApi.Type == "url")
-            {
-                openApi.JsonData = HttpClientHelper.Client.GetStringAsync(openApi.Url).Result;
-            }
-
-            OpenApiDocument doc;
-
-            if (string.IsNullOrWhiteSpace(openApi.JsonData))
-            {
-                doc = new OpenApiDocument();
-            }
-            else
-            {
-                doc = new OpenApiStringReader().Read(openApi.JsonData, out var _);
-            }
-
-            using (var textWriter = new StringWriter())
-            {
-                var jsonWriter = new OpenApiJsonWriter(textWriter);
-                doc.SerializeAsV3(jsonWriter);
-                textWriter.Flush();
-                openApi.JsonData = textWriter.ToString();
-                if (openApi.Securities == null) openApi.Securities = new Dictionary<string, Models.OpenApi.AuthorizeData>();
-                return openApi;
-            }
-        }
-
         public static string StandardName(string name)
         {
             name = Regex.Replace(name, "[^\\w]", "_");

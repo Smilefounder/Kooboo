@@ -13,10 +13,9 @@ namespace Kooboo.Web.Api.Implementation
         public override Guid Post(ApiCall call)
         {
             var model = JsonHelper.Deserialize<Sites.Models.OpenApi>(call.Context.Request.Body);
-            model = Helpers.GetOrValidOpenApiDoc(model);
-            call.Context.WebSite.SiteDb().OpenApi.AddOrUpdate(model);
+            var result = new OpenApiServices(call.Context).Save(model);
             Sites.OpenApi.Cache.Remove(call.WebSite);
-            return model.Id;
+            return result;
         }
 
         public override bool Deletes(ApiCall call)
