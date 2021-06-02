@@ -13,7 +13,7 @@
       return {
         list: [],
         showModal: false,
-        editData: null,
+        editId: null,
       };
     },
     mounted() {
@@ -21,17 +21,7 @@
     },
     methods: {
       add() {
-        this.editData = {
-          id: Kooboo.Guid.NewGuid(),
-          customerId: this.id,
-          county: "",
-          state: "",
-          city: "",
-          address: "",
-          name: "",
-          phone: "",
-          email: "",
-        };
+        this.editId = null;
         this.showModal = true;
       },
       getList() {
@@ -45,20 +35,12 @@
         });
       },
       edit(id) {
-        Kooboo.Consignee.Get({ id: id }).then((rsp) => {
-          this.editData = rsp.model;
-          this.showModal = true;
-        });
+        this.editId = id;
+        this.showModal = true;
       },
       Delete(id) {
         Kooboo.Consignee.Delete({ id: id }).then((rsp) => {
           this.getList();
-        });
-      },
-      save() {
-        Kooboo.Consignee.post(this.editData).then((rsp) => {
-          this.getList();
-          this.showModal = false;
         });
       },
     },

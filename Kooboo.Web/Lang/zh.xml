@@ -1385,4 +1385,11 @@
 	<key id="Add new customer">新增顾客</key>
 	<key id="Cart">购物车</key>
 	<key id="Settlement">结算</key>
+	<key id="Consignee">收件人</key>
+	<key id="Contact name">联系人</key>
+	<key id="Contact phone">联系电话</key>
+	<key id="County/Region">国家/地区</key>
+	<key id="State/Province">州/省</key>
+	<key id="City">城市</key>
+	<key id="Street">街道</key>
 </Lang>

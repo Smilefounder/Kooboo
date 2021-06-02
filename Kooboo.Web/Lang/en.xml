@@ -1385,4 +1385,11 @@
 	<key id="Add new customer">Add new customer</key>
 	<key id="Cart">Cart</key>
 	<key id="Settlement">Settlement</key>
+	<key id="Consignee">Consignee</key>
+	<key id="Contact name">Contact name</key>
+	<key id="Contact phone">Contact phone</key>
+	<key id="County/Region">County/Region</key>
+	<key id="State/Province">State/Province</key>
+	<key id="City">City</key>
+	<key id="Street">Street</key>
 </Lang>

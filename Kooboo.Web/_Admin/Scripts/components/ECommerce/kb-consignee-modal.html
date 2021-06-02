@@ -13,67 +13,91 @@
         <h4 class="modal-title">Consignee</h4>
       </div>
       <div class="modal-body" v-if="show&&editData">
-        <kb-form :model="editData" ref="form" align="verticality">
-          <div class="row">
-            <div class="col-sm-6" style="margin-bottom: 3px">
-              <kb-form-item prop="name">
-                <label class="control-label">Contact name</label>
-                <div class="">
-                  <input class="form-control" v-model="editData.name" />
-                </div>
-              </kb-form-item>
-            </div>
-            <div class="col-sm-6" style="margin-bottom: 3px">
-              <kb-form-item prop="phone">
-                <label class="control-label">Contact phone</label>
-                <div class="">
-                  <input class="form-control" v-model="editData.phone" />
-                </div>
-              </kb-form-item>
-            </div>
-            <div class="col-sm-6" style="margin-bottom: 3px">
-              <kb-form-item prop="county">
-                <label class="control-label">County</label>
-                <div class="">
-                  <select v-model="editData.county" class="form-control">
-                    <option
-                      v-for="item in countries"
-                      :key="item.code"
-                      :value="item.code"
-                    >
-                      {{item.name}}({{item.code}})
-                    </option>
-                  </select>
-                </div>
-              </kb-form-item>
-            </div>
-            <div class="col-sm-6" style="margin-bottom: 3px">
-              <kb-form-item prop="state">
-                <label class="control-label">State</label>
-                <div class="">
-                  <input class="form-control" v-model="editData.state" />
-                </div>
-              </kb-form-item>
-            </div>
-            <div class="col-sm-6" style="margin-bottom: 3px">
-              <kb-form-item prop="city">
-                <label class="control-label">City</label>
-                <div class="">
-                  <input class="form-control" v-model="editData.city" />
-                </div>
-              </kb-form-item>
-            </div>
-
-            <div class="col-sm-12">
-              <kb-form-item prop="address">
-                <label class="control-label">Address</label>
-                <div class="">
-                  <input class="form-control" v-model="editData.address" />
-                </div>
-              </kb-form-item>
+        <div class="row">
+          <div class="col-sm-6" style="margin-bottom: 3px">
+            <label class="control-label">Contact name</label>
+            <div class="">
+              <input
+                class="form-control"
+                v-model="editData.name"
+                v-kb-hint="validateModel.name.msg"
+              />
             </div>
           </div>
-        </kb-form>
+          <div class="col-sm-6" style="margin-bottom: 3px">
+            <label class="control-label">Contact phone</label>
+            <div class="">
+              <input
+                class="form-control"
+                v-model="editData.phone"
+                v-kb-hint="validateModel.phone.msg"
+              />
+            </div>
+          </div>
+          <div class="col-sm-6" style="margin-bottom: 3px">
+            <label class="control-label">County/Region</label>
+            <div class="">
+              <select v-model="editData.county" class="form-control">
+                <option
+                  v-for="item in countries"
+                  :key="item.code"
+                  :value="item.code"
+                >
+                  {{item.name}} ({{item.code}}) {{item.native}}
+                </option>
+              </select>
+            </div>
+          </div>
+          <div class="col-sm-6" style="margin-bottom: 3px">
+            <label class="control-label">State/Province</label>
+            <div class="">
+              <select
+                v-model="editData.state"
+                class="form-control"
+                v-if="country&&country.states.length>0"
+                v-kb-hint="validateModel.state.msg"
+              >
+                <option v-for="item in country.states" :key="item" :value="item"
+                  >{{item}}</option
+                >
+              </select>
+              <input
+                class="form-control"
+                v-model="editData.state"
+                v-else
+                v-kb-hint="validateModel.state.msg"
+              />
+            </div>
+          </div>
+          <div class="col-sm-6" style="margin-bottom: 3px">
+            <label class="control-label">City</label>
+            <div class="">
+              <input
+                class="form-control"
+                v-model="editData.city"
+                v-kb-hint="validateModel.city.msg"
+              />
+            </div>
+          </div>
+
+          <div class="col-sm-6" style="margin-bottom: 3px">
+            <label class="control-label">Street</label>
+            <div class="">
+              <input
+                class="form-control"
+                v-model="editData.street"
+                v-kb-hint="validateModel.street.msg"
+              />
+            </div>
+          </div>
+
+          <div class="col-sm-12">
+            <label class="control-label">Address</label>
+            <div class="">
+              <input class="form-control" v-model="editData.address" />
+            </div>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn green" @click="save">Save</button>

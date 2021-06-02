@@ -28,5 +28,10 @@
 
   <button class="btn" @click="add">Add</button>
 
-  <kb-consignee-modal v-model="showModal"> </kb-consignee-modal>
+  <kb-consignee-modal
+    v-model="showModal"
+    :id="editId"
+    :customer-id="id"
+    @ok="getList"
+  ></kb-consignee-modal>
 </div>

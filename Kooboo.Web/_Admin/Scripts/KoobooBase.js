@@ -1755,20 +1755,6 @@
 
   extend(Order, BaseModel);
 
-  function Region() {
-    this.name = "Region";
-
-    this.countries = function (para) {
-      return this.executeGet("Countries", para);
-    };
-
-    this.provinces = function (para) {
-      return this.executePost("Provinces", para);
-    };
-  }
-
-  extend(Region, BaseModel);
-
   function KConfig() {
     this.name = "KConfig";
 
@@ -1890,7 +1876,6 @@
     Cart: new Cart(),
     Consignee: new Consignee(),
     Order: new Order(),
-    Region: new Region(),
     ProductType: new ProductType(),
     Category: new Category(),
     Promotion: new Promotion(),
