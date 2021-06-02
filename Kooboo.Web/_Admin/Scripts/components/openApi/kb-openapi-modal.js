@@ -23,6 +23,14 @@
         ],
         templates: [],
         templateBaseUrl: "http://openapi_template.kooboo.net",
+        emptyModel: {
+          name: "",
+          type: "url",
+          url: "",
+          jsonData: "",
+          caches: [],
+          templateId: null,
+        },
       };
     },
     computed: {
@@ -133,6 +141,12 @@
       getTemplateUrl(id) {
         return `${this.templateBaseUrl}/detail?id=${id}`;
       },
+      changeType(type) {
+        if (this.model.type == type) return;
+        this.$refs.form.clearValid();
+        this.model = JSON.parse(JSON.stringify(this.emptyModel));
+        this.model.type = this.model;
+      },
     },
     watch: {
       value(value) {
@@ -144,14 +158,7 @@
               }
             });
           } else {
-            this.model = {
-              name: "",
-              type: "url",
-              url: "",
-              jsonData: "",
-              caches: [],
-              templateId: null,
-            };
+            this.model = JSON.parse(JSON.stringify(this.emptyModel));
           }
 
           fetch(`${this.templateBaseUrl}/list`, {

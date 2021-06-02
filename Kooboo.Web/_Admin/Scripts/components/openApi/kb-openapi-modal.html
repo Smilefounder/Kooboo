@@ -48,7 +48,7 @@
                   id="type"
                   value="url"
                   v-model="model.type"
-                  @click="$refs.form.clearValid()"
+                  @click="changeType('url')"
                 />
                 <span>URL</span>
               </label>
@@ -58,7 +58,7 @@
                   id="type"
                   value="file"
                   v-model="model.type"
-                  @click="$refs.form.clearValid()"
+                  @click="changeType('file')"
                 />
                 <span>File</span>
               </label>
@@ -68,7 +68,7 @@
                   id="type"
                   value="template"
                   v-model="model.type"
-                  @click="$refs.form.clearValid()"
+                  @click="changeType('template')"
                 />
                 <span>Template</span>
               </label>
