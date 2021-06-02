@@ -1,5 +1,4 @@
-﻿#if NETSTANDARD2_0
-
+﻿
 using System;
 using System.Net;
 using System.Linq;
@@ -671,4 +670,3 @@ namespace Kooboo.Data.Server
     }
 }
 
-#endif

@@ -339,19 +339,10 @@ namespace TencentCloud.Common
 
         public long ToTimestamp()
         {
-#if NET461
             DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new System.DateTime(1970, 1, 1, 0, 0, 0, 0));
             DateTime nowTime = DateTime.Now;
             long unixTime = (long)Math.Round((nowTime - startTime).TotalMilliseconds, MidpointRounding.AwayFromZero);
             return unixTime;
-#endif
-
-#if NS2 || NETSTANDARD2_0
-            DateTimeOffset expiresAtOffset = DateTimeOffset.Now;
-            var totalSeconds = expiresAtOffset.ToUnixTimeMilliseconds();
-            return totalSeconds;
-#endif
-
         }
     }
 }

@@ -56,13 +56,13 @@ namespace Kooboo.HttpServer.Sockets
                 _eventArgs.BufferList = null;
             }
 
-//#if NETCOREAPP2_1
+#if NETCOREAPP2_1
             _eventArgs.SetBuffer(MemoryMarshal.AsMemory(memory));
-//#else
-//            var segment = memory.GetArray();
+#else
+            var segment = memory.GetArray();
 
-//            _eventArgs.SetBuffer(segment.Array, segment.Offset, segment.Count);
-//#endif
+            _eventArgs.SetBuffer(segment.Array, segment.Offset, segment.Count);
+#endif
             if (!_socket.SendAsync(_eventArgs))
             {
                 _awaitable.Complete(_eventArgs.BytesTransferred, _eventArgs.SocketError);
