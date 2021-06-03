@@ -54,7 +54,11 @@ namespace Kooboo.App
         {
             if (!string.IsNullOrEmpty(SystemStatus.StartUrl))
             {
-                Process.Start(SystemStatus.StartUrl);
+                Process.Start(new ProcessStartInfo(SystemStatus.StartUrl)
+                {
+                    UseShellExecute = true,
+                    Verb = "open"
+                });
             }
         }
     }
