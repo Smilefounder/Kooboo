@@ -1,0 +1,1 @@
+dotnet publish ../Kooboo.App.Standard -c Release
