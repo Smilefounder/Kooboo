@@ -5,5 +5,6 @@
 		<AssemblyName>Kooboo.Upgrade</AssemblyName>
 		<RootNamespace>Kooboo.Upgrade</RootNamespace>
 		<OutputType>WinExe</OutputType>
+
 	</PropertyGroup>
 </Project>

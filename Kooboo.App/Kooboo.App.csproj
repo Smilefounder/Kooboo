@@ -130,8 +130,4 @@
 			</EmbeddedResource>
 		</ItemGroup>
 	</Target>
-
-	<Target Name="generateLinuxZip" AfterTargets="Publish">
-		<Exec Command="$(ProjectDir)../generateLinuxZip.bat"></Exec>
-	</Target>
 </Project>
