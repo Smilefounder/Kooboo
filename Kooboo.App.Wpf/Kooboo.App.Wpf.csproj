@@ -4,7 +4,7 @@
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net5.0-windows</TargetFramework>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-		<AssemblyName>Kooboo.App</AssemblyName>
+		<AssemblyName>Kooboo</AssemblyName>
 		<RootNamespace>Kooboo.App</RootNamespace>
 		<Deterministic>False</Deterministic>
 		<UseWPF>true</UseWPF>
@@ -45,6 +45,10 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<PlatformTarget>x64</PlatformTarget>
+		<NoWarn>1701;1702;CA1416;</NoWarn>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <NoWarn>1701;1702;CA1416;</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -94,13 +98,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="ignoremodules.txt">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
+	  <Compile Update="Properties\Settings.Designer.cs">
+	    <DesignTimeSharedInput>True</DesignTimeSharedInput>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>Settings.settings</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Windows.Compatibility" Version="5.0.2" />
+	  <None Update="Properties\Settings.settings">
+	    <Generator>SettingsSingleFileGenerator</Generator>
+	    <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+	  </None>
 	</ItemGroup>
 
 	<Target Name="AfterCompile" Condition="Exists('app.$(Configuration).config')">
@@ -123,15 +132,7 @@
 		<Copy Condition="Exists('$(DeployedConfig)')" SourceFiles="$(IntermediateOutputPath)$(TargetFileName).config" DestinationFiles="$(DeployedConfig)" />
 	</Target>
 
-	<Target Name="AfterResolveReferences" Condition="'$(Configuration)' == 'Release'">
-		<ItemGroup>
-			<EmbeddedResource Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.Extension)' == '.dll'">
-				<LogicalName>%(ReferenceCopyLocalPaths.DestinationSubDirectory)%(ReferenceCopyLocalPaths.Filename)%(ReferenceCopyLocalPaths.Extension)</LogicalName>
-			</EmbeddedResource>
-		</ItemGroup>
-	</Target>
-
 	<Target Name="generateZip" AfterTargets="Publish">
-		<Exec Command="(dotnet script -v || dotnet tool install -g dotnet-script) &amp;&amp; (dotnet script &quot;$(ProjectDir)\..\tools\generateZip.csx&quot;)"></Exec>
+		<Exec Command="(dotnet script -v || dotnet tool install -g dotnet-script) &amp;&amp; (dotnet script &quot;$(ProjectDir)\..\tools\generateWpfZip.csx&quot;)"></Exec>
 	</Target>
 </Project>

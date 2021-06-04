@@ -34,6 +34,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{C65DFCAB
 		tools\generateZip.csx = tools\generateZip.csx
 		tools\publish.bat = tools\publish.bat
 		tools\publish.sh = tools\publish.sh
+		tools\publishWpf.bat = tools\publishWpf.bat
 	EndProjectSection
 EndProject
 Global
