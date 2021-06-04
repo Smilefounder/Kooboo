@@ -3,27 +3,26 @@
 
 using static Common;
 
-Log("start generate kooboo zip");
+Log("start generate kooboo wpf zip");
 var projectDir = Directory.GetCurrentDirectory();
 Log($"project dir is {projectDir}");
 var rootPath = new DirectoryInfo(projectDir).Parent.FullName;
 var binDir = Path.Combine(projectDir, "bin");
 var publishDir = Path.Combine(binDir, "Release", "net5.0", "publish");
 var tempDir = Path.Combine(binDir, "Kooboo");
-var zipPath = Path.Combine(binDir, "Kooboo.zip");
+var zipPath = Path.Combine(binDir, "KoobooWpf.zip");
 
 Clear();
 CopyAdmin();
 CopyPublish();
 CopyLang();
-CopyRuntimes();
-Log("compress Kooboo.zip");
+Log("compress KoobooWpf.zip");
 System.IO.Compression.ZipFile.CreateFromDirectory(tempDir, zipPath);
 Log($"delete {tempDir}");
 Directory.Delete(tempDir, true);
 Log($"delete {publishDir}");
 Directory.Delete(publishDir, true);
-Log("generate kooboo zip finish");
+Log("generate kooboo wpf zip finish");
 
 
 void Clear()
@@ -66,12 +65,4 @@ void CopyLang()
     var langDir = Path.Combine(webDir, "Lang");
     CopyDirectory(langDir, webDir, tempDir);
     Log("copy Lang finish");
-}
-
-void CopyRuntimes()
-{
-    Log("start copy Runtimes");
-    var runtimesDir = Path.Combine(publishDir, "runtimes");
-    CopyDirectory(runtimesDir, publishDir, tempDir);
-    Log("copy Runtimes finish");
 }

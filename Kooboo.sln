@@ -17,25 +17,24 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kooboo.Data", "Kooboo.Data\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kooboo.Mail", "Kooboo.Mail\Kooboo.Mail.csproj", "{6FD5D24D-1BC3-487B-B62D-388C7091231E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kooboo.App", "Kooboo.App\Kooboo.App.csproj", "{FA044E8D-3574-4906-96F1-17EA80F00629}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kooboo.Render", "Kooboo.Render\Kooboo.Render.csproj", "{8D9BEA84-1B86-491B-A457-EEB4369A243C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kooboo.Api", "Kooboo.Api\Kooboo.Api.csproj", "{964F25FD-7257-4E6D-8652-9DF77CDB6337}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kooboo.Search", "Kooboo.Search\Kooboo.Search.csproj", "{9833E83F-1AA7-42A2-A55E-543E56558D49}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kooboo.HttpServer", "Kooboo.HttpServer\src\Kooboo.HttpServer\Kooboo.HttpServer.csproj", "{A7705D34-5372-412B-ADC1-DC69082FE14F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kooboo.Upgrade", "Kooboo.Upgrade\Kooboo.Upgrade.csproj", "{FC69A5A6-DDD6-4323-AC6F-5885E7FB1572}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kooboo.Upgrade", "Kooboo.Upgrade\Kooboo.Upgrade.csproj", "{FC69A5A6-DDD6-4323-AC6F-5885E7FB1572}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kooboo.App", "Kooboo.App\Kooboo.App.csproj", "{F82945D8-3F41-438B-809F-AFF85C887C92}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kooboo.Engines", "Kooboo.Engines\Kooboo.Engines.csproj", "{04E93EB9-4F7D-468A-B84B-F40D57FF0A48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kooboo.App.Wpf", "Kooboo.App.Wpf\Kooboo.App.Wpf.csproj", "{DD8652DE-5C11-46E1-ADD0-5FFD2931D136}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kooboo.App.Standard", "Kooboo.App.Standard\Kooboo.App.Standard.csproj", "{A387EC67-56F5-4968-878D-B2C447C35F56}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kooboo.App.Upgrade", "Kooboo.App.Upgrade\Kooboo.App.Upgrade.csproj", "{88244F92-7BDF-4089-AB5D-3FB2E7EA4A0F}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kooboo.DaemonUI", "Kooboo.DaemonUI\Kooboo.DaemonUI.csproj", "{7D1D004E-48AD-4B64-8F9A-943ADC8F0E6C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{C65DFCAB-2C35-4D93-BEDD-DDA741A68C64}"
+	ProjectSection(SolutionItems) = preProject
+		tools\generateZip.csx = tools\generateZip.csx
+		tools\publish.bat = tools\publish.bat
+		tools\publish.sh = tools\publish.sh
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,10 +70,6 @@ Global
 		{6FD5D24D-1BC3-487B-B62D-388C7091231E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6FD5D24D-1BC3-487B-B62D-388C7091231E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6FD5D24D-1BC3-487B-B62D-388C7091231E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FA044E8D-3574-4906-96F1-17EA80F00629}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FA044E8D-3574-4906-96F1-17EA80F00629}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FA044E8D-3574-4906-96F1-17EA80F00629}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FA044E8D-3574-4906-96F1-17EA80F00629}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8D9BEA84-1B86-491B-A457-EEB4369A243C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8D9BEA84-1B86-491B-A457-EEB4369A243C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D9BEA84-1B86-491B-A457-EEB4369A243C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -87,30 +82,18 @@ Global
 		{9833E83F-1AA7-42A2-A55E-543E56558D49}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9833E83F-1AA7-42A2-A55E-543E56558D49}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9833E83F-1AA7-42A2-A55E-543E56558D49}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A7705D34-5372-412B-ADC1-DC69082FE14F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A7705D34-5372-412B-ADC1-DC69082FE14F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A7705D34-5372-412B-ADC1-DC69082FE14F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A7705D34-5372-412B-ADC1-DC69082FE14F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FC69A5A6-DDD6-4323-AC6F-5885E7FB1572}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FC69A5A6-DDD6-4323-AC6F-5885E7FB1572}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC69A5A6-DDD6-4323-AC6F-5885E7FB1572}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC69A5A6-DDD6-4323-AC6F-5885E7FB1572}.Release|Any CPU.Build.0 = Release|Any CPU
-		{04E93EB9-4F7D-468A-B84B-F40D57FF0A48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{04E93EB9-4F7D-468A-B84B-F40D57FF0A48}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{04E93EB9-4F7D-468A-B84B-F40D57FF0A48}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{04E93EB9-4F7D-468A-B84B-F40D57FF0A48}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A387EC67-56F5-4968-878D-B2C447C35F56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A387EC67-56F5-4968-878D-B2C447C35F56}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A387EC67-56F5-4968-878D-B2C447C35F56}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A387EC67-56F5-4968-878D-B2C447C35F56}.Release|Any CPU.Build.0 = Release|Any CPU
-		{88244F92-7BDF-4089-AB5D-3FB2E7EA4A0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{88244F92-7BDF-4089-AB5D-3FB2E7EA4A0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{88244F92-7BDF-4089-AB5D-3FB2E7EA4A0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{88244F92-7BDF-4089-AB5D-3FB2E7EA4A0F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7D1D004E-48AD-4B64-8F9A-943ADC8F0E6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7D1D004E-48AD-4B64-8F9A-943ADC8F0E6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7D1D004E-48AD-4B64-8F9A-943ADC8F0E6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7D1D004E-48AD-4B64-8F9A-943ADC8F0E6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F82945D8-3F41-438B-809F-AFF85C887C92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F82945D8-3F41-438B-809F-AFF85C887C92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F82945D8-3F41-438B-809F-AFF85C887C92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F82945D8-3F41-438B-809F-AFF85C887C92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD8652DE-5C11-46E1-ADD0-5FFD2931D136}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD8652DE-5C11-46E1-ADD0-5FFD2931D136}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD8652DE-5C11-46E1-ADD0-5FFD2931D136}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD8652DE-5C11-46E1-ADD0-5FFD2931D136}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
