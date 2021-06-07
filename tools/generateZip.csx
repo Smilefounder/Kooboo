@@ -14,8 +14,6 @@ Log("compress Kooboo.zip");
 System.IO.Compression.ZipFile.CreateFromDirectory(KoobooDir, ZipPath);
 Log($"delete {KoobooDir}");
 Directory.Delete(KoobooDir, true);
-Log($"delete {publishDir}");
-Directory.Delete(publishDir, true);
 Log($"generate kooboo zip finish {ZipPath}");
 
 void CopyRuntimes()
