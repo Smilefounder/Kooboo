@@ -31,6 +31,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kooboo.App.Wpf", "Kooboo.Ap
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{C65DFCAB-2C35-4D93-BEDD-DDA741A68C64}"
 	ProjectSection(SolutionItems) = preProject
+		tools\common.csx = tools\common.csx
+		tools\generateWpfZip.csx = tools\generateWpfZip.csx
 		tools\generateZip.csx = tools\generateZip.csx
 		tools\publish.bat = tools\publish.bat
 		tools\publish.sh = tools\publish.sh

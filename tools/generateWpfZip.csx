@@ -20,7 +20,7 @@ void Sign()
     var signToolPath = Path.Combine(SlnDir, "tools", "sign", "signtool.exe");
     var certPath = Path.Combine(SlnDir, "tools", "sign", "yardi.pfx");
     var password = "kooboo";
-    var exePath = Path.Combine(KoobooDir, "Kooboo.exe");
+    var exePath = Path.Combine(KoobooDir, "Kooboo.App.exe");
 
     try
     {

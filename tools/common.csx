@@ -77,6 +77,7 @@ public static class Common
     {
         Log("start copy Publish");
         var includes = new[] { ".dll", ".exe", ".config", ".json", ".zip" };
+        //var excludeDirs = new[] { "" };
         CopyDirectory(publishDir, publishDir, KoobooDir, includeExs: includes);
         Log("copy Publish finish");
     }

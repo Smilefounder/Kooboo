@@ -3,6 +3,7 @@ using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
+using Kooboo.Lib;
 
 namespace Kooboo.Mail
 {
@@ -23,8 +24,8 @@ namespace Kooboo.Mail
 
         static Settings()
         {
-            Mta = ConfigurationManager.AppSettings.Get("Mta");
-            string strport = ConfigurationManager.AppSettings.Get("MtaPort");
+            Mta = AppSettingsUtility.Get("Mta");
+            string strport = AppSettingsUtility.Get("MtaPort");
 
             if (!string.IsNullOrWhiteSpace(strport))
             {

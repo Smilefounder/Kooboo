@@ -1,11 +1,13 @@
 //Copyright (c) 2018 Yardi Technology Limited. Http://www.kooboo.com
 //All rights reserved.
+using Kooboo.Lib;
 using Microsoft.Win32;
 using System;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace Kooboo.App
 {
@@ -20,8 +22,8 @@ namespace Kooboo.App
         {
             try
             {
-                return ConfigurationManager.AppSettings.AllKeys.All(f => f != _firstBoot)
 
+                return AppSettingsUtility.GetBool(_firstBoot, true)
                 //compatible old code
                 && !File.Exists(Path.Combine(_path, "_Admin", "View"));
             }
@@ -92,38 +94,11 @@ $@"<?xml version=""1.0"" encoding=""utf-16""?>
                     ExecuteSchtasksCmd($"/Delete /TN {_taskName} /F", out bool success);
                 }
 
-                if (IsFirstBoot()) SetIsFirstBoot();
+                if (IsFirstBoot()) AppSettingsUtility.AddOrSave(_firstBoot, false.ToString());
             }
             catch (Exception)
             {
             }
-        }
-
-        public static bool OldCodeHadSetAutoSart()
-        {
-            try
-            {
-                var rk = Registry.LocalMachine;
-                using (var subKey = rk.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run"))
-                {
-                    object value = subKey.GetValue(_taskName, null);
-                    if (value != null) subKey.DeleteValue(_taskName);
-                    return _path.Equals(value);
-                }
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
-
-        private static void SetIsFirstBoot()
-        {
-            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            config.AppSettings.Settings.Add(_firstBoot, "false");
-            config.AppSettings.SectionInformation.ForceSave = true;
-            config.Save(ConfigurationSaveMode.Modified);
-            ConfigurationManager.RefreshSection("appSettings");
         }
 
         private static string ExecuteSchtasksCmd(string arguments, out bool success)

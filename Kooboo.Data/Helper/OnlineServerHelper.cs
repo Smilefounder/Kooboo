@@ -7,12 +7,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Kooboo.Data.Models;
 using System.Configuration;
+using Kooboo.Lib;
 
 namespace Kooboo.Data.Helper
 {
     public class OnlineServerHelper
     {
-        private static string RootUrl = ConfigurationManager.AppSettings.Get("RootUrl");
+        private static string RootUrl = AppSettingsUtility.Get("RootUrl");
         private static List<OnlineServer> cacheServers { get; set; }
         private static DateTime NextCheck { get; set; }
 

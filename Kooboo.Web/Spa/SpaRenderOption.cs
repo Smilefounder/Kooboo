@@ -1,5 +1,6 @@
 //Copyright (c) 2018 Yardi Technology Limited. Http://www.kooboo.com 
 //All rights reserved.
+using Kooboo.Lib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -191,7 +192,7 @@ namespace Kooboo.Web.Spa
 
         private string GetAppSetting(string Name)
         {
-            return System.Configuration.ConfigurationManager.AppSettings.Get(Name);
+            return AppSettingsUtility.Get(Name);
         }
          
         public Dictionary<string, object> InitData { get; set; }

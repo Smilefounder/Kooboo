@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using DNS.Client;
 using DNS.Protocol.ResourceRecords;
 using System.Configuration;
+using Kooboo.Lib;
 
 namespace Kooboo.Mail.Utility
 {
@@ -66,7 +67,7 @@ namespace Kooboo.Mail.Utility
 
         static DnsLookup()
         {
-            var localMtaDns = System.Configuration.ConfigurationManager.AppSettings["localMtaDns"];
+            var localMtaDns = AppSettingsUtility.Get("localMtaDns");
             if (!String.IsNullOrEmpty(localMtaDns))
             {
                 Client = new DnsClient(localMtaDns);

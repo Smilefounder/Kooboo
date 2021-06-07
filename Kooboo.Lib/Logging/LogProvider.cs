@@ -1,5 +1,6 @@
 //Copyright (c) 2018 Yardi Technology Limited. Http://www.kooboo.com 
 //All rights reserved.
+using Kooboo.Lib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace Kooboo.Logging
 
         static LogProvider()
         {
-            var str = System.Configuration.ConfigurationManager.AppSettings["LogLevel"];
+            var str = AppSettingsUtility.Get("LogLevel");
             if (!String.IsNullOrEmpty(str))
             {
                 LogLevel level;
@@ -31,7 +32,7 @@ namespace Kooboo.Logging
         public static ILogger GetLogger(string group, string name)
         {
             var key = group + "_" + name;
-            
+
             ILogger result;
             if (_loggers.TryGetValue(key, out result))
                 return result;

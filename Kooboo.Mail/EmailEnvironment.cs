@@ -1,5 +1,6 @@
 //Copyright (c) 2018 Yardi Technology Limited. Http://www.kooboo.com 
 //All rights reserved.
+using Kooboo.Lib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +13,9 @@ namespace Kooboo.Mail
     {
         static EmailEnvironment()
         {
-            FQDN = System.Configuration.ConfigurationManager.AppSettings["fqdn"] ?? "kooboo.com";
-            AppName = System.Configuration.ConfigurationManager.AppSettings["appName"] ?? "Kooboo";
-            MTA = System.Configuration.ConfigurationManager.AppSettings["mta"] ?? "127.0.0.1";
+            FQDN = AppSettingsUtility.Get("fqdn", "kooboo.com");
+            AppName = AppSettingsUtility.Get("appName", "Kooboo");
+            MTA = AppSettingsUtility.Get("mta", "127.0.0.1");
         }
 
         public static string AppName { get; set; }

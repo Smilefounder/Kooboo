@@ -70,12 +70,11 @@ namespace Kooboo.App
         {
             KoobooUpgrade.DeleteUpgradeRemainedFiles();
 
-            if (KoobooAutoStart.IsFirstBoot() || //first run default auto start
-               KoobooAutoStart.IsAutoStart() || //override task when application path changed
-               KoobooAutoStart.OldCodeHadSetAutoSart()) //compatible old code
+            if (KoobooAutoStart.IsFirstBoot() || KoobooAutoStart.IsAutoStart())
             {
                 KoobooAutoStart.AutoStart(true);
             }
+
             GlobalSettings.RootPath = Kooboo.Data.AppSettings.DatabasePath;
             KoobooStartUp.StartAll();
         }
