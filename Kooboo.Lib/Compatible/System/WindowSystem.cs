@@ -23,7 +23,8 @@ namespace Kooboo.Lib.Compatible
                 @"..\..\",
                 @"..\..\..\",
                 @"..\..\..\..\",
-                @"..\..\..\..\Kooboo\Kooboo.Web"
+                @"..\..\..\..\Kooboo\Kooboo.Web",
+                @"..\Kooboo.Web",
             };
         }
 

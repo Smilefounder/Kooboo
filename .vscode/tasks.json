@@ -7,11 +7,9 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/Kooboo.App.Standard/Kooboo.App.Standard.csproj",
+                "${workspaceFolder}/Kooboo.App/Kooboo.App.csproj",
                 "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary",
-                "-f",
-                "netcoreapp2.1"
+                "/consoleloggerparameters:NoSummary"
             ],
             "problemMatcher": "$msCompile"
         },
@@ -21,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/Kooboo.App.Standard/Kooboo.App.Standard.csproj",
+                "${workspaceFolder}/Kooboo.App/Kooboo.App.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -34,7 +32,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/Kooboo.App.Standard/Kooboo.App.Standard.csproj",
+                "${workspaceFolder}/Kooboo.App/Kooboo.App.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
