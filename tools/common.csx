@@ -30,7 +30,7 @@ public static class Common
         }
     }
 
-    public static void Clear()
+    public static void ClearBefore()
     {
         if (Directory.Exists(KoobooDir))
         {
@@ -42,6 +42,15 @@ public static class Common
         {
             File.Delete(ZipPath);
             Log($"the file {ZipPath} exists and has been deleted");
+        }
+    }
+
+    public static void ClearAfter()
+    {
+        if (Directory.Exists(KoobooDir))
+        {
+            Directory.Delete(KoobooDir, true);
+            Log($"delete {KoobooDir}");
         }
     }
 
@@ -73,6 +82,12 @@ public static class Common
     }
 
     public static void Log(string log) => Console.WriteLine(log);
+
+    public static void Compress()
+    {
+        Log($"compress {ZipPath}");
+        System.IO.Compression.ZipFile.CreateFromDirectory(KoobooDir, ZipPath);
+    }
 
     public static string ProjectDir => Directory.GetCurrentDirectory();
 

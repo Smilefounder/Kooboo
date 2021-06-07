@@ -14,7 +14,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Kooboo.App.Upgrade\Kooboo.App.Upgrade.csproj" />
 		<ProjectReference Include="..\Kooboo.Data\Kooboo.Data.csproj" />
 		<ProjectReference Include="..\Kooboo.Dom\Kooboo.Dom.csproj" />
 		<ProjectReference Include="..\Kooboo.IndexedDB\Kooboo.IndexedDB.csproj" />

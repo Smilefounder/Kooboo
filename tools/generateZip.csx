@@ -4,16 +4,15 @@
 using static Common;
 
 var publishDir = Path.Combine(BinDir, "Release", "net5.0", "publish");
+
 Log("start generate kooboo zip");
-Clear();
+ClearBefore();
 CopyAdmin();
 CopyPublish(publishDir);
 CopyLang();
 CopyRuntimes();
-Log("compress Kooboo.zip");
-System.IO.Compression.ZipFile.CreateFromDirectory(KoobooDir, ZipPath);
-Log($"delete {KoobooDir}");
-Directory.Delete(KoobooDir, true);
+Compress();
+ClearAfter();
 Log($"generate kooboo zip finish {ZipPath}");
 
 void CopyRuntimes()
