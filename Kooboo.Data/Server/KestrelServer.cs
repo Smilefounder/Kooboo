@@ -488,7 +488,7 @@ namespace Kooboo.Data.Server
                 #endregion
 
 
-                if (response.StatusCode == 200)
+                if (response.StatusCode == 200 || response.StatusCode == 206)
                 {
                     if (response.Body != null && renderContext.Request.Method != "HEAD")
                     {
@@ -644,11 +644,16 @@ namespace Kooboo.Data.Server
 
             private static async Task WritePartToResponse(Kooboo.IndexedDB.FilePart part, IHttpResponseFeature Res)
             {
-                long offset = part.BlockPosition + part.RelativePosition;
+                long offset = part.BlockPosition + part.RelativePosition + part.RangeStart;
                 //byte[] buffer = new byte[209715200];
-                long totalToSend = part.Length;
+                long totalToSend = part.Length - part.RangeStart;
 
                 Res.Headers["Content-Length"] = totalToSend.ToString();
+
+                if (part.RangeStart > 0)
+                {
+                    Res.Headers["Content-Range"] = $"bytes {part.RangeStart}-{part.Length - 1}/{part.Length}";
+                }
 
                 var stream = Kooboo.IndexedDB.StreamManager.OpenReadStream(part.FullFileName);
 

@@ -12,6 +12,8 @@ namespace Kooboo.IndexedDB
 
         public long RelativePosition { get; set; }
 
+        public long RangeStart { get; set; }
+
         public long Length { get; set; }
     }
 }

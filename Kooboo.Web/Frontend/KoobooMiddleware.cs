@@ -189,7 +189,7 @@ namespace Kooboo.Web.FrontRequest
             }
 
 
-            if (frontContext.RenderContext.Response.StatusCode != 200)
+            if (frontContext.RenderContext.Response.StatusCode != 200 && frontContext.RenderContext.Response.StatusCode != 206)
             {
                 if (string.IsNullOrEmpty(frontContext.RenderContext.Response.RedirectLocation))
                 {

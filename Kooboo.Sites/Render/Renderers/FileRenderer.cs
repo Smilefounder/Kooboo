@@ -64,6 +64,23 @@ namespace Kooboo.Sites.Render
             {
                 var partinfo = sitedb.Files.Store.GetFieldPart(file.Id, nameof(file.ContentBytes));
 
+                try
+                {
+                    var range = context.RenderContext.Request.Headers.Get("Range");
+                    if (range?.StartsWith("bytes=") ?? false)
+                    {
+                        partinfo.RangeStart = Convert.ToInt64(range.Substring(6).Split('-')[0]);
+
+                        if (partinfo.RangeStart > 0)
+                        {
+                            context.RenderContext.Response.StatusCode = 206;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                }
+
                 context.RenderContext.Response.FilePart = partinfo;
             }
             else
@@ -78,7 +95,7 @@ namespace Kooboo.Sites.Render
                 {
                     FileContent = file;
                 }
-                 
+
 
                 if (FileContent.ContentBytes != null)
                 {
