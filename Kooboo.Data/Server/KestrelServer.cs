@@ -152,8 +152,7 @@ namespace Kooboo.Data.Server
                     ssloption.ClientCertificateMode = Microsoft.AspNetCore.Server.Kestrel.Https.ClientCertificateMode.NoCertificate;
                     ssloption.ClientCertificateValidation = (x, y, z) => { return true; };
                     ssloption.HandshakeTimeout = new TimeSpan(0, 0, 30);
-
-                    ssloption.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls11 | System.Security.Authentication.SslProtocols.Tls;
+                    ssloption.SslProtocols = System.Security.Authentication.SslProtocols.None;
 
                     lisOption.UseHttps(ssloption);
                 }
@@ -495,7 +494,7 @@ namespace Kooboo.Data.Server
                         try
                         {
                             res.Headers["Content-Length"] = response.Body.Length.ToString();
-                            
+
                             await response.Body.ChunkCopyAsync(res.Body).ConfigureAwait(false);
                         }
                         catch (Exception)
@@ -508,12 +507,12 @@ namespace Kooboo.Data.Server
                         if (response.Stream != null)
                         {
                             await response.Stream.ChunkCopyAsync(res.Body, response.Stream.Length);
-                        } 
+                        }
                         else if (response.FilePart != null)
                         {
                             await WritePartToResponse(response.FilePart, res);
                         }
-                          
+
                         else
                         {
                             // 404.   
