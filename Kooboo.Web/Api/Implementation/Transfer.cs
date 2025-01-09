@@ -1,16 +1,14 @@
 //Copyright (c) 2018 Yardi Technology Limited. Http://www.kooboo.com 
 //All rights reserved.
+using System.Linq;
+using Kooboo.Api;
+using Kooboo.Api.ApiResponse;
 using Kooboo.Data.Models;
+using Kooboo.Data.Permission;
 using Kooboo.Lib.Helper;
 using Kooboo.Sites.Extensions;
 using Kooboo.Sites.SiteTransfer;
-using Kooboo.Api.ApiResponse;
 using Kooboo.Web.ViewModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Kooboo.Api;
-
 
 namespace Kooboo.Web.Api.Implementation
 {
@@ -39,22 +37,28 @@ namespace Kooboo.Web.Api.Implementation
             }
         }
 
-        public  SingleResponse Single(string pageUrl, string name, ApiCall call)
+        [Permission(Feature.PAGES, Action = Data.Permission.Action.EDIT)]
+        public SingleResponse Single(string pageUrl, string name, ApiCall call)
         {
+            if (name.ToLower().StartsWith("http://") || name.ToLower().StartsWith("https://"))
+            {
+                // this is a mistake, should swap.. 
+                string temp = name;
+                name = pageUrl;
+                pageUrl = temp;
+            }
+
             SingleResponse response = new SingleResponse();
             var sitedb = call.WebSite.SiteDb();
-                                                   
-            if (Kooboo.Sites.SiteTransfer.TransferManager.IsUrlBanned(pageUrl))
+
+            if (TransferManager.IsUrlBanned(pageUrl))
             {
                 string error = Data.Language.Hardcoded.GetValue("Target Url is Protected", call.Context);
 
                 throw new Exception(error);
             }
 
-            if (!pageUrl.ToLower().StartsWith("http"))
-            {
-                pageUrl = "http://" + pageUrl;
-            }
+            pageUrl = TransferHelper.StandardizeUrl(pageUrl);
 
             if (!Lib.Helper.UrlHelper.IsValidUrl(pageUrl, true))
             {
@@ -73,10 +77,11 @@ namespace Kooboo.Web.Api.Implementation
 
             if (!string.IsNullOrEmpty(pageUrl))
             {
-                var task = TransferManager.AddTask(sitedb, pageUrl, name, call.Context.User.Id);
+                var headless = call.GetBoolValue("headless");
+                var task = TransferManager.AddTask(sitedb, pageUrl, name,headless, call.Context.User.Id);
 
                 TransferManager.ExecuteTask(sitedb, task).Wait();
-                    
+
                 response.TaskId = task.Id;
                 response.Finish = true;
 
@@ -112,7 +117,7 @@ namespace Kooboo.Web.Api.Implementation
         }
 
         public virtual TransferResponse ByPage(ApiCall call)
-        {           
+        {
             string fulldomain = call.GetValue("FullDomain");
             if (string.IsNullOrEmpty(fulldomain))
             {
@@ -126,6 +131,9 @@ namespace Kooboo.Web.Api.Implementation
             {
                 return null;
             }
+
+            string url = call.GetValue("url");
+            url = TransferHelper.StandardizeUrl(url);
 
             string urlstring = call.GetValue("Urls");
             List<string> urls = Lib.Helper.JsonHelper.Deserialize<List<string>>(urlstring);
@@ -141,20 +149,31 @@ namespace Kooboo.Web.Api.Implementation
                     throw new Exception(error);
                 }
 
-                WebSite newsite = Kooboo.Sites.Service.WebSiteService.AddNewSite(call.Context.User.CurrentOrgId, sitename, fulldomain, call.Context.User.Id);
+                WebSite newsite = Kooboo.Sites.Service.WebSiteService.AddNewSite(call.Context.User.CurrentOrgId, sitename, fulldomain, call.Context.User.Id, true);
 
-                var transferTask = TransferManager.AddTask(newsite.SiteDb(), urls, call.Context.User.Id);
+                var headless = call.GetBoolValue("headless");
+                var convertToRoot = call.GetBoolValue("convertToRoot");
+                string relativeToRoot = null;
+                if (convertToRoot) relativeToRoot = TransferHelper.GetRelativeToRoot(url);
 
-                TransferManager.ExecuteTask(newsite.SiteDb(), transferTask);
+                var transferTask = TransferManager.AddTask(
+                    newsite.SiteDb(),
+                    urls,
+                    headless,
+                    relativeToRoot,
+                    call.Context.User.Id
+                );
+
+                _ = TransferManager.ExecuteTask(newsite.SiteDb(), transferTask);
 
                 return new TransferResponse
                 {
                     SiteId = newsite.Id,
                     TaskId = transferTask.Id,
                     Success = true
-                };  
-            }   
-            return null;   
+                };
+            }
+            return null;
         }
 
         [Kooboo.Attributes.RequireParameters("RootDomain", "SubDomain", "SiteName", "url")]
@@ -172,6 +191,7 @@ namespace Kooboo.Web.Api.Implementation
             }
             // model.Url, model.TotalPages, model.Depth
             string url = call.GetValue("url");
+            url = TransferHelper.StandardizeUrl(url);
             if (string.IsNullOrEmpty(url))
             {
                 return null;
@@ -184,13 +204,6 @@ namespace Kooboo.Web.Api.Implementation
                 throw new Exception(error);
             }
 
-
-            url = url.Trim();
-            if (!url.ToLower().StartsWith("http"))
-            {
-                url = "http://" + url;
-            }
-
             if (!Lib.Helper.UrlHelper.IsValidUrl(url, true))
             {
                 throw new Exception(Data.Language.Hardcoded.GetValue("Invalid Url", call.Context));
@@ -199,12 +212,12 @@ namespace Kooboo.Web.Api.Implementation
             string strTotalPages = call.GetValue("TotalPages");
             string strDepth = call.GetValue("Depth");
 
-            int totalpages = 0;
+            int totalPages = 0;
             int depth = 0;
 
-            if (string.IsNullOrEmpty(strTotalPages) || !int.TryParse(strTotalPages, out totalpages))
+            if (string.IsNullOrEmpty(strTotalPages) || !int.TryParse(strTotalPages, out totalPages))
             {
-                totalpages = 10;
+                totalPages = 10;
             }
 
             if (string.IsNullOrEmpty(strDepth) || !int.TryParse(strDepth, out depth))
@@ -212,19 +225,24 @@ namespace Kooboo.Web.Api.Implementation
                 depth = 2;
             }
 
-            //if (Data.AppSettings.IsOnlineServer)
-            //{
-            //    if (totalpages > 3)
-            //    {
-            //        totalpages = 3;
-            //    }
-            //}
 
-            WebSite newsite = Kooboo.Sites.Service.WebSiteService.AddNewSite(call.Context.User.CurrentOrgId, sitename, fulldomain, call.Context.User.Id);
+            WebSite newsite = Kooboo.Sites.Service.WebSiteService.AddNewSite(call.Context.User.CurrentOrgId, sitename, fulldomain, call.Context.User.Id, true);
+            var headless = call.GetBoolValue("headless");
+            var convertToRoot = call.GetBoolValue("convertToRoot");
+            string relativeToRoot = null;
+            if (convertToRoot) relativeToRoot = TransferHelper.GetRelativeToRoot(url);
 
-            var transferTask = TransferManager.AddTask(newsite.SiteDb(), url, totalpages, depth, call.Context.User.Id);
+            var transferTask = TransferManager.AddTask(
+                newsite.SiteDb(),
+                url,
+                totalPages,
+                depth,
+                headless,
+                relativeToRoot,
+                call.Context.User.Id
+            );
 
-            TransferManager.ExecuteTask(newsite.SiteDb(), transferTask);
+            _ = TransferManager.ExecuteTask(newsite.SiteDb(), transferTask);
 
             return new TransferResponse
             {
@@ -239,6 +257,11 @@ namespace Kooboo.Web.Api.Implementation
         {
             HashSet<string> result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             string url = call.GetValue("url");
+            url = TransferHelper.StandardizeUrl(url);
+            if (string.IsNullOrEmpty(url))
+            {
+                return null;
+            }
             string strpage = call.GetValue("pages");
             if (string.IsNullOrEmpty(url) && string.IsNullOrEmpty(strpage))
             {
@@ -255,13 +278,36 @@ namespace Kooboo.Web.Api.Implementation
             url = System.Net.WebUtility.UrlDecode(url);
             result.Add(url);
 
-            if (result.Count >= pagenumber)
+            if (result.Count >= pagenumber) return result;
+            RecurvePageUrls(url, pagenumber, result);
+            return result;
+        }
+
+        private static void RecurvePageUrls(string url, int pageNumber, HashSet<string> result, HashSet<string> passUrl = null)
+        {
+            if (passUrl == default) passUrl = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return;
+            if (passUrl.Contains(uri.AbsolutePath)) return;
+            passUrl.Add(uri.AbsolutePath);
+            var urls = GetPageUrls(url);
+
+            foreach (var item in urls)
             {
-                return result;
+                result.Add(item);
+                if (result.Count >= pageNumber) return;
             }
 
-            var download = Lib.Helper.DownloadHelper.DownloadUrl(url);
+            foreach (var item in urls)
+            {
+                RecurvePageUrls(item, pageNumber, result, passUrl);
+                if (result.Count >= pageNumber) return;
+            }
+        }
 
+        private static IEnumerable<string> GetPageUrls(string url)
+        {
+            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var download = Lib.Helper.DownloadHelper.DownloadUrlAsync(url, null, "GET", null, null).Result;
             if (download != null && download.StatusCode == 200 && download.isString)
             {
                 string content = download.GetString();
@@ -280,17 +326,8 @@ namespace Kooboo.Web.Api.Implementation
                     if (issamehost)
                     {
                         result.Add(absoluteurl);
-                        if (result.Count >= pagenumber)
-                        {
-                            return result;
-                        }
                     }
                 }
-            }
-
-            if (result.Count >= pagenumber)
-            {
-                return result;
             }
 
             return result;
@@ -336,7 +373,6 @@ namespace Kooboo.Web.Api.Implementation
 
             return response;
         }
-
     }
 
     public class TaskResponse

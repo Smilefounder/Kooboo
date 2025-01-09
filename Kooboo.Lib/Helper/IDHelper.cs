@@ -1,33 +1,30 @@
 //Copyright (c) 2018 Yardi Technology Limited. Http://www.kooboo.com 
 //All rights reserved.
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kooboo.Lib.Helper
 {
-  public static  class IDHelper
+    public static class IDHelper
     {
-        private static Random RND = new Random(); 
+        private static Random RND = new Random();
 
         private static object _locker = new object();
 
-        private static long _currentId = 100; 
+        private static long _currentId = 100;
 
         public static long NewLongId()
         {
-            lock(_locker)
+            lock (_locker)
             {
                 _currentId += 1;
                 return _currentId;
             }
-        } 
+        }
 
         public static int NextRandom(int begin, int end)
         {
-            return RND.Next(begin, end); 
+            return RND.Next(begin, end);
         }
 
 
@@ -49,9 +46,9 @@ namespace Kooboo.Lib.Helper
 
             System.Buffer.BlockCopy(idbytes, 8, lastid, 8, 8);
 
-            return new Guid(lastid); 
+            return new Guid(lastid);
         }
-         
+
         public static DateTime ExtractTimeFromGuid(Guid id)
         {
             var bytes = id.ToByteArray();
@@ -72,12 +69,12 @@ namespace Kooboo.Lib.Helper
 
         // two way int to guid. 
         public static Guid NewIntGuid(int id)
-        { 
+        {
             byte[] intbytes = BitConverter.GetBytes(id);
-             
+
             intbytes = intbytes.Reverse().ToArray();
 
-            var newid = Security.Hash.ComputeGuidIgnoreCase(id.ToString()); 
+            var newid = Security.Hash.ComputeGuidIgnoreCase(id.ToString());
 
             var idbytes = newid.ToByteArray();
 
@@ -87,7 +84,7 @@ namespace Kooboo.Lib.Helper
 
             System.Buffer.BlockCopy(idbytes, 0, lastid, 4, 12);
 
-            return new Guid(lastid);       
+            return new Guid(lastid);
         }
 
         // two way int to guid. 
@@ -97,7 +94,7 @@ namespace Kooboo.Lib.Helper
 
             intbytes = intbytes.Reverse().ToArray();
 
-            var newid = System.Guid.NewGuid(); 
+            var newid = System.Guid.NewGuid();
 
             var idbytes = newid.ToByteArray();
 
@@ -120,11 +117,9 @@ namespace Kooboo.Lib.Helper
 
             intbytes = intbytes.Reverse().ToArray();
 
-           return BitConverter.ToInt32(intbytes, 0);      
-
+            return BitConverter.ToInt32(intbytes, 0); 
         }
-
-
+         
         public static Guid ParseKey(object key)
         {
             if (key == null)
@@ -136,21 +131,38 @@ namespace Kooboo.Lib.Helper
             {
                 return (Guid)key;
             }
-            string strkey = key.ToString();
-            return GetOrParseKey(strkey);
+            string strKey = key.ToString();
+            return GetOrParseKey(strKey);
         }
 
-        public static Guid GetOrParseKey(string strkey)
+        public static Guid GetOrParseKey(string strKey)
         {
-            Guid guidkey;
-            if (System.Guid.TryParse(strkey, out guidkey))
+            Guid guidKey;
+            if (System.Guid.TryParse(strKey, out guidKey))
             {
-                return guidkey;
+                return guidKey;
             }
             else
             {
-                return Lib.Security.Hash.ComputeGuidIgnoreCase(strkey);
+                return Lib.Security.Hash.ComputeGuidIgnoreCase(strKey);
             }
         }
+
+        public static Guid CombineId(Guid one, Guid two)
+        { 
+            // Convert the GUIDs to byte arrays
+            byte[] bytes1 = one.ToByteArray();
+            byte[] bytes2 = two.ToByteArray();
+
+            // Create a new byte array to hold the combined bytes
+            byte[] combinedBytes = new byte[16];
+
+            // Combine the two GUIDs by taking the first 8 bytes from each
+            Array.Copy(bytes1, 0, combinedBytes, 0, 8); // First half from guid1
+            Array.Copy(bytes2, 0, combinedBytes, 8, 8); // Second half from guid2
+
+            return new Guid(combinedBytes);
+        }
+
     }
 }

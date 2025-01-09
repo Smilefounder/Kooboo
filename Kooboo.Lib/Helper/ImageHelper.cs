@@ -1,8 +1,9 @@
 //Copyright (c) 2018 Yardi Technology Limited. Http://www.kooboo.com 
 //All rights reserved.
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.IO;
+using System.Linq;
+using SixLabors.ImageSharp;
 
 namespace Kooboo.Lib.Helper
 {
@@ -46,6 +47,84 @@ namespace Kooboo.Lib.Helper
                 Height = height,
                 Width = width
             };
+        }
+
+        public static int GetGifFrameCount(byte[] image)
+        {
+            if (image == null || image.Length == 0)
+            {
+                return 0;
+            }
+
+            try
+            {
+                using MemoryStream mo = new MemoryStream(image);
+                using var gif = Image.Load(mo);
+                return gif.Frames.Count;
+            }
+            catch (Exception)
+            {
+            }
+
+            return 0;
+        }
+
+        public static byte[] ConvertToTwoFramesGif(byte[] image)
+        {
+            if (image == null || image.Length == 0)
+            {
+                return null;
+            }
+
+            try
+            {
+                using var mo = new MemoryStream(image);
+                using var gif = Image.Load(mo);
+
+                if (gif.Frames.Count < 2)
+                {
+                    var firstFrame = gif.Frames.CloneFrame(0);
+                    gif.Frames.AddFrame(firstFrame.Frames.First());
+                    using var resultMemoryStream = new MemoryStream();
+                    gif.SaveAsGif(resultMemoryStream);
+                    return resultMemoryStream.ToArray();
+                }
+                else
+                {
+                    return image;
+                }
+            }
+            catch (Exception)
+            {
+            }
+
+            return null;
+        }
+
+        public static string GetFileExtension(byte[] image)
+        {
+            if (image == null)
+            {
+                return null;
+            }
+
+            MemoryStream mo = new MemoryStream(image);
+            try
+            {
+                var formate = Image.DetectFormat(mo);
+                if (formate != null && formate.FileExtensions != null && formate.FileExtensions.Any())
+                {
+                    return formate.FileExtensions.FirstOrDefault();
+                }
+
+
+            }
+            catch (Exception)
+            {
+
+            }
+
+            return null;
         }
     }
 
